@@ -33,6 +33,7 @@ bun run build             # Build the app
   - [Bun][6] - **Package manager:** Runtime, Package Manager, Bundler & Test Runner
     - [Biome][13] - **JavaScript / TypeScript linter:** Enforce code style and best practices
     - [Knip][14] - **Dependency analysis:** Detect unused imports, dead code, and dependencies
+    - [jscpd][15] - **Copy/paste detector:** Detect duplicate code
   - [Pre-commit][12] - **Pre-commit hooks:** Checks before committing code
 - [Gitlint][11] - **Git commit message linter:** Enforce commit message conventions
 
@@ -80,3 +81,4 @@ The project is available as open source under the terms of the [MIT][1] [License
 [12]: https://pre-commit.com 'Framework for managing and maintaining multi-language pre-commit hooks'
 [13]: https://biomejs.dev 'Biome - JavaScript / TypeScript linter'
 [14]: https://github.com/webpro/knip 'Knip - Dependency analysis - Detect unused imports, dead code, and dependencies'
+[15]: https://github.com/kucherenko/jscpd 'jscpd - Copy/paste detector - Detect duplicate code'

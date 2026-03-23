@@ -22,7 +22,8 @@
     "lint:biome:format": "bunx biome format",
     "lint:knip": "bunx knip",
     "lint:knip:fix": "bunx knip --fix",
-    "lint": "e=0; bun run typecheck || e=1; bun run lint:biome || e=1; bun run lint:knip || e=1; exit $e",
+    "lint:jscpd": "bunx jscpd .",
+    "lint": "e=0; bun run typecheck || e=1; bun run lint:biome || e=1; bun run lint:knip || e=1; bun run lint:jscpd || e=1; exit $e",
     "lint:fix": "e=0; bun run lint:biome:fix || e=1; bun run lint:knip:fix || e=1; exit $e"
   },
   "workspaces": {
@@ -41,6 +42,7 @@
     "@biomejs/biome": "^2.4.10",
     "@types/bun": "^1.3.11",
     "bun-types": "latest",
+    "jscpd": "^4.0.8",
     "knip": "^6.3.0",
     "typescript": "^5"
   }
