@@ -1,0 +1,9 @@
+failure-threshold: warning
+ignored:
+  - SC2155
+  - DL3018
+strict-labels: false
+trustedRegistries:
+  - docker.io
+  - gcr.io
+  - mcr.microsoft.com

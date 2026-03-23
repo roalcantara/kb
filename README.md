@@ -22,7 +22,10 @@ git clone https://github.com/roalcantara/kb
     - [jscpd][13] - **Copy/paste detector:** Detect duplicate code
     - [dependency-cruiser][14] - **Dependency analysis:** Validate and visualise dependencies
   - [Pre-commit][10] - **Pre-commit hooks:** Checks before committing code
+  - [Hadolint][17] - **Dockerfile linter:** Enforce Dockerfile best practices
+  - [Container Structure Test][18] - **Container validation:** Validate Docker image structure and behavior
 - [Gitlint][9] - **Git commit message linter:** Enforce commit message conventions
+- [Docker][15] - **Containerization platform:** Build, ship, and run containers
 
 ### USAGE
 
@@ -36,6 +39,28 @@ bun run test:watch        # Run tests with hot reloading
 bun run lint              # Run linting
 bun run lint:fix          # Fix lint errors
 bun run build             # Build the app
+```
+
+### DOCKER
+
+```sh
+docker pull roalcantara/kb:latest           # Pull the Docker image tagged as latest from Docker Hub
+docker run --rm roalcantara/kb --help       # Run the Docker image tagged as latest as a container
+docker build -t roalcantara/kb:latest .     # Build a Docker image tagged as latest for the current platform
+docker push roalcantara/kb:latest           # Push the Docker image tagged as latest to Docker Hub
+docker push roalcantara/kb:v1.0.0           # Push the Docker image tagged as v1.0.0 to Docker Hub
+```
+
+### [CST][18] - Container Structure Tests
+
+[CST][18] provides a powerful framework to validate the structure of a container image.
+These tests can be used to check the output of commands in an image, as well as verify metadata and contents of the filesystem.
+
+To build an [Alpine Linux][16] image and execute the [CST][18] tests, using configuration file [tools/container-structure-test.yml](tools/container-structure-test.yml), run:
+
+```sh
+# Build the Docker image and execute the CST tests
+mise run docker:test
 ```
 
 ---
@@ -73,3 +98,7 @@ The project is available as open source under the terms of the [MIT][1] [License
 [12]: https://github.com/webpro/knip 'Knip - Dependency analysis - Detect unused imports, dead code, and dependencies'
 [13]: https://jscpd.dev 'jscpd - Copy/paste detector for source code'
 [14]: https://github.com/sverweij/dependency-cruiser 'dependency-cruiser - Validate and visualise dependencies'
+[15]: https://docker.com 'Docker - Containerization platform'
+[16]: https://alpinelinux.org 'Alpine Linux - A minimalistic Linux distribution'
+[17]: https://github.com/hadolint/hadolint 'Hadolint - Dockerfile linter'
+[18]: https://github.com/GoogleContainerTools/container-structure-test 'Container Structure Test - validate the structure of your container images'

@@ -1,0 +1,26 @@
+# Container Structure Tests for kb Docker image
+# Validates the minimal alpine image produced by the multi-stage Dockerfile:
+# - Binary at /usr/local/bin/kb
+# - Default run with --help to display help, same as kb -h
+# https://github.com/GoogleContainerTools/container-structure-test
+schemaVersion: '2.0.0'
+
+fileExistenceTests:
+  - name: kb binary exists at /usr/local/bin/kb
+    path: /usr/local/bin/kb
+    shouldExist: true
+  - name: kb binary is executable
+    path: /usr/local/bin/kb
+    shouldExist: true
+    permissions: '-rwxr-xr-x'
+
+commandTests:
+  - name: kb with no args displays
+    command: kb
+    args: ['--help']
+    exitCode: 0
+    expectedOutput:
+      - 'KodexB - Personal Knowledge Base'
+      - 'Usage:'
+      - 'kb <command>'
+      - 'greet'

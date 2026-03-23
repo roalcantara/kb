@@ -3,12 +3,18 @@
 # Manages environment variables
 # Task runner that can be used to share common tasks within a project
 
+[env]
+REGISTRY_IMAGE = "roalcantara/kb"
+CST_CONFIG = "tools/container-structure-test.yml"
+
 # https://mise.jdx.dev/dev-tools
 [tools]
 bun = "latest"
 usage = "latest"
 tombi = "latest"
 pre-commit = "4.4"
+hadolint = "latest"
+container-structure-test = "latest"
 
 # https://mise.jdx.dev/tasks
 [tasks]
@@ -24,4 +30,61 @@ pre-commit = "4.4"
   ''', run = '''
     #!/usr/bin/env bash
     mise install --yes && mise run prepare $($usage_ci && echo '--ci')
+  ''' }
+
+# mise run docker:build
+# mise run docker:build --nocache --platform amd64
+# mise run docker:build --nocache --tag next
+"docker:build" = { description = "Build a Docker image for the project", usage = '''
+  flag "--nocache" help="Disable build cache"
+  flag "--tag <tag>" help="Image tag suffix" default="latest"
+  flag "--image <image>" help="Image name (without tag)" env="REGISTRY_IMAGE"
+  flag "--platform <platform>" {
+    help "Target platform"
+    choices "amd64" "arm64" "amd64v2"
+    default "arm64"
+  }
+  ''', run = '''
+  #!/usr/bin/env bash
+  case "$usage_platform" in
+    amd64)    PLATFORM_VALUE="linux/amd64" ;;
+    arm64)    PLATFORM_VALUE="linux/arm64" ;;
+    amd64v2)  PLATFORM_VALUE="linux/amd64/v2" ;;
+  esac
+
+  DOCKER_CMD=(DOCKER_BUILDKIT=1 docker build --build-arg=BUILDKIT_INLINE_CACHE=1 --platform="$PLATFORM_VALUE" --file="Dockerfile")
+  [ "${usage_nocache:-false}" = "true" ] && DOCKER_CMD+=(--no-cache)
+  DOCKER_CMD+=(--tag "$usage_image:$usage_tag" .)
+  echo "  ==> ${DOCKER_CMD[*]}"
+  eval "${DOCKER_CMD[*]}"
+  ''' }
+
+# mise run docker:run
+# mise run docker:run --tag local
+# mise run docker:run --image roalcantara/kb:local
+"docker:run" = { description = "Start a Docker container", usage = '''
+  flag "--tag <tag>" help="Image tag (use with built image)" default="latest"
+  flag "--image <image>" help="Image name (without tag)" env="REGISTRY_IMAGE"
+ ''', run = '''
+  #!/usr/bin/env bash
+  set -euo pipefail
+
+  echo "  ==> docker run -it --rm $usage_image:${usage_tag}"
+  docker run -it --rm $usage_image:${usage_tag}
+  ''' }
+
+# mise run docker:test
+# mise run docker:test --tag next
+# mise run docker:test --image roalcantara/kb:next
+"docker:test" = { description = "Run Container Structure Tests for the Docker image", depends = [
+  "docker:build"
+], usage = '''
+  flag "--tag <tag>" help="Image tag" default="latest"
+  flag "--image <image>" help="Image name (without tag)" env="REGISTRY_IMAGE"
+  flag "--config <config>" help="CST config path" env="CST_CONFIG"
+ ''', run = '''
+  #!/usr/bin/env bash
+  image="${usage_image}:${usage_tag}"
+  echo "  ==> container-structure-test test --image $image --config $usage_config"
+  mise exec -- container-structure-test test --image "$image" --config "$usage_config"
   ''' }

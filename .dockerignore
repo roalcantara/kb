@@ -1,0 +1,10 @@
+# Ignore everything by default
+*
+
+# Allow only what the build actually needs
+!bun.lock
+!package.json
+!tsconfig.json
+!index.ts
+!src/
+!src/**
