@@ -32,6 +32,7 @@ bun run build             # Build the app
 - [Mise][9] - **Development tools:** Manage development tools like node, python, cmake, terraform, and hundreds more
   - [Bun][6] - **Package manager:** Runtime, Package Manager, Bundler & Test Runner
     - [Biome][13] - **JavaScript / TypeScript linter:** Enforce code style and best practices
+    - [Knip][14] - **Dependency analysis:** Detect unused imports, dead code, and dependencies
   - [Pre-commit][12] - **Pre-commit hooks:** Checks before committing code
 - [Gitlint][11] - **Git commit message linter:** Enforce commit message conventions
 
@@ -78,3 +79,4 @@ The project is available as open source under the terms of the [MIT][1] [License
 [11]: https://jorisroovers.com/gitlint 'Git commit message linter'
 [12]: https://pre-commit.com 'Framework for managing and maintaining multi-language pre-commit hooks'
 [13]: https://biomejs.dev 'Biome - JavaScript / TypeScript linter'
+[14]: https://github.com/webpro/knip 'Knip - Dependency analysis - Detect unused imports, dead code, and dependencies'
