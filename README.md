@@ -2,7 +2,7 @@
 
 A terminal-based personal knowledge base management system.
 
-[![MIT license](https://img.shields.io/badge/License-MIT-brightgreen.svg?style=flat-square)](LICENSE) [![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-2.0-4baaaa.svg?style=flat-square)][2] [![Editor Config](https://img.shields.io/badge/Editor%20Config-1.0.1-crimson.svg?style=flat-square)][3] [![standard-readme compliant](https://img.shields.io/badge/readme%20style-standard-brightgreen.svg?style=flat-square)][4]
+[![MIT license](https://img.shields.io/badge/License-MIT-brightgreen.svg?style=flat-square)](LICENSE) [![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-2.0-4baaaa.svg?style=flat-square)][2] [![Editor Config](https://img.shields.io/badge/Editor%20Config-1.0.1-crimson.svg?style=flat-square)][3] [![standard-readme compliant](https://img.shields.io/badge/readme%20style-standard-brightgreen.svg?style=flat-square)][4] [![Conventional Commits](https://img.shields.io/badge/Conventional%20Commits-1.0.0-yellow.svg?style=flat-square)][10]
 
 ## INSTALL
 
@@ -30,7 +30,8 @@ bun run build             # Build the app
 - [Git][5] - **Version control:** Manage source code history and collaboration
 - [Mise][9] - **Development tools:** Manage development tools like node, python, cmake, terraform, and hundreds more
   - [Bun][6] - **Package manager:** Runtime, Package Manager, Bundler & Test Runner
-
+  - [Pre-commit][12] - **Pre-commit hooks:** Checks before committing code
+- [Gitlint][11] - **Git commit message linter:** Enforce commit message conventions
 #### BUN CATALOGS
 
 This workspace uses Bun named [catalogs][8] (`catalogs`, plural) instead of a single default catalog. The strategy is to group dependencies by role so version ownership is explicit and easy to evolve:
@@ -70,3 +71,6 @@ The project is available as open source under the terms of the [MIT][1] [License
 [7]: https://bun.com/docs/pm/workspaces 'Bun Workspaces'
 [8]: https://bun.com/docs/pm/catalogs 'Bun Catalogs'
 [9]: https://mise.jdx.dev 'Manages dev tools like node, python, cmake, terraform, and hundreds more'
+[10]: https://conventionalcommits.org 'Conventional Commits'
+[11]: https://jorisroovers.com/gitlint 'Git commit message linter'
+[12]: https://pre-commit.com 'Framework for managing and maintaining multi-language pre-commit hooks'
