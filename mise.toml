@@ -8,6 +8,7 @@
 bun = "latest"
 usage = "latest"
 tombi = "latest"
+pre-commit = "4.4"
 
 # https://mise.jdx.dev/tasks
 [tasks]
@@ -16,6 +17,7 @@ tombi = "latest"
   ''', run = '''
     #!/usr/bin/env bash
     bun install $($usage_ci && echo '--frozen-lockfile')
+    $usage_ci || pre-commit install --hook-type commit-msg
   ''' }
 "setup" = { description = "Install dependencies and hooks", usage = '''
     flag "--ci" help="Install dependencies for CI"
