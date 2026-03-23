@@ -28,7 +28,8 @@ bun run build             # Build the app
 ### DEPENDENCIES
 
 - [Git][5] - **Version control:** Manage source code history and collaboration
-- [Bun][6] - **Package manager:** Runtime, Package Manager, Bundler & Test Runner
+- [Mise][9] - **Development tools:** Manage development tools like node, python, cmake, terraform, and hundreds more
+  - [Bun][6] - **Package manager:** Runtime, Package Manager, Bundler & Test Runner
 
 #### BUN CATALOGS
 
@@ -68,3 +69,4 @@ The project is available as open source under the terms of the [MIT][1] [License
 [6]: https://bun.com 'Bun - Runtime / Package Manager / Bundler / Test Runner'
 [7]: https://bun.com/docs/pm/workspaces 'Bun Workspaces'
 [8]: https://bun.com/docs/pm/catalogs 'Bun Catalogs'
+[9]: https://mise.jdx.dev 'Manages dev tools like node, python, cmake, terraform, and hundreds more'

@@ -1,0 +1,25 @@
+# https://mise.jdx.dev
+# Installs and manages dev tools/runtimes
+# Manages environment variables
+# Task runner that can be used to share common tasks within a project
+
+# https://mise.jdx.dev/dev-tools
+[tools]
+bun = "latest"
+usage = "latest"
+tombi = "latest"
+
+# https://mise.jdx.dev/tasks
+[tasks]
+"prepare" = { description = "Install bun dependencies and hooks", usage = '''
+    flag "--ci" help="Install dependencies for CI"
+  ''', run = '''
+    #!/usr/bin/env bash
+    bun install $($usage_ci && echo '--frozen-lockfile')
+  ''' }
+"setup" = { description = "Install dependencies and hooks", usage = '''
+    flag "--ci" help="Install dependencies for CI"
+  ''', run = '''
+    #!/usr/bin/env bash
+    mise install --yes && mise run prepare $($usage_ci && echo '--ci')
+  ''' }
