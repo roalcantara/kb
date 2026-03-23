@@ -1,4 +1,4 @@
-import { setup } from "./apps/kb"
+import { setup } from './apps/kb'
 
 const cli = setup()
 

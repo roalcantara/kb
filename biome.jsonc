@@ -1,0 +1,212 @@
+{
+  "$schema": "https://biomejs.dev/schemas/2.4.10/schema.json",
+  "files": {
+    "ignoreUnknown": false,
+    "includes": [
+      "**/*.ts",
+      "**/*.js",
+      "**/*.json",
+      "**/*.jsonc",
+      "!dist",
+      "!dist-test",
+      "!node_modules",
+      "!.bunli",
+      "!.cursor",
+      "!assets"
+    ]
+  },
+  "formatter": {
+    "enabled": true,
+    "indentStyle": "space",
+    "indentWidth": 2,
+    "lineWidth": 120,
+    "formatWithErrors": true,
+    "useEditorconfig": true
+  },
+  "linter": {
+    "enabled": true,
+    "rules": {
+      "recommended": true,
+      "suspicious": {
+        "noAlert": "error",
+        "noConstantBinaryExpressions": "error",
+        "noEmptyBlockStatements": "error",
+        "noEmptySource": "error",
+        "noEvolvingTypes": "error",
+        "noMisplacedAssertion": "error",
+        "noUnassignedVariables": "error",
+        "noUnusedExpressions": "error",
+        "useAwait": "error",
+        "useErrorMessage": "error",
+        "useNumberToFixedDigitsArgument": "error"
+      },
+      "style": {
+        "noCommonJs": "error",
+        "noMagicNumbers": "error",
+        "useConst": "error",
+        "useConsistentTypeDefinitions": {
+          "level": "error",
+          "options": {
+            "style": "type"
+          }
+        },
+        "useFilenamingConvention": {
+          "level": "error",
+          "options": {
+            "requireAscii": true,
+            "filenameCases": ["snake_case"]
+          }
+        },
+        "useNamingConvention": {
+          "level": "error",
+          "options": {
+            "requireAscii": true,
+            "strictCase": true,
+            "conventions": [
+              {
+                "selector": {
+                  "kind": "objectLiteralProperty"
+                },
+                "formats": ["camelCase", "snake_case", "PascalCase"]
+              },
+              {
+                "selector": {
+                  "kind": "const"
+                },
+                "formats": ["camelCase", "snake_case", "CONSTANT_CASE", "PascalCase"]
+              },
+              {
+                "selector": {
+                  "kind": "typeProperty"
+                },
+                "formats": ["camelCase", "snake_case", "PascalCase"]
+              }
+            ]
+          }
+        },
+        "noDoneCallback": "error",
+        "noNegationElse": "error",
+        "noParameterAssign": "error",
+        "noProcessEnv": "error",
+        "noUnusedTemplateLiteral": "error",
+        "noUselessElse": "error",
+        "noYodaExpression": "error",
+        "useAsConstAssertion": "error",
+        "useCollapsedIf": "error",
+        "useConsistentArrayType": "error",
+        "useConsistentArrowReturn": "error",
+        "useConsistentMemberAccessibility": "error",
+        "useConsistentObjectDefinitions": {
+          "level": "error",
+          "options": {
+            "syntax": "shorthand"
+          }
+        },
+        "useGroupedAccessorPairs": "error",
+        "useObjectSpread": "error",
+        "useReactFunctionComponents": "error",
+        "useShorthandAssign": "error",
+        "useShorthandFunctionType": "error",
+        "useSymbolDescription": "error",
+        "useThrowNewError": "error",
+        "useThrowOnlyError": "error",
+        "useTrimStartEnd": "error",
+        "useUnifiedTypeSignatures": {
+          "level": "error",
+          "options": {
+            "ignoreDifferentlyNamedParameters": true
+          }
+        }
+      },
+      "complexity": {
+        "noExcessiveCognitiveComplexity": "error",
+        "useArrowFunction": "error",
+        "noExcessiveLinesPerFunction": {
+          "level": "error",
+          "options": {
+            "maxLines": 50,
+            "skipBlankLines": true
+          }
+        },
+        "noUselessCatchBinding": "error",
+        "noUselessStringConcat": "error",
+        "noUselessUndefined": "error",
+        "noVoid": "error"
+      },
+      "correctness": {
+        // Biome doesn't resolve TypeScript path aliases - it treats @*/... as an external package name, which is why it thinks it's an undeclared dependency
+        // And uses TypeScript as source of truth for imports, so it doesn't report false positives for missing imports
+        "noUndeclaredDependencies": "off"
+      },
+      "nursery": {
+        "noExcessiveClassesPerFile": "error",
+        "noExcessiveLinesPerFile": "error",
+        "noFloatingPromises": "error",
+        "noMisusedPromises": "error",
+        "noProto": "error",
+        "noRedundantDefaultExport": "error",
+        "noShadow": "error",
+        "noUnnecessaryConditions": "error",
+        "noUselessReturn": "error",
+        "useAwaitThenable": "error",
+        "useConsistentMethodSignatures": "error",
+        "useErrorCause": "error",
+        "useExhaustiveSwitchCases": "error",
+        "useExpect": "error"
+      },
+      "performance": {
+        "noAwaitInLoops": "error",
+        "noBarrelFile": "off",
+        "noDelete": "error",
+        "noNamespaceImport": "error",
+        "noReExportAll": "off",
+        "useTopLevelRegex": "error"
+      },
+      "security": {
+        "noSecrets": "error"
+      }
+    },
+    "domains": {
+      "project": "recommended",
+      "test": "recommended"
+    }
+  },
+  "javascript": {
+    "globals": ["$", "_"],
+    "parser": {
+      "unsafeParameterDecoratorsEnabled": true
+    },
+    "formatter": {
+      "enabled": true,
+      "indentStyle": "space",
+      "indentWidth": 2,
+      "lineWidth": 120,
+      "quoteStyle": "single",
+      "semicolons": "asNeeded",
+      "trailingCommas": "none",
+      "arrowParentheses": "asNeeded"
+    },
+    "linter": {
+      "enabled": true
+    },
+    "experimentalEmbeddedSnippetsEnabled": true
+  },
+  "json": {
+    "parser": {
+      "allowComments": true,
+      "allowTrailingCommas": false
+    },
+    "formatter": {
+      "enabled": true,
+      "indentStyle": "space",
+      "indentWidth": 2,
+      "lineWidth": 120,
+      "trailingCommas": "none",
+      "expand": "auto",
+      "trailingNewline": true
+    },
+    "linter": {
+      "enabled": true
+    }
+  }
+}
