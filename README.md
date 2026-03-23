@@ -15,7 +15,8 @@ git clone https://github.com/roalcantara/kb
 ### DEPENDENCIES
 
 - [Git][5] - **Version control:** Manage source code history and collaboration
-- [Bun][6] - **Package manager:** Runtime, Package Manager, Bundler & Test Runner
+- [Mise][7] - **Development tools:** Manage development tools like node, python, cmake, terraform, and hundreds more
+  - [Bun][6] - **Package manager:** Runtime, Package Manager, Bundler & Test Runner
 
 ### USAGE
 
@@ -57,3 +58,4 @@ The project is available as open source under the terms of the [MIT][1] [License
 [4]: https://github.com/RichardLitt/standard-readme 'Standard Readme'
 [5]: https://git-scm.com 'Distributed version control system'
 [6]: https://bun.com 'Bun - Runtime / Package Manager / Bundler / Test Runner'
+[7]: https://mise.jdx.dev 'Manages dev tools like node, python, cmake, terraform, and hundreds more'
