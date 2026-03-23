@@ -19,6 +19,7 @@ git clone https://github.com/roalcantara/kb
   - [Bun][6] - **Package manager:** Runtime, Package Manager, Bundler & Test Runner
     - [Biome][11] - **JavaScript / TypeScript linter:** Enforce code style and best practices
     - [Knip][12] - **Dependency analysis:** Detect unused imports, dead code, and dependencies
+    - [jscpd][13] - **Copy/paste detector:** Detect duplicate code
   - [Pre-commit][10] - **Pre-commit hooks:** Checks before committing code
 - [Gitlint][9] - **Git commit message linter:** Enforce commit message conventions
 
@@ -69,3 +70,4 @@ The project is available as open source under the terms of the [MIT][1] [License
 [10]: https://pre-commit.com 'Framework for managing and maintaining multi-language pre-commit hooks'
 [11]: https://biomejs.dev 'Biome - JavaScript / TypeScript linter'
 [12]: https://github.com/webpro/knip 'Knip - Dependency analysis - Detect unused imports, dead code, and dependencies'
+[13]: https://jscpd.dev 'jscpd - Copy/paste detector for source code'
