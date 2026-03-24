@@ -1,0 +1,230 @@
+# Triggered on every push to main (i.e. every merged PR).
+# Uses release-it (with @release-it/conventional-changelog) to:
+#   - analyse commits since the last tag
+#   - decide whether a release is warranted
+#   - bump version, update CHANGELOG.md, commit, tag, push
+#   - create a GitHub Release
+# If no releasable commits are found, release-it exits 0 with no side effects.
+#
+# Required merge strategy: SQUASH AND MERGE only.
+#
+#   ✓ Squash and merge  — one conventional commit per PR; clean linear history;
+#                         one accurate changelog entry per PR.
+#
+#   ✗ Create a merge commit — the merge commit ('Merge pull request #N …') is
+#                         non-conventional and ignored by release-it, but ALL
+#                         individual branch commits land on main separately,
+#                         creating multiple changelog entries per PR (including
+#                         any work-in-progress commits).
+#
+#   ✗ Rebase and merge  — same multi-entry changelog problem as merge commits;
+#                         additionally GitHub rewrites commit SHAs during rebase,
+#                         invalidating the original SSH commit signatures and
+#                         violating the signed-commit branch ruleset.
+name: Release
+
+on:
+  push:
+    branches: [main]
+
+concurrency:
+  cancel-in-progress: false # never cancel an in-flight release
+  group: 'kb-release'
+
+defaults:
+  run:
+    shell: bash
+
+env:
+  CI: true
+  # https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+permissions:
+  contents: read
+
+jobs:
+  release:
+    name: Create Release
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write # push commits + tags
+      issues: write # comment on released issues
+      pull-requests: write # comment on released PRs
+      id-token: write # OIDC provenance (future-proofing)
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          # full history so release-it can read all tags
+          fetch-depth: 0
+          # only required when using semantic-release (not https://github.com/release-it/release-it/blob/main/docs/ci.md#github-actions)
+          # https://semantic-release.gitbook.io/semantic-release/recipes/ci-configurations/github-actions#pushing-package.json-changes-to-your-repository
+          # persist-credentials: false
+
+      - name: Validate merge strategy (squash-and-merge only)
+        run: |
+          # Squash and merge is the only supported merge strategy for this repository.
+          # Failing early here prevents release-it from creating a malformed release
+          # or a changelog with unintended entries.
+          #
+          # Detected strategies that are NOT supported:
+          #   - 'Create a merge commit': the merge commit is non-conventional and
+          #     all individual branch commits land separately as multiple changelog entries.
+          #   - 'Rebase and merge': same multi-entry problem; GitHub also rewrites commit
+          #     SHAs during rebase, invalidating the original SSH signatures.
+          BEFORE="${{ github.event.before }}"
+          AFTER="${{ github.sha }}"
+
+          # Skip on the very first push to the repository (before SHA is all-zeros).
+          if [ "$BEFORE" = "0000000000000000000000000000000000000000" ]; then
+            echo "Initial push detected; skipping merge strategy validation."
+            exit 0
+          fi
+
+          COMMIT_COUNT=$(git log --oneline "${BEFORE}..${AFTER}" | wc -l | tr -d ' ')
+          HEAD_SUBJECT=$(git log --pretty=format:"%s" -1 "${AFTER}")
+
+          if echo "$HEAD_SUBJECT" | grep -qE "^Merge (pull request|branch)\b"; then
+            echo "::error::Detected 'Create a merge commit' merge strategy."
+            echo "  The merge commit ('${HEAD_SUBJECT}') is not a conventional commit."
+            echo "  Individual branch commits land separately on main, creating multiple"
+            echo "  changelog entries per PR (including any work-in-progress commits)."
+            echo "  Fix: re-merge the PR using 'Squash and merge'."
+            exit 1
+          fi
+
+          if [ "$COMMIT_COUNT" -gt 1 ]; then
+            echo "::error::Detected 'Rebase and merge' merge strategy (${COMMIT_COUNT} commits pushed)."
+            echo "  Individual branch commits land separately on main, creating multiple"
+            echo "  changelog entries per PR. GitHub also rewrites commit SHAs during rebase,"
+            echo "  invalidating the original SSH signatures and violating the signed-commit ruleset."
+            echo "  Fix: re-merge the PR using 'Squash and merge'."
+            exit 1
+          fi
+
+          echo "✓ Merge strategy OK: single squash commit detected."
+
+      - name: Setup Bun project
+        uses: ./.github/actions/setup-bun-project
+
+      - name: Start ssh-agent (for signing)
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.RELEASE_SIGNING_SSH_KEY }}
+
+      - name: Configure git signing + identity
+        env:
+          # Ensures that bash assignments read from environment variables, not expression syntax.
+          # This keeps behavior correct and makes fallback logic explicit and reliable in shell (-z checks now operate on plain env values, not expression syntax).
+          RELEASE_SIGNING_SIGNER_PUB: ${{ vars.RELEASE_SIGNING_SIGNER_PUB }}
+          RELEASE_GIT_USER_NAME: ${{ vars.RELEASE_GIT_USER_NAME }}
+          RELEASE_GIT_USER_EMAIL: ${{ vars.RELEASE_GIT_USER_EMAIL }}
+        run: |
+          git config --global gpg.format ssh
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+          # Prefer a pre-provided public key (best), otherwise derive from agent
+          if [ -n "$RELEASE_SIGNING_SIGNER_PUB" ]; then
+            signing_pub="$RELEASE_SIGNING_SIGNER_PUB"
+          else
+            # Use the pubkey from the agent (first key), with validation
+            first_key="$(ssh-add -L 2>/dev/null | head -n 1 || true)"
+            if [ -z "$first_key" ]; then
+              echo "ERROR: No SSH public key found in ssh-agent. Ensure RELEASE_SIGNING_SSH_KEY is configured, or set RELEASE_SIGNING_SIGNER_PUB to a valid public key." >&2
+              exit 1
+            fi
+            signing_pub="$first_key"
+          fi
+          printf '%s\n' "$signing_pub" > ~/.ssh/release_signing_key.pub
+          chmod 644 ~/.ssh/release_signing_key.pub
+          git config --global user.signingkey ~/.ssh/release_signing_key.pub
+          git config --global commit.gpgsign true
+          git config --global tag.gpgsign true
+
+          # Fallback to github-actions[bot] identity if not set
+          GIT_USER_NAME="${RELEASE_GIT_USER_NAME}"
+          GIT_USER_EMAIL="${RELEASE_GIT_USER_EMAIL}"
+          if [ -z "$GIT_USER_NAME" ] || [ -z "$GIT_USER_EMAIL" ]; then
+            echo "RELEASE_GIT_USER_NAME / RELEASE_GIT_USER_EMAIL not set; falling back to github-actions[bot] identity."
+            GIT_USER_NAME="github-actions[bot]"
+            GIT_USER_EMAIL="41898282+github-actions[bot]@users.noreply.github.com"
+          fi
+          git config --global user.name  "$GIT_USER_NAME"
+          git config --global user.email "$GIT_USER_EMAIL"
+
+      - name: Verify signing works
+        run: |
+          # Saves the original HEAD SHA to reset to after the test
+          # This avoids failures when HEAD has no parent (e.g. initial commit) and is more robust in any edge case where HEAD~1 is invalid
+          original_head_sha="$(git rev-parse HEAD)"
+          git_status=$(git status --porcelain)
+          if [ -n "$git_status" ]; then
+            echo "ERROR: Git working directory is not clean before signing test commit:"
+            echo "$git_status"
+            exit 1
+          fi
+          echo "test" > .signing-test
+          git add .signing-test
+          git commit -m "test: signing" -S
+          # Assert that the commit object contains a signature header, without requiring trust configuration.
+          if git cat-file -p HEAD | grep -q '^gpgsig '; then
+            echo "Verified: commit contains a gpgsig header (signature present)."
+          else
+            echo "ERROR: Commit was not signed (no gpgsig header found)."
+            git reset --hard "$original_head_sha"
+            rm -f .signing-test
+            exit 1
+          fi
+
+          # Also verify that creating a signed tag works, to catch tag-signing issues early.
+          temp_tag="signing-test-tag-$$"
+          git tag -s "$temp_tag" -m "test: signing tag"
+
+          # Annotated signed tags embed a block: OpenPGP uses BEGIN PGP SIGNATURE;
+          # SSH signing (gpg.format ssh) uses BEGIN SSH SIGNATURE.
+          if git cat-file -p "refs/tags/$temp_tag" | grep -qE '^-----BEGIN (PGP SIGNATURE|SSH SIGNATURE)-----'; then
+            echo "Verified: tag object contains an embedded signature block (PGP or SSH)."
+          else
+            echo "ERROR: Signed tag does not contain an embedded PGP or SSH signature block (no signature found)."
+            # Clean up before failing to avoid leaving temporary state behind.
+            git tag -d "$temp_tag" || true
+            git reset --hard "$original_head_sha"
+            rm -f .signing-test
+            exit 1
+          fi
+
+          # Clean up before exiting to avoid leaving temporary state behind.
+          git tag -d "$temp_tag" || true
+          git reset --hard "$original_head_sha"
+          rm -f .signing-test
+          echo "All signing tests passed successfully."
+
+      - name: Create Release
+        env:
+          # GH_TOKEN (personal) is required when branch protection is enabled on main,
+          # because the built-in GITHUB_TOKEN cannot bypass required status checks.
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+        run: bun run release:ci
+
+      - name: Verify draft release was created
+        run: |
+          # Polls until the new draft release is visible in the GitHub API.
+          # Uses --limit 1 (most recent release, includes drafts) rather than
+          # `gh release view` (no tag), which calls /releases/latest and
+          # explicitly excludes draft releases.
+          # Exits 0 either way — no draft means no releasable commits were found.
+          for i in {1..10}; do
+            TAG=$(gh release list --repo "$GITHUB_REPOSITORY" --limit 1 \
+              --json tagName,isDraft \
+              --jq 'if .[0].isDraft then .[0].tagName else "" end')
+            if [ -n "$TAG" ]; then
+              echo "✓ Draft release found: $TAG"
+              exit 0
+            fi
+            echo "No draft release found yet (attempt $i/10); waiting 5s..."
+            sleep 5
+          done
+          echo "No new draft release was created (possibly no releasable commits found)."
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}

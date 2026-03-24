@@ -25,12 +25,7 @@ RUN --mount=type=cache,target=/root/.bun/install/cache \
     bun install --frozen-lockfile
 COPY . .
 # Compile to a self-contained binary — no bun runtime needed in the final image.
-RUN bun build index.ts \
-       --bytecode --minify --sourcemap \
-        --no-compile-autoload-dotenv \
-        --no-compile-autoload-bunfig \
-        --compile \
-        --outfile dist/kb
+RUN bun run build:prod
 
 # ── STAGE 2: final ────────────────────────────────────────────────────────────
 FROM alpine:3 AS final

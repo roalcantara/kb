@@ -1,0 +1,106 @@
+name: Build Docker image
+description: Build and optionally push a Docker image with configurable platforms and cache
+
+inputs:
+  context:
+    description: Build context path
+    required: false
+    default: .
+  platforms:
+    description: Target platforms (e.g. linux/amd64 or linux/amd64,linux/arm64)
+    required: true
+  tags:
+    description: Image tag(s) to build (omit when using metadata_images + metadata_tags)
+    required: false
+    default: ''
+  metadata_images:
+    description: Images for docker/metadata-action (enables metadata mode when set with metadata_tags)
+    required: false
+    default: ''
+  metadata_tags:
+    description: Tag configuration for docker/metadata-action (e.g. type=semver,pattern={{version}})
+    required: false
+    default: ''
+  docker_metadata_context:
+    description: 'docker/metadata-action context — use git after checkout of the release tag so semver tags work on workflow_run (default workflow uses GITHUB_REF)'
+    required: false
+    default: workflow
+  load:
+    description: Load image to local Docker (use with single platform, implies no push)
+    required: false
+    default: 'false'
+  push:
+    description: Push image to registry
+    required: false
+    default: 'true'
+  cache_scope:
+    description: GHA cache scope for layer caching (used when cache_from/cache_to omitted)
+    required: false
+    default: build-preview
+  cache_from:
+    description: Custom cache-from config (overrides cache_scope when set)
+    required: false
+    default: ''
+  cache_to:
+    description: Custom cache-to config (overrides cache_scope when set)
+    required: false
+    default: ''
+  labels:
+    description: Image labels (e.g. from docker/metadata-action)
+    required: false
+    default: ''
+  annotations:
+    description: Image annotations (e.g. from docker/metadata-action)
+    required: false
+    default: ''
+  docker_username:
+    description: Docker registry username (skips login when empty)
+    required: false
+    default: ''
+  docker_password:
+    description: Docker registry password or token (skips login when empty)
+    required: false
+    default: ''
+
+outputs:
+  digest:
+    description: Image digest (from docker/build-push-action)
+    value: ${{ steps.build.outputs.digest }}
+
+runs:
+  using: composite
+  steps:
+    - name: Login to Docker Hub
+      if: inputs.docker_username != '' && inputs.docker_password != ''
+      uses: docker/login-action@v3
+      with:
+        username: ${{ inputs.docker_username }}
+        password: ${{ inputs.docker_password }}
+
+    - name: Set up QEMU
+      uses: docker/setup-qemu-action@v3
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Extract Docker metadata
+      id: meta
+      if: inputs.metadata_images != '' && inputs.metadata_tags != ''
+      uses: docker/metadata-action@v5
+      with:
+        context: ${{ inputs.docker_metadata_context }}
+        images: ${{ inputs.metadata_images }}
+        tags: ${{ inputs.metadata_tags }}
+
+    - id: build
+      uses: docker/build-push-action@v6
+      with:
+        context: ${{ inputs.context }}
+        platforms: ${{ inputs.platforms }}
+        tags: ${{ (inputs.metadata_images != '' && inputs.metadata_tags != '') && steps.meta.outputs.tags || inputs.tags }}
+        labels: ${{ (inputs.metadata_images != '' && inputs.metadata_tags != '') && steps.meta.outputs.labels || inputs.labels }}
+        annotations: ${{ (inputs.metadata_images != '' && inputs.metadata_tags != '') && steps.meta.outputs.annotations || inputs.annotations }}
+        load: ${{ inputs.load }}
+        push: ${{ inputs.push }}
+        cache-from: ${{ inputs.cache_from != '' && inputs.cache_from || format('type=gha,scope={0}', inputs.cache_scope) }}
+        cache-to: ${{ inputs.cache_to != '' && inputs.cache_to || format('type=gha,scope={0},mode=max', inputs.cache_scope) }}
