@@ -1,7 +1,7 @@
 {
   "private": true,
   "name": "@kb/wkp",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "KodexB - Personal Knowledge Base",
   "module": "index.ts",
   "type": "module",
