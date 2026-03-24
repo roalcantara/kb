@@ -1,0 +1,49 @@
+name: Setup preview image
+description: Computes image names and URLs for PR preview builds
+
+inputs:
+  sha:
+    required: true
+    description: Full git SHA
+  pr_number:
+    required: true
+    description: Pull request number
+  registry_image:
+    required: true
+    description: Registry image name (e.g. owner/repo)
+  repository:
+    required: true
+    description: GitHub repository for Docker Hub URL (e.g. owner/repo)
+
+outputs:
+  short_sha:
+    description: Short SHA
+    value: ${{ steps.setup.outputs.short_sha }}
+  image_name:
+    description: Image name
+    value: ${{ steps.setup.outputs.image_name }}
+  registry_image_name:
+    description: Registry image name
+    value: ${{ steps.setup.outputs.registry_image_name }}
+  image_url:
+    description: Image URL
+    value: ${{ steps.setup.outputs.image_url }}
+
+runs:
+  using: composite
+  steps:
+    - id: setup
+      shell: bash
+      run: |
+        short_sha=$(echo ${{ inputs.sha }} | cut -c1-7)
+        image_name="pr-${{ inputs.pr_number }}-${short_sha}"
+        registry_image="${{ inputs.registry_image }}"
+        repository="${{ inputs.repository }}"
+        registry_image=$(echo "$registry_image" | tr '[:upper:]' '[:lower:]')
+        repository=$(echo "$repository" | tr '[:upper:]' '[:lower:]')
+        registry_image_name="${registry_image}:${image_name}"
+        image_url="https://hub.docker.com/r/${repository}/tags?name=${image_name}"
+        echo "short_sha=${short_sha}" >> "$GITHUB_OUTPUT"
+        echo "image_name=${image_name}" >> "$GITHUB_OUTPUT"
+        echo "registry_image_name=${registry_image_name}" >> "$GITHUB_OUTPUT"
+        echo "image_url=${image_url}" >> "$GITHUB_OUTPUT"

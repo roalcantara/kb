@@ -1,5 +1,7 @@
 # kb
 
+[![Review](https://github.com/roalcantara/kb/actions/workflows/review.yml/badge.svg)](https://github.com/roalcantara/kb/actions/workflows/review.yml) [![Release](https://github.com/roalcantara/kb/actions/workflows/release.yml/badge.svg)](https://github.com/roalcantara/kb/actions/workflows/release.yml) [![Publish](https://github.com/roalcantara/kb/actions/workflows/publish.yml/badge.svg)](https://github.com/roalcantara/kb/actions/workflows/publish.yml)
+
 A terminal-based personal knowledge base management system.
 
 [![MIT license](https://img.shields.io/badge/License-MIT-brightgreen.svg?style=flat-square)](LICENSE) [![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-2.0-4baaaa.svg?style=flat-square)][2] [![Editor Config](https://img.shields.io/badge/Editor%20Config-1.0.1-crimson.svg?style=flat-square)][3] [![standard-readme compliant](https://img.shields.io/badge/readme%20style-standard-brightgreen.svg?style=flat-square)][4] [![Conventional Commits](https://img.shields.io/badge/Conventional%20Commits-1.0.0-yellow.svg?style=flat-square)][8] [![Biome](https://img.shields.io/badge/Biome-2.4.8-blue.svg?style=flat-square)][11]
@@ -47,8 +49,8 @@ bun run build             # Build the app
 docker pull roalcantara/kb:latest           # Pull the Docker image tagged as latest from Docker Hub
 docker run --rm roalcantara/kb --help       # Run the Docker image tagged as latest as a container
 docker build -t roalcantara/kb:latest .     # Build a Docker image tagged as latest for the current platform
-docker push roalcantara/kb:latest           # Push the Docker image tagged as latest to Docker Hub
-docker push roalcantara/kb:v1.0.0           # Push the Docker image tagged as v1.0.0 to Docker Hub
+docker push roalcantara/kb:latest           # Push the Docker image tagged as latest to [Docker Hub][19]
+docker push roalcantara/kb:v1.0.0           # Push the Docker image tagged as v1.0.0 to [Docker Hub][19]
 ```
 
 ### [CST][18] - Container Structure Tests
@@ -62,6 +64,66 @@ To build an [Alpine Linux][16] image and execute the [CST][18] tests, using conf
 # Build the Docker image and execute the CST tests
 mise run docker:test
 ```
+
+### CI/CD
+
+A Review pipeline that takes every pull request from code review to a published [Docker image][19] while the Release pipeline takes care of the version and changelog.
+
+#### Workflows
+
+##### 1. [Review](.github/workflows/review.yml) — Lint, test, build and provide a Reviewable image per Pull Request
+
+Triggered on every non-draft PR targeting `main` is opened, updated, or marked ready for review, executes the following steps:
+
+1. Runs the linters in a single step, publishes and uploads the results as a workflow artifact
+2. Runs the full test suite, publishes and uploads the results as a workflow artifact
+3. Runs the [Container Structure Test][18], publishes and uploads the results as a workflow artifact
+4. Builds a multi-arch Docker image (`linux/amd64`, `linux/arm64`) tagged `pr-<number>-<short-sha>`, pushes it to DockerHub and updates the [Review Environment][22] URL
+5. Posts (or updates) a PR comment with a summary of all results collected during the workflow run
+
+> **NOTES:**
+>   * GITHUB ACTION SECRETS:
+>       - [GITHUB_TOKEN][20]: required for authentication
+>       - [DOCKERHUB_TOKEN][21]: required for pushing the Docker image to Docker Hub
+>   * GITHUB ACTION PERMISSIONS: `contents:read`, `pull-requests:write`, `deployments:write`
+
+##### 2. [Release](.github/workflows/release.yml) — version and changelog
+
+Triggered on every push to `main`, it uses [release-it][23] with [@release-it/conventional-changelog][24] to orchestrate the following steps:
+
+1. Ensures that only the squash-and-merge merge strategy is used.
+2. Determines the next [version][25] from [Conventional Commits][8], bumps `package.json`, and updates `CHANGELOG.md`.
+3. Configures SSH commit signing, runs a full signing verification for commit and tag and pushes them to the repository
+4. Creates a draft [GitHub Release][26] with the generated release notes
+5. Polls the GitHub API until the draft is confirmed visible
+
+> **NOTES:**
+>   * GITHUB ACTION SECRETS:
+>       - [GH_TOKEN][27]: required when branch protection is enabled on main
+>       - [RELEASE_SIGNING_SSH_KEY][28]: required for SSH commit signing
+>   * GITHUB ACTION VARIABLES:
+>       - RELEASE_SIGNING_SIGNER_PUB: required for SSH commit signing
+>       - RELEASE_GIT_USER_NAME: required for SSH commit signing
+>       - RELEASE_GIT_USER_EMAIL: required for SSH commit signing
+>   * GITHUB ACTION PERMISSIONS: `contents:write`, `issues:write`, `pull-requests:write`, `id-token:write`
+
+##### 3. [Publish](.github/workflows/publish.yml) — binaries and Docker image
+
+Triggered when the [Release](.github/workflows/release.yml) workflow completes (or manually via `workflow_dispatch`), it executes the following steps:
+
+1. Picks up the release tag from the latest draft release.
+2. Cross-compiles a self-contained binary per platform, packages each one as `.tar.gz`, attests them with a build-provenance [attestation][29], and uploads them as a workflow artifact
+3. Generates and attests a `sha256sum checksums.txt` from all binary artifacts, and uploads it as a workflow artifact
+4. Attaches all `.tar.gz` and `checksums.txt` assets to the release and verifies their attestations
+5. Builds a multi-platform image, pushes it to DockerHub and attests the container image
+6. Verifies the release and the container image attestations, appends installation and usage instructions to the release notes and publishes the release
+7. Updates the [Production Environment][22] URL
+
+> **NOTES:**
+>   * GITHUB ACTION SECRETS:
+>       - [GH_TOKEN][27]: required when branch protection is enabled on main
+>       - [DOCKERHUB_TOKEN][21]: required for pushing the Docker image to Docker Hub
+>   * GITHUB ACTION PERMISSIONS: `contents:write`, `packages:write`, `id-token:write`, `attestations:write`
 
 ---
 
@@ -102,3 +164,14 @@ The project is available as open source under the terms of the [MIT][1] [License
 [16]: https://alpinelinux.org 'Alpine Linux - A minimalistic Linux distribution'
 [17]: https://github.com/hadolint/hadolint 'Hadolint - Dockerfile linter'
 [18]: https://github.com/GoogleContainerTools/container-structure-test 'Container Structure Test - validate the structure of your container images'
+[19]: https://hub.docker.com/repository/docker/roalcantara/kb 'Docker Hub repository for the kb image'
+[20]: https://docs.github.com/actions/security-guides/automatic-token-authentication 'Automatic token authentication - GitHub Actions'
+[21]: https://docs.docker.com/docker-hub/access-tokens 'Docker Hub access tokens'
+[22]: https://docs.github.com/en/actions/reference/workflows-and-actions/deployments-and-environments 'Deployments and Environments - GitHub Actions'
+[23]: https://github.com/release-it/release-it 'release-it - Release It!'
+[24]: https://github.com/release-it/conventional-changelog 'Release It! Conventional Changelog Plugin'
+[25]: https://semver.org 'SemVer - Semantic Versioning'
+[26]: https://docs.github.com/en/repositories/releasing-projects-on-github/about-releases 'GitHub Releases'
+[27]: https://github.com/release-it/release-it/blob/main/docs/ci.md#github-actions 'GitHub Actions - release-it'
+[28]: https://docs.github.com/en/authentication/managing-commit-signature-verification/about-commit-signature-verification 'About commit signature verification - GitHub'
+[29]: https://docs.github.com/en/actions/how-tos/secure-your-work/use-artifact-attestations/use-artifact-attestations 'Use artifact attestations - GitHub Actions'
