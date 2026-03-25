@@ -1,0 +1,38 @@
+// RENOVATE: Get pull requests to update your dependencies and lock files
+// https://docs.renovatebot.com/configuration-options
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:recommended",
+    // PR titles and commit messages start with ci(deps) | https://docs.renovatebot.com/semantic-commits
+    ":semanticCommitTypeAll(ci)"
+  ],
+  "semanticCommitScope": "deps",
+  "labels": [
+    "dependencies"
+  ],
+  "packageRules": [
+    {
+      "matchManagers": [
+        "npm",
+        "bun"
+      ],
+      "groupName": "bun"
+    },
+    {
+      "matchManagers": [
+        "mise"
+      ],
+      "groupName": "tools"
+    },
+    {
+      "matchManagers": [
+        "github-actions"
+      ],
+      "groupName": "github-actions"
+    }
+  ],
+  "schedule": [
+    "before 6am on monday"
+  ]
+}
