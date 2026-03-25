@@ -26,7 +26,8 @@ git clone https://github.com/roalcantara/kb
   - [Pre-commit][10] - **Pre-commit hooks:** Checks before committing code
   - [Hadolint][17] - **Dockerfile linter:** Enforce Dockerfile best practices
   - [Container Structure Test][18] - **Container validation:** Validate Docker image structure and behavior
-  - [Renovate][30] - **Automated dependency updates:** Keep dependencies up to date
+  - [DevContainers][31] - **Container development platform:** Build, ship, and run containers
+- [Renovate][30] - **Automated dependency updates:** Keep dependencies up to date
 - [Gitlint][9] - **Git commit message linter:** Enforce commit message conventions
 - [Docker][15] - **Containerization platform:** Build, ship, and run containers
 
@@ -52,6 +53,27 @@ docker run --rm roalcantara/kb --help       # Run the Docker image tagged as lat
 docker build -t roalcantara/kb:latest .     # Build a Docker image tagged as latest for the current platform
 docker push roalcantara/kb:latest           # Push the Docker image tagged as latest to [Docker Hub][19]
 docker push roalcantara/kb:v1.0.0           # Push the Docker image tagged as v1.0.0 to [Docker Hub][19]
+```
+
+### DEVCONTAINERS
+
+```bash
+devcontainer up                                   # ==> Create and run dev container
+devcontainer set-up                               # ==> Set up an existing container as a dev container
+devcontainer run-user-commands                    # ==> Run user commands
+devcontainer read-configuration                   # ==> Read configuration
+devcontainer outdated                             # ==> Show current and available versions
+devcontainer upgrade                              # ==> Upgrade lockfile
+devcontainer features                             # ==> Features commands
+devcontainer templates                            # ==> Templates commands
+devcontainer exec <cmd> [args..]                  # ==> Execute a command on a running dev container
+devcontainer build [path]                         # ==> Build a dev container image
+
+# ==> Build a dev container image with a specific image name and platform and push it to the registry
+devcontainer build --image-name roalcantara/kb:latest --platform "linux/arm64" --workspace-folder .
+
+# ==> Build a dev container image with a specific image name and platforms and push it to the registry
+devcontainer build --image-name roalcantara/kb:latest --platform "linux/arm64,linux/amd64" --push true --workspace-folder .
 ```
 
 ### [CST][18] - Container Structure Tests
@@ -83,10 +105,11 @@ Triggered on every non-draft PR targeting `main` is opened, updated, or marked r
 5. Posts (or updates) a PR comment with a summary of all results collected during the workflow run
 
 > **NOTES:**
->   * GITHUB ACTION SECRETS:
->       - [GITHUB_TOKEN][20]: required for authentication
->       - [DOCKERHUB_TOKEN][21]: required for pushing the Docker image to Docker Hub
->   * GITHUB ACTION PERMISSIONS: `contents:read`, `pull-requests:write`, `deployments:write`
+>
+> - GITHUB ACTION SECRETS:
+>   - [GITHUB_TOKEN][20]: required for authentication
+>   - [DOCKERHUB_TOKEN][21]: required for pushing the Docker image to Docker Hub
+> - GITHUB ACTION PERMISSIONS: `contents:read`, `pull-requests:write`, `deployments:write`
 
 ##### 2. [Release](.github/workflows/release.yml) — version and changelog
 
@@ -99,14 +122,15 @@ Triggered on every push to `main`, it uses [release-it][23] with [@release-it/co
 5. Polls the GitHub API until the draft is confirmed visible
 
 > **NOTES:**
->   * GITHUB ACTION SECRETS:
->       - [GH_TOKEN][27]: required when branch protection is enabled on main
->       - [RELEASE_SIGNING_SSH_KEY][28]: required for SSH commit signing
->   * GITHUB ACTION VARIABLES:
->       - RELEASE_SIGNING_SIGNER_PUB: required for SSH commit signing
->       - RELEASE_GIT_USER_NAME: required for SSH commit signing
->       - RELEASE_GIT_USER_EMAIL: required for SSH commit signing
->   * GITHUB ACTION PERMISSIONS: `contents:write`, `issues:write`, `pull-requests:write`, `id-token:write`
+>
+> - GITHUB ACTION SECRETS:
+>   - [GH_TOKEN][27]: required when branch protection is enabled on main
+>   - [RELEASE_SIGNING_SSH_KEY][28]: required for SSH commit signing
+> - GITHUB ACTION VARIABLES:
+>   - RELEASE_SIGNING_SIGNER_PUB: required for SSH commit signing
+>   - RELEASE_GIT_USER_NAME: required for SSH commit signing
+>   - RELEASE_GIT_USER_EMAIL: required for SSH commit signing
+> - GITHUB ACTION PERMISSIONS: `contents:write`, `issues:write`, `pull-requests:write`, `id-token:write`
 
 ##### 3. [Publish](.github/workflows/publish.yml) — binaries and Docker image
 
@@ -121,10 +145,11 @@ Triggered when the [Release](.github/workflows/release.yml) workflow completes (
 7. Updates the [Production Environment][22] URL
 
 > **NOTES:**
->   * GITHUB ACTION SECRETS:
->       - [GH_TOKEN][27]: required when branch protection is enabled on main
->       - [DOCKERHUB_TOKEN][21]: required for pushing the Docker image to Docker Hub
->   * GITHUB ACTION PERMISSIONS: `contents:write`, `packages:write`, `id-token:write`, `attestations:write`
+>
+> - GITHUB ACTION SECRETS:
+>   - [GH_TOKEN][27]: required when branch protection is enabled on main
+>   - [DOCKERHUB_TOKEN][21]: required for pushing the Docker image to Docker Hub
+> - GITHUB ACTION PERMISSIONS: `contents:write`, `packages:write`, `id-token:write`, `attestations:write`
 
 ---
 
@@ -177,3 +202,4 @@ The project is available as open source under the terms of the [MIT][1] [License
 [28]: https://docs.github.com/en/authentication/managing-commit-signature-verification/about-commit-signature-verification 'About commit signature verification - GitHub'
 [29]: https://docs.github.com/en/actions/how-tos/secure-your-work/use-artifact-attestations/use-artifact-attestations 'Use artifact attestations - GitHub Actions'
 [30]: https://renovatebot.com 'Renovate - Automated dependency updates'
+[31]: http://containers.dev 'Containers.dev - Container development platform'

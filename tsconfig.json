@@ -22,9 +22,16 @@
     // Some stricter flags (disabled by default)
     "noUnusedLocals": false,
     "noUnusedParameters": false,
-    "noPropertyAccessFromIndexSignature": false,
     "resolveJsonModule": true,
     "esModuleInterop": true,
+    "noPropertyAccessFromIndexSignature": true,
+    "noUncheckedSideEffectImports": true,
+    "allowUnusedLabels": false,
+    "allowUnreachableCode": false,
+    "erasableSyntaxOnly": true,
+    "noImplicitOverrides": true,
+    "noErrorTruncation": false, // true keeps full error messages - for better debugging
+    "extractOptionalPropertyTypes": true,
     "types": ["bun", "bun-types"]
   },
   "include": ["**/*.ts"],
