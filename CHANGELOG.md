@@ -1,5 +1,7 @@
 # Changelog
 
+## [0.3.1](https://github.com/roalcantara/kb/compare/v0.3.0...v0.3.1) (2026-03-25)
+
 ## 0.3.0 (2026-03-25)
 
 ### Features
