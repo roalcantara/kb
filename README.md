@@ -4,7 +4,7 @@
 
 A terminal-based personal knowledge base management system.
 
-[![MIT license](https://img.shields.io/badge/License-MIT-brightgreen.svg?style=flat-square)](LICENSE) [![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-2.0-4baaaa.svg?style=flat-square)][2] [![Editor Config](https://img.shields.io/badge/Editor%20Config-1.0.1-crimson.svg?style=flat-square)][3] [![standard-readme compliant](https://img.shields.io/badge/readme%20style-standard-brightgreen.svg?style=flat-square)][4] [![Conventional Commits](https://img.shields.io/badge/Conventional%20Commits-1.0.0-yellow.svg?style=flat-square)][8] [![Biome](https://img.shields.io/badge/Biome-2.4.8-blue.svg?style=flat-square)][11]
+[![MIT license](https://img.shields.io/badge/License-MIT-brightgreen.svg?style=flat-square)](LICENSE) [![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-2.0-4baaaa.svg?style=flat-square)][2] [![Editor Config](https://img.shields.io/badge/Editor%20Config-1.0.1-crimson.svg?style=flat-square)][3] [![standard-readme compliant](https://img.shields.io/badge/readme%20style-standard-brightgreen.svg?style=flat-square)][4] [![Conventional Commits](https://img.shields.io/badge/Conventional%20Commits-1.0.0-yellow.svg?style=flat-square)][8] [![Biome](https://img.shields.io/badge/Biome-2.4.8-blue.svg?style=flat-square)][11] [![Renovate](https://img.shields.io/badge/Renovate-blue.svg?style=flat-square)][30]
 
 ## INSTALL
 
@@ -26,6 +26,7 @@ git clone https://github.com/roalcantara/kb
   - [Pre-commit][10] - **Pre-commit hooks:** Checks before committing code
   - [Hadolint][17] - **Dockerfile linter:** Enforce Dockerfile best practices
   - [Container Structure Test][18] - **Container validation:** Validate Docker image structure and behavior
+  - [Renovate][30] - **Automated dependency updates:** Keep dependencies up to date
 - [Gitlint][9] - **Git commit message linter:** Enforce commit message conventions
 - [Docker][15] - **Containerization platform:** Build, ship, and run containers
 
@@ -175,3 +176,4 @@ The project is available as open source under the terms of the [MIT][1] [License
 [27]: https://github.com/release-it/release-it/blob/main/docs/ci.md#github-actions 'GitHub Actions - release-it'
 [28]: https://docs.github.com/en/authentication/managing-commit-signature-verification/about-commit-signature-verification 'About commit signature verification - GitHub'
 [29]: https://docs.github.com/en/actions/how-tos/secure-your-work/use-artifact-attestations/use-artifact-attestations 'Use artifact attestations - GitHub Actions'
+[30]: https://renovatebot.com 'Renovate - Automated dependency updates'
