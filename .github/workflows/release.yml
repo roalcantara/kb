@@ -200,6 +200,9 @@ jobs:
           rm -f .signing-test
           echo "All signing tests passed successfully."
 
+      - name: Pull latest changes
+        run: git pull --rebase origin main
+
       - name: Create Release
         env:
           # GH_TOKEN (personal) is required when branch protection is enabled on main,
