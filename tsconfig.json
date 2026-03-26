@@ -33,6 +33,7 @@
     "paths": {
       "@kb/kli": ["./packages/kli/src/index.ts"],
       "@core": ["./src/core/index.ts"],
+      "@shell": ["./src/shell/index.ts"],
       "@tools": ["./tools/index.ts"],
       "@tests": ["./src/__tests__/index.ts"]
     }

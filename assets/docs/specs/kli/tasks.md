@@ -189,59 +189,68 @@ with clear per-error messages.
 **Value Delivered:** Consumer app can declare its commands, globals, and CLI
 instance with correct types throughout.
 
-- [ ] **1. Implement `withCommand`**
-  - [ ] Create `packages/kli/src/with.command.ts`
-  - [ ] Return def unchanged — identity function
-  - [ ] Export from `packages/kli/src/index.ts`
+- [x] **1. Implement `withCommand`**
+  - [x] Create `packages/kli/src/with.command.ts` _(equivalent:
+        `packages/kli/src/with_command.ts`)_
+  - [x] Return def unchanged — identity function
+  - [x] Export from `packages/kli/src/index.ts`
   - _Requirements: 2.1–2.8_
 
-- [ ] **2. Implement `withCli`**
-  - [ ] Create `packages/kli/src/with.cli.ts`
-  - [ ] Read `name`, `version`, `description` from consumer `package.json`
-        via `import pkg from '../../package.json`
-  - [ ] Accept `globals`, `deps`, `middleware`, `commands`
-  - [ ] Return typed `CliInstance`
-  - [ ] Export from `packages/kli/src/index.ts`
+- [x] **2. Implement `withCli`**
+  - [x] Create `packages/kli/src/with.cli.ts` _(equivalent:
+        `packages/kli/src/with_cli.ts`)_
+  - [x] Read `name`, `version`, `description` from consumer `package.json` via
+        consumer-provided `packageJson` input
+  - [x] Accept `globals`, `deps`, `middleware`, `commands`
+  - [x] Return typed `CliInstance`
+  - [x] Export from `packages/kli/src/index.ts`
   - _Requirements: 1.1–1.5_
 
-- [ ] **3. Implement `withTui`**
-  - [ ] Create `packages/kli/src/with.tui.ts`
-  - [ ] Accept `CliInstance` and Solid component
-  - [ ] Attach component to `cli.tui`
-  - [ ] Export from `packages/kli/src/index.ts`
+- [x] **3. Implement `withTui`**
+  - [x] Create `packages/kli/src/with.tui.ts` _(equivalent:
+        `packages/kli/src/with_tui.ts`)_
+  - [x] Accept `CliInstance` and Solid component
+  - [x] Attach component to `cli.tui`
+  - [x] Export from `packages/kli/src/index.ts`
   - _Requirements: 8.3_
 
-- [ ] **4. Implement `help.command.ts`**
-  - [ ] Create `packages/kli/src/help.command.ts`
-  - [ ] `printHelp(cli, commands)`:
+- [x] **4. Implement `help.command.ts`**
+  - [x] Create `packages/kli/src/help.command.ts` _(equivalent:
+        `packages/kli/src/help_command.ts`)_
+  - [x] `printHelp(cli, commands)`:
     - Line 1: `name version · description`
     - Line 2: `Usage: name <command> [opts]`
     - Commands section: name + desc, column-aligned
     - Global opts section: short + long + desc + default + env, aligned
-  - [ ] `printCommandHelp(cli, command, name)`: same + command-local opts and args
-  - [ ] `printVersion(cli)`: `name version`
-  - [ ] All output to stdout
-  - [ ] Fixed format — no customisation API
+  - [x] `printCommandHelp(cli, command, name)`: same + command-local opts and args
+  - [x] `printVersion(cli)`: `name version`
+  - [x] All output to stdout
+  - [x] Fixed format — no customisation API
   - _Requirements: 7.1–7.6_
 
-- [ ] **5. Write unit tests for `withCommand`**
-  - [ ] Test: returned object has correct `desc`, `args`, `opts`, `run`
-  - [ ] Test: `run` is the exact function reference passed in
-  - [ ] Test: `middleware` attached correctly when provided
-  - [ ] Test: `middleware` is `undefined` when not provided
+- [x] **5. Write unit tests for `withCommand`**
+  - [x] Test: returned object has correct `desc`, `args`, `opts`, `run`
+  - [x] Test: `run` is the exact function reference passed in
+  - [x] Test: `middleware` attached correctly when provided
+  - [x] Test: `middleware` is `undefined` when not provided
   - _All tests pass_
 
-- [ ] **6. Implement consumer command and CLI**
-  - [ ] Create `/src/shell/commands/info.command.ts` using `withCommand` from `kli`
-  - [ ] Create `/src/shell/deps.factory.ts` with `buildDeps()` from `kli`
-  - [ ] Create `/src/index.ts` using `withCli` from `kli` — with TTY stub:
+- [x] **6. Implement consumer command and CLI**
+  - [x] Create `/src/shell/commands/info.command.ts` using `withCommand` from `kli`
+  - [x] Create `/src/shell/deps.factory.ts` with `buildDeps()` from consumer app
+        dependencies
+  - [x] Create `/src/index.ts` using `withCli` from `kli` — with TTY stub:
         `if (process.stdout.isTTY && !command) { console.log('TUI phase 2'); process.exit(0) }`
+        _(equivalent: consumer CLI created in `src/shell/cli.ts`)_
+  - [x] Update `index.ts` to import the cli created in the previous step and call `run` on it
+        _(equivalent: `runMinimalCli` adapter via `runCli`)_
+  - [x] Run `Bun index.ts` and ensure it runs the command and prints the config
   - _Requirements: 1.1–1.5, 2.1–2.8_
 
-- [ ] **7. Checkpoint**
-  - [ ] `withCommand` types infer correctly — no `any` in handler
-  - [ ] `withCli` types flow through — `ctx.deps` is `AppDeps` in handler
-  - [ ] `bun run typecheck` — no errors across workspace
+- [x] **7. Checkpoint**
+  - [x] `withCommand` types infer correctly — no `any` in handler
+  - [x] `withCli` types flow through — `ctx.deps` is `AppDeps` in handler
+  - [x] `bun run typecheck` — no errors across workspace
 
 ---
 
@@ -290,8 +299,7 @@ instance with correct types throughout.
   - [ ] `bun run index.ts --help` → prints help
   - [ ] `bun run index.ts --version` → prints version
   - [ ] `bun run index.ts unknown` → exit 1 with message
-  - [ ] `bun run index.ts info --config=missing.yaml` →
-        exit 1 from `buildDeps`
+  - [ ] `bun run index.ts info --config=missing.yaml` → → exit 1 from `buildDeps`
 
 ---
 
@@ -308,13 +316,13 @@ touching handlers.
   - _Requirements: 5.1–5.9 — covered by `run` tests above_
 
 - [ ] **2. Implement consumer middleware**
-  - [ ] Create `src/shell/cli/middleware/timing.ts`
+  - [ ] Create `src/shell/middleware/timing.middleware.ts`
   - [ ] Print execution time to stderr when `ctx.opts.verbose` is true
   - [ ] Register in `withCli` middleware array
   - _Requirements: 5.3, 5.5_
 
 - [ ] **3. Checkpoint**
-  - [ ] `bun run src/shell/cli/commands/info.ts --verbose` → timing printed
+  - [ ] `bun run src/shell/commands/info.command.ts --verbose` → timing printed
   - [ ] Middleware without `next()` stops the command from running
 
 ---
@@ -325,7 +333,7 @@ touching handlers.
 spawning processes.
 
 - [ ] **1. Implement `testCommand`**
-  - [ ] Create `packages/kli/src/testing.ts`
+  - [ ] Create `packages/kli/src/testing.middleware.ts`
   - [ ] Mock `console.log` → collect into `stdout` buffer
   - [ ] Mock `console.error` → collect into `stderr` buffer
   - [ ] Call `command.run(ctx)` directly
@@ -346,7 +354,7 @@ spawning processes.
   - [ ] `makeDeps(overrides?)` — returns a minimal `AppDeps` for testing
 
 - [ ] **4. Write unit tests for testing utilities**
-  - [ ] Create `packages/kli/src/__tests__/testing.spec.ts`
+  - [ ] Create `packages/kli/src/testing.middleware.spec.ts`
   - [ ] Test: successful command → `exitCode === 0`, stdout captured
   - [ ] Test: throwing command → `exitCode === 1`, stderr has message
   - [ ] Test: console restored after success
@@ -356,7 +364,7 @@ spawning processes.
   - _All tests pass_
 
 - [ ] **5. Write consumer command tests**
-  - [ ] Create `/src/shell/commands/info.spec.ts`
+  - [ ] Create `/src/shell/commands/info.command.spec.ts`
   - [ ] Test: `format=json` → valid JSON, `exitCode === 0`
   - [ ] Test: `format=yaml` → valid YAML, `exitCode === 0`
   - [ ] Test: `format=raw` → TSV rows, `exitCode === 0`
@@ -380,7 +388,7 @@ spawning processes.
   - _Requirements: 8.1–8.7_
 
 - [ ] **2. Implement `startTui` in kli**
-  - [ ] Create `packages/kli/src/start-tui.ts`
+  - [ ] Create `packages/kli/src/start.tui.ts`
   - [ ] Dynamic import `@opentui/core` and `@opentui/solid`
   - [ ] `createCliRenderer({ exitOnCtrlC: true })`
   - [ ] `render(() => App({ deps: cli.deps, opts: resolvedGlobalOpts }), renderer)`
@@ -388,7 +396,7 @@ spawning processes.
   - _Requirements: 8.3–8.6_
 
 - [ ] **3. Create minimal App component in consumer**
-  - [ ] Create `/src/shell/tui/app.tsx`
+  - [ ] Create `/src/shell/tui/app.tui.tsx`
   - [ ] Solid component accepting `{ deps, opts }` props
   - [ ] Render placeholder: app name + entry count + `press ? for help`
   - _Requirements: 8.4_
