@@ -80,7 +80,9 @@ function findOptionByEitherLong(options: OptsDef, long: string): [string, OptDef
   return Object.entries(options).find(([, def]) => Object.values(def.either ?? {}).includes(long))
 }
 
-function consumeUnknownOption(tokens: string[], idx: number, token: string): number {
+function consumeUnknownOption(tokens: string[], idx: number, token: string, errors: string[]): number {
+  const option = token.startsWith('--') ? token.slice(LONG_PREFIX_SIZE).split('=')[0] : token.slice(SHORT_PREFIX_SIZE)
+  errors.push(`Unknown option: ${option ? `--${option}` : token}`)
   if (token.includes('=')) return idx
   const next = tokens[idx + 1]
   return next && !next.startsWith('-') ? idx + 1 : idx
@@ -135,7 +137,7 @@ function parseLongToken(tokens: string[], idx: number, options: OptsDef, state: 
   const directOpt = options[parsed.name]
   const eitherLong = directOpt ? undefined : findOptionByEitherLong(options, parsed.name)
 
-  if (!directOpt && !eitherLong) return consumeUnknownOption(tokens, idx, current)
+  if (!directOpt && !eitherLong) return consumeUnknownOption(tokens, idx, current, state.errors)
   if (eitherLong) {
     writeEitherSelection(state, eitherLong[0], parsed.name)
     return idx
@@ -151,7 +153,7 @@ function parseShortToken(tokens: string[], idx: number, options: OptsDef, state:
   const direct = Object.entries(options).find(([, optionDef]) => optionDef.short === parsed.name)
   const eitherShort = direct ? undefined : findOptionByEitherShort(options, parsed.name)
 
-  if (!direct && !eitherShort) return consumeUnknownOption(tokens, idx, current)
+  if (!direct && !eitherShort) return consumeUnknownOption(tokens, idx, current, state.errors)
   if (eitherShort) {
     const selected = eitherShort[1].either?.[parsed.name]
     if (selected) writeEitherSelection(state, eitherShort[0], selected)

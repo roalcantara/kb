@@ -1,3 +1,4 @@
+import type { ArgsDef, OptsDef } from './parse_argv.ts'
 import type { CliInstance } from './with_cli.ts'
 import type { CliCommand } from './with_command.ts'
 
@@ -25,7 +26,14 @@ function formatOptionLines(options: Record<string, { short?: string; env?: strin
   })
 }
 
-export function printHelp(cli: CliInstance, commands: readonly CliCommand[] = cli.commands): void {
+export function printHelp<
+  DepsT,
+  GlobalsT extends OptsDef,
+  CommandsT extends readonly CliCommand<DepsT, ArgsDef, OptsDef>[]
+>(
+  cli: CliInstance<DepsT, GlobalsT, CommandsT>,
+  commands: readonly CliCommand<DepsT, ArgsDef, OptsDef>[] = cli.commands
+): void {
   const header = `${cli.name} ${cli.version} · ${cli.description}`
   const usage = `Usage: ${cli.name} <command> [opts]`
   const commandWidth = Math.max(0, ...commands.map(command => command.name.length))
@@ -38,7 +46,15 @@ export function printHelp(cli: CliInstance, commands: readonly CliCommand[] = cl
   console.log(output.join('\n'))
 }
 
-export function printCommandHelp(cli: CliInstance, command: CliCommand, name = command.name): void {
+export function printCommandHelp<
+  DepsT,
+  GlobalsT extends OptsDef,
+  CommandsT extends readonly CliCommand<DepsT, ArgsDef, OptsDef>[]
+>(
+  cli: CliInstance<DepsT, GlobalsT, CommandsT>,
+  command: CliCommand<DepsT, ArgsDef, OptsDef>,
+  name = command.name
+): void {
   const header = `${cli.name} ${cli.version} · ${cli.description}`
   const usage = `Usage: ${cli.name} ${name} [opts]`
   const localOptLines = formatOptionLines(command.opts ?? {})
@@ -50,6 +66,10 @@ export function printCommandHelp(cli: CliInstance, command: CliCommand, name = c
   console.log(output.join('\n'))
 }
 
-export function printVersion(cli: CliInstance): void {
+export function printVersion<
+  DepsT,
+  GlobalsT extends OptsDef,
+  CommandsT extends readonly CliCommand<DepsT, ArgsDef, OptsDef>[]
+>(cli: CliInstance<DepsT, GlobalsT, CommandsT>): void {
   console.log(`${cli.name} ${cli.version}`)
 }

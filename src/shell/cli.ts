@@ -1,4 +1,4 @@
-import { type MinimalCliConfig, runMinimalCli, withCli, withCommand } from '@kb/kli'
+import { runCommand, withCli, withCommand } from '@kb/kli'
 
 import pkg from '../../package.json'
 import { infoCommand } from './commands/info.command.ts'
@@ -28,22 +28,6 @@ const cli = withCli<AppDeps, Record<string, never>, typeof commands>({
   commands
 })
 
-function toMinimalCliConfig(): MinimalCliConfig {
-  return {
-    programName: cli.name,
-    description: cli.description,
-    version: cli.version,
-    commands: cli.commands.map(command => ({
-      name: command.name,
-      helpLine: `${command.name}   ${command.desc}`,
-      run: positionalArgs => {
-        const args = positionalArgs[0] ? { name: positionalArgs[0] } : {}
-        return command.run({ args, opts: {}, deps: cli.deps })
-      }
-    }))
-  }
-}
-
-export function runCli(rawArgv: readonly string[]): number {
-  return runMinimalCli(toMinimalCliConfig(), rawArgv)
+export function runCli(rawArgv: readonly string[]): Promise<number> {
+  return runCommand(cli, rawArgv)
 }

@@ -10,6 +10,7 @@ export type CommandHandlerContext<
   args: ArgsT
   opts: OptsT
   deps: DepsT
+  raw?: unknown
 }
 
 export type CliCommand<DepsT = unknown, ArgsT extends ArgsDef = ArgsDef, OptsT extends OptsDef = OptsDef> = {

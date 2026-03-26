@@ -258,48 +258,48 @@ instance with correct types throughout.
 
 **Value Delivered:** `bun dev info` runs end-to-end. Help and version work.
 
-- [ ] **1. Implement `run`**
-  - [ ] Create `packages/kli/src/run.command.ts`
-  - [ ] Step 1: `parseArgv(process.argv, cli.globals, cli.commands)`
-  - [ ] Step 2: `parsed.help` → `printHelp` + exit 0
-  - [ ] Step 3: `parsed.version` → `printVersion` + exit 0
-  - [ ] Step 4: no command + TTY + `cli.tui` → `startTui` (stub for now)
-  - [ ] Step 5: no command → `printHelp` + exit 0
-  - [ ] Step 6: unknown command → stderr + exit 1
-  - [ ] Step 7: `validate(parsed, command, cli.globals)` → if `isErr()`, print
+- [x] **1. Implement `run`**
+  - [x] Create `packages/kli/src/run.command.ts` (implemented as `run_command.ts`)
+  - [x] Step 1: `parseArgv(process.argv, cli.globals, cli.commands)`
+  - [x] Step 2: `parsed.help` → `printHelp` + exit 0
+  - [x] Step 3: `parsed.version` → `printVersion` + exit 0
+  - [x] Step 4: no command + TTY + `cli.tui` → `startTui` (stub for now)
+  - [x] Step 5: no command → `printHelp` + exit 0
+  - [x] Step 6: unknown command → stderr + exit 1
+  - [x] Step 7: `validate(parsed, command, cli.globals)` → if `isErr()`, print
         all errors + exit 1
-  - [ ] Step 8: build `ctx = { args, opts, deps: cli.deps, raw }`
-  - [ ] Step 9: `runChain([...cli.middleware, ...command.middleware], ctx, handler)`
-  - [ ] Catch thrown errors → stderr with command name + exit 1
-  - [ ] `runChain`: recursive async middleware executor
-  - [ ] Export from `packages/kli/src/index.ts`
+  - [x] Step 8: build `ctx = { args, opts, deps: cli.deps, raw }`
+  - [x] Step 9: `runChain([...cli.middleware, ...command.middleware], ctx, handler)`
+  - [x] Catch thrown errors → stderr with command name + exit 1
+  - [x] `runChain`: recursive async middleware executor
+  - [x] Export from `packages/kli/src/index.ts`
   - _Requirements: 6.1–6.4_
 
-- [ ] **2. Write unit tests for `run`**
-  - [ ] Create `packages/kli/src/run.command.spec.ts`
-  - [ ] Test: known command → handler called with correct ctx
-  - [ ] Test: `--help` → handler NOT called, exit 0
-  - [ ] Test: no command → help printed, exit 0
-  - [ ] Test: `--version` → version printed, exit 0
-  - [ ] Test: unknown command → exit 1
-  - [ ] Test: validation failure → exit 1, all errors printed
-  - [ ] Test: handler throws → exit 1, stderr contains command name
-  - [ ] Test: global middleware runs before handler
-  - [ ] Test: per-command middleware runs after global, before handler
-  - [ ] Test: middleware without `next()` → handler NOT called
-  - [ ] Test: middleware throws → exit 1
-  - [ ] Test: `ctx.deps` is exactly the object passed to `withCli`
-  - [ ] Test: `ctx.opts` contains merged global + local opts
+- [x] **2. Write unit tests for `run`**
+  - [x] Create `packages/kli/src/run.command.spec.ts` (implemented as `run_command.spec.ts`)
+  - [x] Test: known command → handler called with correct ctx
+  - [x] Test: `--help` → handler NOT called, exit 0
+  - [x] Test: no command → help printed, exit 0
+  - [x] Test: `--version` → version printed, exit 0
+  - [x] Test: unknown command → exit 1
+  - [x] Test: validation failure → exit 1, all errors printed
+  - [x] Test: handler throws → exit 1, stderr contains command name
+  - [x] Test: global middleware runs before handler
+  - [x] Test: per-command middleware runs after global, before handler
+  - [x] Test: middleware without `next()` → handler NOT called
+  - [x] Test: middleware throws → exit 1
+  - [x] Test: `ctx.deps` is exactly the object passed to `withCli`
+  - [x] Test: `ctx.opts` contains merged global + local opts
   - _All tests pass_
 
 - [ ] **3. Checkpoint — end-to-end**
-  - [ ] `bun run index.ts info` → prints config
-  - [ ] `bun run index.ts info --format=json` → valid JSON
-  - [ ] `bun run index.ts` → prints help
-  - [ ] `bun run index.ts --help` → prints help
-  - [ ] `bun run index.ts --version` → prints version
-  - [ ] `bun run index.ts unknown` → exit 1 with message
-  - [ ] `bun run index.ts info --config=missing.yaml` → → exit 1 from `buildDeps`
+  - [x] `bun run index.ts info` → prints config
+  - [x] `bun run index.ts info --format=json` → valid JSON
+  - [x] `bun run index.ts` → prints help
+  - [x] `bun run index.ts --help` → prints help
+  - [x] `bun run index.ts --version` → prints version
+  - [x] `bun run index.ts unknown` → exit 1 with message
+  - [x] `bun run index.ts info --config=missing.yaml` → exit 1 (unknown option in strict mode)
 
 ---
 

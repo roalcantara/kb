@@ -99,10 +99,11 @@ describe('parse_argv command and positional behavior', () => {
     expect(args.files).toEqual(['a.ts', 'b.ts'])
   })
 
-  test('ignores unknown flags silently', () => {
+  test('reports unknown flags as parse errors', () => {
     const parsed = parseKnown(['build', '--nope', 'x', '--also-nope=y', 'prod'])
     expect(parsed.commandName).toBe('build')
     expect((parsed.args as KnownArgs).target).toBe('prod')
-    expect(parsed.errors).toHaveLength(0)
+    expect(parsed.errors).toHaveLength(2)
+    expect(parsed.errors[0]).toContain('Unknown option')
   })
 })
