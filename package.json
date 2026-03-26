@@ -78,6 +78,7 @@
     "typescript": "catalog:runtime"
   },
   "dependencies": {
+    "@kb/kli": "workspace:*",
     "typia": "catalog:validation"
   }
 }
