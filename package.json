@@ -13,6 +13,7 @@
     "build:prod": "bun build index.ts --bytecode --minify --sourcemap --no-compile-autoload-dotenv --no-compile-autoload-bunfig --compile --outfile dist/kb",
     "dev": "bun run index.ts",
     "dev:watch": "bun run dev -- --watch --hot",
+    "generate:typia": "typia generate --input tools/typia/templates --output tools/typia/generated --project tsconfig.json",
     "test": "bun test --pass-with-no-tests",
     "test:watch": "bun run test -- --watch",
     "test:ci": "mkdir -p tmp/reports/tests && bash -o pipefail -c 'bun run test -- --reporter=junit --reporter-outfile=tmp/reports/tests/junit.xml'",
@@ -46,5 +47,8 @@
     "knip": "^6.0.2",
     "release-it": "^19.2.4",
     "typescript": "^5"
+  },
+  "dependencies": {
+    "typia": "^12.0.1"
   }
 }

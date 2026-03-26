@@ -23,6 +23,7 @@ git clone https://github.com/roalcantara/kb
     - [Knip][12] - **Dependency analysis:** Detect unused imports, dead code, and dependencies
     - [jscpd][13] - **Copy/paste detector:** Detect duplicate code
     - [dependency-cruiser][14] - **Dependency analysis:** Validate and visualise dependencies
+  - [Typia][32] - **Runtime validation:** AOT-generated validators from TypeScript types
   - [Pre-commit][10] - **Pre-commit hooks:** Checks before committing code
   - [Hadolint][17] - **Dockerfile linter:** Enforce Dockerfile best practices
   - [Container Structure Test][18] - **Container validation:** Validate Docker image structure and behavior
@@ -43,7 +44,12 @@ bun run test:watch        # Run tests with hot reloading
 bun run lint              # Run linting
 bun run lint:fix          # Fix lint errors
 bun run build             # Build the app
+bun run generate:typia    # Regenerate Typia validators (tools/typia/templates → tools/typia/generated)
 ```
+
+### TYPIA
+
+This project uses [Typia][32] in **generation mode**: validator templates live under [`tools/typia/templates/`](tools/typia/templates/), and `bun run generate:typia` writes the compiled validators to [`tools/typia/generated/`](tools/typia/generated/) (tracked in git). After you change a type or a template, run `generate:typia` again. See the [Typia setup guide](https://typia.io/docs/setup/#generation) for details.
 
 ### DOCKER
 
@@ -203,3 +209,4 @@ The project is available as open source under the terms of the [MIT][1] [License
 [29]: https://docs.github.com/en/actions/how-tos/secure-your-work/use-artifact-attestations/use-artifact-attestations 'Use artifact attestations - GitHub Actions'
 [30]: https://renovatebot.com 'Renovate - Automated dependency updates'
 [31]: http://containers.dev 'Containers.dev - Container development platform'
+[32]: https://typia.io 'Typia — transform TypeScript types into runtime validators'

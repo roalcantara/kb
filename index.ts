@@ -1,7 +1,14 @@
+import type { GreeterInput } from './greeter_input'
 import pkg from './package.json'
+import { assertGreeterInput } from './tools/typia/generated/assert_greeter_input'
 
-export const greet = (name: string, times = 1) =>
-  Array.from({ length: times }, () => `Hello "${name}" via Bun!`).join('\n\n')
+export type { GreeterInput } from './greeter_input'
+
+export const greet = (input: GreeterInput) => {
+  assertGreeterInput(input)
+  const { name, times = 1 } = input
+  return Array.from({ length: times }, () => `Hello "${name}" via Bun!`).join('\n\n')
+}
 
 const help = `
 ${pkg.description}
@@ -38,12 +45,12 @@ function runCli() {
   }
 
   if (first === 'greet') {
-    console.log(greet(args[1] ?? 'World'))
+    console.log(greet({ name: args[1] ?? 'World' }))
     return
   }
 
   if (first === undefined) {
-    console.log(greet('World'))
+    console.log(greet({ name: 'World' }))
     return
   }
 

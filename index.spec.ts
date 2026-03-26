@@ -3,11 +3,11 @@ import { greet } from './index'
 
 describe('greet()', () => {
   describe.each([
-    ['World', 1, 'Hello "World" via Bun!'],
-    ['TypeScript', 2, 'Hello "TypeScript" via Bun!\n\nHello "TypeScript" via Bun!']
-  ])('with $name $times times', (name, times, expected) => {
-    it(`greets ${name} ${times} times`, () => {
-      expect(greet(name, times)).toBe(expected)
+    [{ name: 'World', times: 1 }, 'Hello "World" via Bun!'],
+    [{ name: 'TypeScript', times: 2 }, 'Hello "TypeScript" via Bun!\n\nHello "TypeScript" via Bun!']
+  ])('with input %j', (input, expected) => {
+    it(`greets ${input.name} ${input.times} times`, () => {
+      expect(greet(input)).toBe(expected)
     })
   })
 })
