@@ -1,0 +1,43 @@
+---
+description: Module ownership and where extraction/serialization logic belongs
+globs: src/**/*.ts
+alwaysApply: false
+---
+
+# Module Ownership
+
+When adding or moving code, ask: **which module owns this concept?**
+
+The table below describes a **target** layout (e.g. full CLI with config/domain). Adapt names to what exists under `src/core/` in this repo.
+
+## Rule: Serialization of T lives in T's module
+
+If a function extracts, flattens, or serializes data of type `T`, it belongs in the module that defines `T`.
+
+| Module                 | Owns                                                                              |
+| ---------------------- | --------------------------------------------------------------------------------- |
+| `src/core/config/`     | Config structure, loading, validation, and serialization (e.g. → key-value rows)  |
+| `src/core/formatters/` | Format selection (yaml/json/tsv); delegates data extraction to type owners        |
+| `src/core/domain/`     | Entry types, parsers, transformers, and domain-type serialization                 |
+
+## Before placing a function
+
+- Does it iterate over or inspect the internal shape of a type? → That type's module.
+- Does it only apply a format (toYAML, toJSON, toTSV) to pre-shaped data? → Formatter.
+
+## Example
+
+```ts
+// ❌ Formatter knowing config structure
+// info.formatter.ts - BAD
+function buildConfigRows(config: ResolvedConfig, path: string) {
+  for (const [key, val] of Object.entries(config.theme.colors)) { ... }
+}
+
+// ✅ Config owns extraction, formatter delegates
+// config/config.ts
+export function configToRows(config: ResolvedConfig, configPath: string): [string, string][]
+
+// info.formatter.ts - GOOD
+tsv: (v) => toTSV(configToRows(v.config, v.configPath))
+```

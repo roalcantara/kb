@@ -1,0 +1,37 @@
+---
+description: Git commit message guidelines - Conventional Commits
+alwaysApply: true
+---
+
+# Commit Message Guidelines
+
+Source: `assets/docs/guides/GIT_COMMITS_GUIDE.md` (primary), `assets/docs/guides/GIT_GUIDE.md` (extended)
+
+## Format
+
+```
+<type>(<scope>): <description>
+
+<body>
+```
+
+## Types
+
+`feat` `fix` `docs` `style` `ref` `test` `chore` `ci` `build`
+
+## Subject Line Rules
+
+1. **≤50 characters**
+2. Imperative mood — "Add feature" not "Added" or "Adds"
+3. Capitalize first letter, no period
+4. Blank line between subject and body
+5. Wrap body at 72 characters
+
+## Body
+
+- Explain **WHAT and WHY**, not HOW
+- Changes section: focus on intent, not implementation details
+
+## Atomic Commits
+
+One logical change per commit. Split if needed.

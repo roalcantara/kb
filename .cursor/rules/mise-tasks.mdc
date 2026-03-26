@@ -1,0 +1,39 @@
+---
+description: Prefer Mise tasks over direct shell commands; NEVER add automation as scripts
+alwaysApply: true
+---
+
+# Mise Task Preference
+
+Source: `assets/docs/guides/MISE_GUIDE.md`
+
+## Rule
+
+**Prefer `mise run <task>` over direct shell commands for COMPLEX TASKS!**
+
+## NEVER / ALWAYS (automation)
+
+- **NEVER** add automation as a separate script: no new files in `tools/`, `scripts/`, or elsewhere for one-off or recurring **project** tasks.
+- **ALWAYS** add a task to `mise.toml` and put the logic **in the task body** (inline Bun or bash in the `run = ''' ... '''` block). No “script + task that calls the script.”
+
+- **Exception:** Scripts used **exclusively by Cursor** and living **under `.cursor/`** (e.g. `.cursor/hooks/dod-check.ts`) are allowed. The rule applies to project automation (build, test, release, etc.); Cursor hooks are editor integration, not project tasks.
+
+**Apply this whenever the user asks for automation.** The user does not need to say "mise task" or "no script"—this rule is the default. Before adding any automation, check: **Is this a Cursor-only script under `.cursor/`?** If yes, a script is fine. Otherwise: **Am I editing only `mise.toml`?** If you were about to create a `.ts` or `.sh` file elsewhere, **STOP** and implement it as a mise task instead.
+
+## Common Tasks
+
+- `bun run dev` - run CLI
+- `bun test` - run tests
+- `bun run typecheck` - type check
+- `bun run lint` - Biome check
+- `bun run build` - compile binary
+
+## Day-to-day commands
+
+Use **`bun run …`** / **`bun test`** for normal work (see `package.json`). Prefer **`mise run <task>`** when a task encodes a multi-step or documented workflow from `mise.toml`.
+
+Avoid raw **`bunx biome …`** / **`tsc`** when an equivalent **`bun run lint`** / **`bun run typecheck`** script exists.
+
+## Adding Automation
+
+Do not add ad-hoc scripts. Add a task to `mise.toml` and implement the behavior in the task’s `run` body.
