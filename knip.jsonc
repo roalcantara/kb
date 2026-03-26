@@ -1,5 +1,6 @@
 {
   "$schema": "https://unpkg.com/knip@5/schema-jsonc.json",
   "project": ["**/*.ts"],
-  "ignoreBinaries": ["mise", "dot"]
+  "ignoreBinaries": ["mise", "dot"],
+  "ignoreFiles": ["**/tools/typia/templates/**"]
 }

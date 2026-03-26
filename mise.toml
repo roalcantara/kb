@@ -15,6 +15,7 @@ tombi = "latest"
 pre-commit = "4.4"
 hadolint = "latest"
 container-structure-test = "latest"
+devcontainer-cli = "latest"
 
 # https://mise.jdx.dev/tasks
 [tasks]

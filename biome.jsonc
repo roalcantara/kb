@@ -12,7 +12,8 @@
       "!node_modules",
       "!.bunli",
       "!.cursor",
-      "!assets"
+      "!assets",
+      "!tools/typia/generated"
     ]
   },
   "formatter": {
