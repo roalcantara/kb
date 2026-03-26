@@ -152,32 +152,35 @@ from argv into a typed, structured result.
 **Value Delivered:** Invalid input is caught before middleware or handlers run,
 with clear per-error messages.
 
-- [ ] **1. Implement `validate`**
-  - [ ] Create `packages/kli/src/validate.command.ts`
-  - [ ] Accept `ParseResult`, command definition, and globals schema
-  - [ ] Return `Result<ResolvedCtxData, string[]>` via `neverthrow`
-  - [ ] Check required args: missing → error naming the arg
-  - [ ] Check required opts: missing, no default, no env → error naming the opt
-  - [ ] Check `either` conflicts: multiple flags from same group → error
-  - [ ] Check `file` type: value must be non-empty after expansion
-  - [ ] Merge global opts and local opts — local wins on conflict
-  - [ ] Collect all errors before returning — never stop at first
+- [x] **1. Implement `validate`**
+  - [x] Create `packages/kli/src/validate.command.ts` _(equivalent:
+        `packages/kli/src/validate_command.ts`)_
+  - [x] Accept `ParseResult`, command definition, and globals schema
+  - [x] Return `Result<ResolvedCtxData, string[]>` via `neverthrow`
+  - [x] Check required args: missing → error naming the arg
+  - [x] Check required opts: missing, no default, no env → error naming the opt
+  - [x] Check `either` conflicts: multiple flags from same group → error
+  - [x] Check `file` type: value must be non-empty after expansion
+  - [x] Merge global opts and local opts — local wins on conflict
+  - [x] Collect all errors before returning — never stop at first
   - _Requirements: 3.4, 4.6, 4.7, 6.1.6–6.1.7_
 
-- [ ] **2. Write unit tests for `validate`**
-  - [ ] Create `packages/kli/src/validate.command.spec.ts`
-  - [ ] Test: all required args present → `ok` result
-  - [ ] Test: required arg absent → `err` result, message names the arg
-  - [ ] Test: required opt absent (no default, no env) → `err`, names the opt
-  - [ ] Test: `either` conflict → `err`, names the group
-  - [ ] Test: multiple errors → all collected, not just first
-  - [ ] Test: global and local opts merged — local wins
-  - [ ] Test: valid input → `ok` with fully merged ctx data
+- [x] **2. Write unit tests for `validate`**
+  - [x] Create `packages/kli/src/validate.command.spec.ts` _(equivalent:
+        `packages/kli/src/validate_command.spec.ts`)_
+  - [x] Test: all required args present → `ok` result
+  - [x] Test: required arg absent → `err` result, message names the arg
+  - [x] Test: required opt absent (no default, no env) → `err`, names the opt
+  - [x] Test: `either` conflict → `err`, names the group
+  - [x] Test: multiple errors → all collected, not just first
+  - [x] Test: global and local opts merged — local wins
+  - [x] Test: valid input → `ok` with fully merged ctx data
   - _All tests pass_
 
-- [ ] **3. Checkpoint**
-  - [ ] All `validate.spec.ts` tests pass
-  - [ ] `bun run typecheck` — no errors
+- [x] **3. Checkpoint**
+  - [x] All `validate.command.spec.ts` tests pass _(equivalent:
+        `validate_command.spec.ts`)_
+  - [x] `bun run typecheck` — no errors
 
 ---
 
@@ -187,13 +190,13 @@ with clear per-error messages.
 instance with correct types throughout.
 
 - [ ] **1. Implement `withCommand`**
-  - [ ] Create `packages/kli/src/with-command.ts`
+  - [ ] Create `packages/kli/src/with.command.ts`
   - [ ] Return def unchanged — identity function
   - [ ] Export from `packages/kli/src/index.ts`
   - _Requirements: 2.1–2.8_
 
 - [ ] **2. Implement `withCli`**
-  - [ ] Create `packages/kli/src/with-cli.ts`
+  - [ ] Create `packages/kli/src/with.cli.ts`
   - [ ] Read `name`, `version`, `description` from consumer `package.json`
         via `import pkg from '../../package.json`
   - [ ] Accept `globals`, `deps`, `middleware`, `commands`
@@ -202,21 +205,20 @@ instance with correct types throughout.
   - _Requirements: 1.1–1.5_
 
 - [ ] **3. Implement `withTui`**
-  - [ ] Create `packages/kli/src/with-tui.ts`
+  - [ ] Create `packages/kli/src/with.tui.ts`
   - [ ] Accept `CliInstance` and Solid component
   - [ ] Attach component to `cli.tui`
   - [ ] Export from `packages/kli/src/index.ts`
   - _Requirements: 8.3_
 
-- [ ] **4. Implement `help.ts`**
-  - [ ] Create `packages/kli/src/help.ts`
+- [ ] **4. Implement `help.command.ts`**
+  - [ ] Create `packages/kli/src/help.command.ts`
   - [ ] `printHelp(cli, commands)`:
     - Line 1: `name version · description`
     - Line 2: `Usage: name <command> [opts]`
     - Commands section: name + desc, column-aligned
     - Global opts section: short + long + desc + default + env, aligned
-  - [ ] `printCommandHelp(cli, command, name)`: same + command-local opts
-        and args
+  - [ ] `printCommandHelp(cli, command, name)`: same + command-local opts and args
   - [ ] `printVersion(cli)`: `name version`
   - [ ] All output to stdout
   - [ ] Fixed format — no customisation API
@@ -230,7 +232,7 @@ instance with correct types throughout.
   - _All tests pass_
 
 - [ ] **6. Implement consumer command and CLI**
-  - [ ] Create `/src/shell/cli/commands/info.command.ts` using `withCommand` from `kli`
+  - [ ] Create `/src/shell/commands/info.command.ts` using `withCommand` from `kli`
   - [ ] Create `/src/shell/deps.factory.ts` with `buildDeps()` from `kli`
   - [ ] Create `/src/index.ts` using `withCli` from `kli` — with TTY stub:
         `if (process.stdout.isTTY && !command) { console.log('TUI phase 2'); process.exit(0) }`
@@ -248,7 +250,7 @@ instance with correct types throughout.
 **Value Delivered:** `bun dev info` runs end-to-end. Help and version work.
 
 - [ ] **1. Implement `run`**
-  - [ ] Create `packages/kli/src/run.ts`
+  - [ ] Create `packages/kli/src/run.command.ts`
   - [ ] Step 1: `parseArgv(process.argv, cli.globals, cli.commands)`
   - [ ] Step 2: `parsed.help` → `printHelp` + exit 0
   - [ ] Step 3: `parsed.version` → `printVersion` + exit 0
@@ -265,7 +267,7 @@ instance with correct types throughout.
   - _Requirements: 6.1–6.4_
 
 - [ ] **2. Write unit tests for `run`**
-  - [ ] Create `packages/kli/src/__tests__/run.spec.ts`
+  - [ ] Create `packages/kli/src/run.command.spec.ts`
   - [ ] Test: known command → handler called with correct ctx
   - [ ] Test: `--help` → handler NOT called, exit 0
   - [ ] Test: no command → help printed, exit 0
@@ -354,7 +356,7 @@ spawning processes.
   - _All tests pass_
 
 - [ ] **5. Write consumer command tests**
-  - [ ] Create `/src/shell/cli/commands/info.spec.ts`
+  - [ ] Create `/src/shell/commands/info.spec.ts`
   - [ ] Test: `format=json` → valid JSON, `exitCode === 0`
   - [ ] Test: `format=yaml` → valid YAML, `exitCode === 0`
   - [ ] Test: `format=raw` → TSV rows, `exitCode === 0`

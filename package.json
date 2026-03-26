@@ -58,9 +58,12 @@
       "testing": {
         "fishery": "^2.4.0"
       },
-      "utilities": {},
+      "utilities": {
+        "radash": "^12.1.1"
+      },
       "validation": {
-        "typia": "^12.0.1"
+        "typia": "^12.0.1",
+        "neverthrow": "^8.2.0"
       }
     }
   },

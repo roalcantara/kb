@@ -14,11 +14,12 @@ type ScalarType = 'string' | 'number' | 'boolean' | 'file'
 type ScalarValue = string | number | boolean
 type EnvMap = Record<string, string | undefined>
 
-export type ArgDef = { type: ScalarType }
+export type ArgDef = { type: ScalarType; required?: boolean }
 export type ArgsDef = Record<string, ArgDef>
 export type EitherDef = Record<string, string>
 export type OptDef = {
   type: ScalarType
+  required?: boolean
   short?: string
   env?: string
   default?: ScalarValue

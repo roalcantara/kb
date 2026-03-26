@@ -9,6 +9,7 @@
     ".": "./src/index.ts"
   },
   "dependencies": {
-    "radash": "catalog:utilities"
+    "radash": "catalog:utilities",
+    "neverthrow": "catalog:validation"
   }
 }
