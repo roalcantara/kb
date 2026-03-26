@@ -4,7 +4,7 @@
 
 A terminal-based personal knowledge base management system.
 
-[![MIT license](https://img.shields.io/badge/License-MIT-brightgreen.svg?style=flat-square)](LICENSE) [![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-2.0-4baaaa.svg?style=flat-square)][2] [![Editor Config](https://img.shields.io/badge/Editor%20Config-1.0.1-crimson.svg?style=flat-square)][3] [![standard-readme compliant](https://img.shields.io/badge/readme%20style-standard-brightgreen.svg?style=flat-square)][4] [![Conventional Commits](https://img.shields.io/badge/Conventional%20Commits-1.0.0-yellow.svg?style=flat-square)][8] [![Biome](https://img.shields.io/badge/Biome-2.4.8-blue.svg?style=flat-square)][11] [![Renovate](https://img.shields.io/badge/Renovate-blue.svg?style=flat-square)][30]
+[![MIT license](https://img.shields.io/badge/License-MIT-brightgreen.svg?style=flat-square)](LICENSE) [![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-2.0-4baaaa.svg?style=flat-square)][2] [![Editor Config](https://img.shields.io/badge/Editor%20Config-1.0.1-crimson.svg?style=flat-square)][3] [![standard-readme compliant](https://img.shields.io/badge/readme%20style-standard-brightgreen.svg?style=flat-square)][4] [![Conventional Commits](https://img.shields.io/badge/Conventional%20Commits-1.0.0-yellow.svg?style=flat-square)][8] [![Biome](https://img.shields.io/badge/Biome-2.4.9-blue.svg?style=flat-square)][11] [![Renovate](https://img.shields.io/badge/Renovate-blue.svg?style=flat-square)][30]
 
 ## INSTALL
 
