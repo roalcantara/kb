@@ -36,6 +36,7 @@
     "lint:fix": "e=0; bun run lint:biome:fix || e=1; bun run lint:knip:fix || e=1; exit $e",
     "release:ci": "bunx release-it --ci"
   },
+  "workspaces": ["packages/*"],
   "devDependencies": {
     "@biomejs/biome": "^2.4.8",
     "@release-it/conventional-changelog": "^10.0.6",

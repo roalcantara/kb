@@ -21,6 +21,7 @@ WORKDIR /app
 # Copy lockfile and manifest first for better layer caching —
 # this layer only busts when dependencies change, not on source edits.
 COPY package.json bun.lock ./
+COPY packages/kli/package.json ./packages/kli/package.json
 RUN --mount=type=cache,target=/root/.bun/install/cache \
     bun install --frozen-lockfile
 COPY . .
