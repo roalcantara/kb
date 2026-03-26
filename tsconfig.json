@@ -29,7 +29,12 @@
     "allowUnreachableCode": false,
     "noErrorTruncation": false, // true keeps full error messages - for better debugging
     "exactOptionalPropertyTypes": true,
-    "types": ["bun", "bun-types"]
+    "types": ["bun", "bun-types"],
+    "paths": {
+      "@core": ["./src/core/index.ts"],
+      "@tools": ["./tools/index.ts"],
+      "@tests": ["./src/__tests__/index.ts"]
+    }
   },
   "include": ["**/*.ts"],
   "exclude": ["node_modules", "dist", "temp"]

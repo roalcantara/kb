@@ -162,6 +162,7 @@ Triggered when the [Release](.github/workflows/release.yml) workflow completes (
 ## ACKNOWLEDGEMENTS
 
 - [Standard Readme][4]
+- [Fishery][33] - Test data factories for TypeScript
 
 ---
 
@@ -210,3 +211,4 @@ The project is available as open source under the terms of the [MIT][1] [License
 [30]: https://renovatebot.com 'Renovate - Automated dependency updates'
 [31]: http://containers.dev 'Containers.dev - Container development platform'
 [32]: https://typia.io 'Typia — transform TypeScript types into runtime validators'
+[33]: https://fishery.dev 'Fishery - Test data factories for TypeScript'

@@ -6,7 +6,6 @@
 !package.json
 !tsconfig.json
 !index.ts
-!greeter_input.ts
 !tools/
 !tools/typia/
 !tools/typia/generated/
