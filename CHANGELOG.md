@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.5.0](https://github.com/roalcantara/kb/compare/v0.3.1...v0.5.0) (2026-03-26)
+
+### Features
+
+* devcontainer setup and Typia input validation ([#3](https://github.com/roalcantara/kb/issues/3)) ([706820c](https://github.com/roalcantara/kb/commit/706820c3ec33070097a15f97cd40a069b1ec5062))
+
 ## [0.4.0](https://github.com/roalcantara/kb/compare/v0.3.1...v0.4.0) (2026-03-26)
 
 ### Features
