@@ -12,7 +12,7 @@ test('testCommand captures stdout and returns exitCode 0', async () => {
     }
   })
 
-  const result = await testCommand(command, { args: {}, opts: {}, deps: {} })
+  const result = await testCommand(command, { args: {}, opts: {}, globals: {}, deps: {} })
   expect(result.exitCode).toBe(0)
   expect(result.stdout).toContain('hello test')
   expect(result.stderr).toBe('')
@@ -27,7 +27,7 @@ test('testCommand captures throw and returns exitCode 1', async () => {
     }
   })
 
-  const result = await testCommand(command, { args: {}, opts: {}, deps: {} })
+  const result = await testCommand(command, { args: {}, opts: {}, globals: {}, deps: {} })
   expect(result.exitCode).toBe(1)
   expect(result.stderr).toContain('failed command')
 })

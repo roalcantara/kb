@@ -308,22 +308,22 @@ instance with correct types throughout.
 **Value Delivered:** Cross-cutting concerns work across all commands without
 touching handlers.
 
-- [ ] **1. Verify middleware chain in `run`**
-  - [ ] Global middleware runs in declaration order
-  - [ ] Per-command middleware runs after global, before handler
-  - [ ] Short-circuit (no `next()`) stops remaining chain and handler
-  - [ ] `ctx.deps` fully typed in middleware
+- [x] **1. Verify middleware chain in `run`**
+  - [x] Global middleware runs in declaration order
+  - [x] Per-command middleware runs after global, before handler
+  - [x] Short-circuit (no `next()`) stops remaining chain and handler
+  - [x] `ctx.deps` fully typed in middleware
   - _Requirements: 5.1–5.9 — covered by `run` tests above_
 
-- [ ] **2. Implement consumer middleware**
-  - [ ] Create `src/shell/middleware/timing.middleware.ts`
-  - [ ] Print execution time to stderr when `ctx.opts.verbose` is true
-  - [ ] Register in `withCli` middleware array
+- [x] **2. Implement consumer middleware**
+  - [x] Create `src/shell/middleware/timing.middleware.ts`
+  - [x] Print execution time to stderr when `ctx.opts.verbose` is true
+  - [x] Register in `withCli` middleware array
   - _Requirements: 5.3, 5.5_
 
-- [ ] **3. Checkpoint**
-  - [ ] `bun run src/shell/commands/info.command.ts --verbose` → timing printed
-  - [ ] Middleware without `next()` stops the command from running
+- [x] **3. Checkpoint**
+  - [x] `bun run index.ts info --verbose` → timing printed
+  - [x] Middleware without `next()` stops the command from running
 
 ---
 

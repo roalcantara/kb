@@ -11,6 +11,7 @@ type EnvMap = Record<string, string | undefined>
 export type ResolvedCtxData = {
   args: ParseResult['args']
   opts: Record<string, ScalarValue>
+  globals: Record<string, ScalarValue>
 }
 
 function coerceEnvValue(value: string, type: OptDef['type']): ScalarValue | undefined {
@@ -101,11 +102,18 @@ export function validateCommand(
 
   const mergedOptionDefs = { ...globalOpts, ...(command.opts ?? {}) }
   const resolvedOpts = validateOptions(parsed, mergedOptionDefs, env, errors)
+  const resolvedGlobals: Record<string, ScalarValue> = {}
+
+  for (const key of Object.keys(globalOpts)) {
+    const value = resolvedOpts[key]
+    if (value !== undefined) resolvedGlobals[key] = value
+  }
 
   if (errors.length > 0) return err(errors)
 
   return ok({
     args: parsed.args,
-    opts: resolvedOpts
+    opts: resolvedOpts,
+    globals: resolvedGlobals
   })
 }

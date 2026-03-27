@@ -1,5 +1,5 @@
 import type { ArgsDef, OptsDef } from './parse_argv.ts'
-import type { CliCommand, CommandHandlerContext, Middleware } from './with_command.ts'
+import type { CliCommand, CommandHandlerContext, Middleware, ResolvedOptValues } from './with_command.ts'
 
 type TestResult = {
   stdout: string
@@ -81,10 +81,15 @@ async function runWithCapture(run: () => Promise<void>): Promise<{ buffer: Conso
 export async function testCommand<
   DepsT,
   ArgsT extends Record<string, unknown> = Record<string, unknown>,
-  OptsT extends Record<string, unknown> = Record<string, unknown>
->(command: CliCommand<DepsT, ArgsDef, OptsDef>, ctx: CommandHandlerContext<ArgsT, OptsT, DepsT>): Promise<TestResult> {
+  OptsT extends Record<string, unknown> = Record<string, unknown>,
+  GlobalDefsT extends OptsDef = OptsDef,
+  GlobalsT extends ResolvedOptValues<GlobalDefsT> = ResolvedOptValues<GlobalDefsT>
+>(
+  command: CliCommand<DepsT, ArgsDef, OptsDef, GlobalDefsT>,
+  ctx: CommandHandlerContext<ArgsT, OptsT, DepsT, GlobalsT>
+): Promise<TestResult> {
   const { buffer, exitCode } = await runWithCapture(async () => {
-    await command.run(ctx as CommandHandlerContext<Record<string, unknown>, Record<string, unknown>, DepsT>)
+    await command.run(ctx as CommandHandlerContext<Record<string, unknown>, Record<string, unknown>, DepsT, GlobalsT>)
   })
   return toTestResult(buffer, exitCode)
 }

@@ -29,10 +29,10 @@ function formatOptionLines(options: Record<string, { short?: string; env?: strin
 export function printHelp<
   DepsT,
   GlobalsT extends OptsDef,
-  CommandsT extends readonly CliCommand<DepsT, ArgsDef, OptsDef>[]
+  CommandsT extends readonly CliCommand<DepsT, ArgsDef, OptsDef, GlobalsT>[]
 >(
   cli: CliInstance<DepsT, GlobalsT, CommandsT>,
-  commands: readonly CliCommand<DepsT, ArgsDef, OptsDef>[] = cli.commands
+  commands: readonly CliCommand<DepsT, ArgsDef, OptsDef, GlobalsT>[] = cli.commands
 ): void {
   const header = `${cli.name} ${cli.version} · ${cli.description}`
   const usage = `Usage: ${cli.name} <command> [opts]`
@@ -49,10 +49,10 @@ export function printHelp<
 export function printCommandHelp<
   DepsT,
   GlobalsT extends OptsDef,
-  CommandsT extends readonly CliCommand<DepsT, ArgsDef, OptsDef>[]
+  CommandsT extends readonly CliCommand<DepsT, ArgsDef, OptsDef, GlobalsT>[]
 >(
   cli: CliInstance<DepsT, GlobalsT, CommandsT>,
-  command: CliCommand<DepsT, ArgsDef, OptsDef>,
+  command: CliCommand<DepsT, ArgsDef, OptsDef, GlobalsT>,
   name = command.name
 ): void {
   const header = `${cli.name} ${cli.version} · ${cli.description}`
@@ -69,7 +69,7 @@ export function printCommandHelp<
 export function printVersion<
   DepsT,
   GlobalsT extends OptsDef,
-  CommandsT extends readonly CliCommand<DepsT, ArgsDef, OptsDef>[]
+  CommandsT extends readonly CliCommand<DepsT, ArgsDef, OptsDef, GlobalsT>[]
 >(cli: CliInstance<DepsT, GlobalsT, CommandsT>): void {
   console.log(`${cli.name} ${cli.version}`)
 }
