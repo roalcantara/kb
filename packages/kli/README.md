@@ -7,7 +7,7 @@ Minimal, app-agnostic CLI foundation for Bun.
 - argv normalization and parsing (flags, positionals, subcommand selection)
 - validation of parsed input against command schemas
 - help rendering
-- command dispatch, middleware, and exit code signaling
+- command dispatch, middleware, **interceptors** (return-value pipeline), a **default emitter** (`console.log` for handler returns), and exit code signaling
 
 It intentionally does not know anything about a specific product domain.
 
@@ -34,10 +34,19 @@ Examples:
 - **`core/validation/`** — Turning a parse result into a validated command context (`validateCommand`, internal cell helpers).
 - **`core/commands/`** — Command/handler types (`command_handler.schema.ts`) and the `withCommand` identity helper (`with_command.factory.ts`).
 - **`core/minimal/`** — Small standalone multi-command runner (`runMinimalCli`, `formatHelp`) for apps that do not use the full `createKli` stack.
-- **`shell/help/`** — Help/version text sent to the console.
-- **`shell/dispatch/`** — `runCommand`, middleware chain execution.
+- **`shell/help/`** — Root and per-command help (`printHelp`, `printCommandHelp`): global/local options show optional **`desc`**, and **`either`** groups expand to one line per `-s, --value` choice (with `(default)` on the matching variant).
+- **`shell/dispatch/`** — `runCommand`, middleware chain, **interceptor** chain (`runInterceptorChain`).
+- **`shell/emitter/`** — Default `console.log` emitter, `createEmitterPackage`, `mergeEmitterGlobals`; optional **`shell.defineEmitter`** + **`setup({ emitter })`** for custom output and extra global flags.
 - **`shell/factories/`** — `createKli`, `withCli`, TUI attachment helper.
 - **`shell/testing/`** — Helpers for tests (`testCommand`, `testMiddleware`); imported via `@kb/kli/testing`, not the main entry.
+
+### Middleware vs interceptors vs emitter
+
+- **Middleware** — `(ctx, next) => void`; `next()` has no return value. Runs **around** the whole inner block (emitter + interceptors + `command.run`). Use for timing, logging, guards.
+- **Emitter** — Outermost slot only: **`cli.emitterInterceptor`** (default: **`defaultEmitterInterceptor`**) does `await next()` then sinks the return value (default: **`console.log`** when not `undefined`). Replace via **`withCli({ emitterInterceptor })`** or **`shell.setup({ commands, emitter: shell.defineEmitter({ globals?, run }) })`**. Optional **`globals`** on `defineEmitter` merge into the CLI schema for that runner (duplicate keys vs `createKli` globals throw). Put formatting (JSON, YAML, GUM, tables) in **`run(output, ctx)`** — not in the core package.
+- **Interceptors** — Use **`CliInterceptorContext`**. `(ctx, next) => unknown`; **outermost** first. Chain order: **`[emitter, …createKli/withCli interceptors, …setup interceptors, …command.interceptors]`** — so interceptors run **inside** the emitter and can transform the value before it is sunk. Configure on **`createKli` / `withCli`** (`interceptors`), **`command.interceptors`**, or **`shell.setup({ commands, interceptors })`**. Use **`withInterceptor`** like **`withCommand`**. For variadic command lists without an emitter, use **`shell.setupCommands(cmd1, …)`** (typed as `unknown[]` only).
+
+Handlers may return **`undefined`** (side-effect-only); the default emitter then prints nothing.
 
 Vocabulary for CLI input is aligned with common references such as [docopt][2] (commands, options, positional arguments) and [Command Line Interface Guidelines][3] (positional **arguments** vs **flags**). This package’s parsing slice handles **both**, plus **command-name selection** and merged globals—so the folder is not named `args` alone (that would suggest positionals only).
 
@@ -50,7 +59,7 @@ Files use suffixes to signal **why** they exist (one main reason to change per f
 | `*.schema.ts`    | Shared data / command shapes and type-level models                           |
 | `*.service.ts`   | Orchestration entry points (`parseArgv`, `validateCommand`, `runCommand`, …) |
 | `*.formatter.ts` | Pure string / console-oriented formatting                                    |
-| `*.factory.ts`   | Builders that assemble instances (`withCli`, `createKli`, `withCommand`)     |
+| `*.factory.ts`   | Builders (`withCli`, `createKli`, `withCommand`, `withInterceptor`, `createEmitterPackage`) |
 | `*.util.ts`      | Small, focused helpers (e.g. argv normalization, path expansion)             |
 | `*.spec.ts`      | Tests co-located next to the unit under test                                 |
 
@@ -100,9 +109,9 @@ The barrel re-exports the stable surface, including:
 
 - **Argv / parse**: `normalizeArgv`, `parseArgv`, and schema types (`CommandDef`, `OptsDef`, `ParseResult`, …)
 - **Validation**: `validateCommand`, `ResolvedCtxData`
-- **Handlers**: `withCommand`, `CliCommand`, middleware types, …
+- **Handlers**: `withCommand`, `withInterceptor`, `CliCommand`, `CliInterceptor`, `CliInterceptorContext`, middleware types, …
 - **Minimal runner**: `runMinimalCli`, `formatHelp`, `MinimalCliConfig`, `CliCommandDefinition`
-- **Full stack**: `createKli`, `runCommand`, `withCli`, help printers, `withTui`
+- **Full stack**: `createKli`, `KliHandle.setup` / `setupCommands`, `KliSetupOptions`, `runCommand`, `withCli`, `runInterceptorChain`, `defaultEmitterInterceptor`, `createEmitterPackage`, `mergeEmitterGlobals`, emitter types, help printers, `withTui`
 
 See [`src/index.ts`](src/index.ts) for the authoritative list.
 

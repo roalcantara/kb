@@ -1,5 +1,5 @@
 import { expect, mock, spyOn, test } from 'bun:test'
-import type { CliCommand, Middleware } from '../../core/commands/command_handler.schema.ts'
+import type { CliCommand, CliInterceptor, Middleware } from '../../core/commands/command_handler.schema.ts'
 import { withCommand } from '../../core/commands/with_command.factory.ts'
 import type { ArgsDef, OptsDef } from '../../core/parsing/argv.schema.ts'
 import { withCli } from '../factories/cli_instance.factory.ts'
@@ -41,6 +41,7 @@ const createCli = (overrides?: {
     deps: overrides?.deps ?? { marker: 'deps' },
     globals: TEST_GLOBALS,
     middleware: overrides?.middleware ?? [],
+    interceptors: [],
     commands: (overrides?.commands ?? [info]) as unknown as readonly CliCommand<
       unknown,
       ArgsDef,
@@ -220,4 +221,32 @@ test('middleware throw exits 1', async () => {
   const err = spyOn(console, 'error').mockImplementation(() => undefined)
   expect(await runCommand(createCli({ commands: [throwMiddlewareCommand] }), argv('info'))).toBe(1)
   err.mockRestore()
+})
+
+test('global interceptor transforms value before default emitter', async () => {
+  const log = spyOn(console, 'log').mockImplementation(() => undefined)
+  const command = withCommand<unknown, ArgsDef, OptsDef, TestGlobals>({
+    name: 'info',
+    desc: 'show info',
+    run: () => ({ ok: true })
+  })
+  const enrichInterceptor: CliInterceptor<unknown> = async (_ctx, next) => {
+    const value = await next()
+    if (value !== null && typeof value === 'object' && !Array.isArray(value)) {
+      return { ...(value as Record<string, unknown>), tagged: true }
+    }
+    return value
+  }
+  const cli = withCli({
+    name: 'kb',
+    packageJson: BASE_PACKAGE,
+    deps: { marker: 'deps' },
+    globals: TEST_GLOBALS,
+    middleware: [],
+    interceptors: [enrichInterceptor],
+    commands: [command] as unknown as readonly CliCommand<unknown, ArgsDef, OptsDef, TestGlobals>[]
+  })
+  expect(await runCommand(cli, argv('info'))).toBe(0)
+  expect(log.mock.calls[0]?.[0]).toEqual({ ok: true, tagged: true })
+  log.mockRestore()
 })

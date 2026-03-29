@@ -16,12 +16,11 @@ export const infoCommand = shell.withCmd({
     if (globals.debug) {
       console.debug('DEBUG Enabled!', { args, opts, globals })
       console.debug(`ARGS: path => ${args.path}`)
-      console.debug(`OPTS: source => ${opts.source}`)
+      console.debug(`OPTS: source => ${opts.source}\n\n`)
     }
-    const output = {
+    return {
       cli: 'kb',
       hasGreeter: typeof deps.greeter === 'function'
     }
-    console.log(JSON.stringify(output, null, 2))
   }
 })

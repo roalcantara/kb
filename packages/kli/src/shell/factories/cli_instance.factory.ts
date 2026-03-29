@@ -1,5 +1,12 @@
-import type { CliCommand, CliMiddlewareContext, Middleware } from '../../core/commands/command_handler.schema.ts'
+import type {
+  CliCommand,
+  CliInterceptor,
+  CliInterceptorContext,
+  CliMiddlewareContext,
+  Middleware
+} from '../../core/commands/command_handler.schema.ts'
 import type { ArgsDef, OptsDef } from '../../core/parsing/argv.schema.ts'
+import { defaultEmitterInterceptor } from '../emitter/default_emitter.interceptor.ts'
 
 export type CliInstance<
   DepsT = unknown,
@@ -17,6 +24,12 @@ export type CliInstance<
   globals: GlobalsT
   deps: DepsT
   middleware: readonly Middleware<CliMiddlewareContext<DepsT, GlobalsT>>[]
+  /** Global interceptors run before per-command interceptors (outermost first). */
+  interceptors: readonly CliInterceptor<CliInterceptorContext<DepsT, GlobalsT>>[]
+  /**
+   * Outermost: runs `await next()` then sinks the return value (default: `console.log` when not `undefined`).
+   */
+  emitterInterceptor: CliInterceptor<CliInterceptorContext<DepsT, GlobalsT>>
   commands: CommandsT
   tui?: unknown
 }
@@ -42,6 +55,9 @@ type WithCliInput<
   deps: DepsT
   globals?: GlobalsT
   middleware?: readonly Middleware<CliMiddlewareContext<DepsT, GlobalsT>>[]
+  interceptors?: readonly CliInterceptor<CliInterceptorContext<DepsT, GlobalsT>>[]
+  /** When set, replaces the default `console.log` emitter (see `defaultEmitterInterceptor`). */
+  emitterInterceptor?: CliInterceptor<CliInterceptorContext<DepsT, GlobalsT>>
   commands: CommandsT
 }
 
@@ -72,5 +88,8 @@ export const withCli = <
   globals: input.globals ?? ({} as GlobalsT),
   deps: input.deps,
   middleware: input.middleware ?? [],
+  interceptors: input.interceptors ?? [],
+  emitterInterceptor:
+    input.emitterInterceptor ?? (defaultEmitterInterceptor as CliInterceptor<CliInterceptorContext<DepsT, GlobalsT>>),
   commands: input.commands
 })

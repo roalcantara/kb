@@ -9,8 +9,8 @@ export const shell = createKli({
   packageJson: pkg,
   deps: { greeter },
   globals: {
-    verbose: { type: 'boolean', default: false },
-    debug: { type: 'boolean', default: false }
+    verbose: { type: 'boolean', default: false, desc: 'Print extra informational messages' },
+    debug: { type: 'boolean', default: false, desc: 'Print debug details (args, opts, globals)' }
   },
   middleware: [timingMiddleware] as const
 })

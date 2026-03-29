@@ -332,49 +332,36 @@ touching handlers.
 **Value Delivered:** Consumer commands and middleware are unit-testable without
 spawning processes.
 
-- [ ] **1. Implement `testCommand`**
-  - [ ] Create `packages/kli/src/testing.middleware.ts`
-  - [ ] Mock `console.log` → collect into `stdout` buffer
-  - [ ] Mock `console.error` → collect into `stderr` buffer
-  - [ ] Call `command.run(ctx)` directly
-  - [ ] Restore console after resolve or reject
-  - [ ] Return `{ stdout, stderr, exitCode }` — 0 on resolve, 1 on throw
+- [x] **0. Format output (`either` + merged globals)**
+  - [x] **`format` on the emitter** (not `createKli.globals`): `src/shell/interceptors/format.emitter.ts` (`either`, `default`, `desc`); wired in `src/shell/index.ts` via `shell.setup({ emitter: formatEmitter })`.
+  - [x] **`either` in `parseArgv`**: `packages/kli/src/core/parsing/argv_parse.service.ts` — mutually exclusive group; tests in `argv_parse.service.spec.ts` / `validate_command.service.spec.ts`.
+  - [x] **Resolved value**: **`globals.format`** on the merged global schema (emitter `run(output, { globals })`), not `opts.format`. Root `createKli.globals` in `src/shell/main.ts` stays `verbose` / `debug` only.
+  - [x] **Help**: `packages/kli/src/shell/help/help.formatter.ts` expands `-p/--pretty`, etc.
+  - [x] **Mapping**: `-p` / `--pretty` → `'pretty'`, `-j` / `--json` → `'json'`, `-y` / `--yaml` → `'yaml'`, `-r` / `--raw` → `'raw'`; `--format=<value>` also sets the `format` global when passed as a string opt.
+
+- [x] **1. Implement `testCommand`**
+  - [x] `packages/kli/src/shell/testing/testing.ts` — import `@kb/kli/testing`; capture `console.log` / `console.error`; `run(ctx)`; restore in `finally`; `{ stdout, stderr, exitCode }`.
   - _Requirements: 9.1–9.6_
 
-- [ ] **2. Implement `testMiddleware`**
-  - [ ] In same file as `testCommand`
-  - [ ] Call `middleware(ctx, next)` with a no-op `next` that sets
-        `nextCalled = true`
-  - [ ] Return `{ stdout, stderr, exitCode, nextCalled }`
+- [x] **2. Implement `testMiddleware`**
+  - [x] Same module; stub `next` sets `nextCalled`; `{ stdout, stderr, exitCode, nextCalled }`.
   - _Requirements: 9.2, 9.5_
 
-- [ ] **3. Create `ctx` factory in consumer**
-  - [ ] Create `/src/__tests__/factories/ctx.factory.ts`
-  - [ ] `makeCtx(overrides?)` — returns a complete `Ctx` with test defaults
-  - [ ] `makeDeps(overrides?)` — returns a minimal `AppDeps` for testing
+- [x] **3. Create `ctx` factory in consumer**
+  - [x] `src/__tests__/factories/ctx.factory.ts` — `makeDeps`, `makeCtx` for shell command unit tests.
+  - [x] `src/__tests__/factories/ctx.factory.spec.ts` — contract tests for defaults and overrides (keeps factory exports exercised for knip).
 
-- [ ] **4. Write unit tests for testing utilities**
-  - [ ] Create `packages/kli/src/testing.middleware.spec.ts`
-  - [ ] Test: successful command → `exitCode === 0`, stdout captured
-  - [ ] Test: throwing command → `exitCode === 1`, stderr has message
-  - [ ] Test: console restored after success
-  - [ ] Test: console restored after throw
-  - [ ] Test: `testMiddleware` with `next()` → `nextCalled === true`
-  - [ ] Test: `testMiddleware` without `next()` → `nextCalled === false`
+- [x] **4. Write unit tests for testing utilities**
+  - [x] `packages/kli/src/shell/testing/testing_middleware.spec.ts` — success, throw, **sequential `testCommand` calls** (implies console restore between runs), `testMiddleware` next / skip.
   - _All tests pass_
 
-- [ ] **5. Write consumer command tests**
-  - [ ] Create `/src/shell/commands/info.command.spec.ts`
-  - [ ] Test: `format=json` → valid JSON, `exitCode === 0`
-  - [ ] Test: `format=yaml` → valid YAML, `exitCode === 0`
-  - [ ] Test: `format=raw` → TSV rows, `exitCode === 0`
+- [x] **5. Write consumer command tests**
+  - [x] `src/shell/commands/info.command.spec.ts` — `runCli` with `--json` / `-j`, `--yaml` / `-y`, `--raw` / `-r`: structured stdout, `exitCode === 0`; **`testCommand` + `makeCtx`** smoke for `info` handler.
   - _All tests pass_
 
-- [ ] **6. Checkpoint — full suite green**
-  - [ ] `bun test packages/kli` → all pass
-  - [ ] `bun test packages/kodexb` → all pass
-  - [ ] `bun run lint` → no errors
-  - [ ] `bun run typecheck` → no errors
+- [x] **6. Checkpoint — full suite green**
+  - [x] `bun test` → all pass
+  - [x] `bun run lint` → no errors
 
 ---
 

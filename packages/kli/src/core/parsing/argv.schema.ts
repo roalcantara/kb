@@ -11,6 +11,8 @@ export type OptDef = {
   env?: string
   default?: ScalarValue
   either?: EitherDef
+  /** Shown in root / command help next to the flag (and expanded for {@link EitherDef} groups). */
+  desc?: string
 }
 export type OptsDef = Record<string, OptDef>
 export type CommandDef = { name: string; args?: ArgsDef; opts?: OptsDef }

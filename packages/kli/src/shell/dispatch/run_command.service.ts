@@ -1,10 +1,16 @@
-import type { CliCommand, CliMiddlewareContext, Middleware } from '../../core/commands/command_handler.schema.ts'
+import type {
+  CliCommand,
+  CliInterceptor,
+  CliMiddlewareContext,
+  Middleware
+} from '../../core/commands/command_handler.schema.ts'
 import type { ArgsDef, OptsDef, ParseResult } from '../../core/parsing/argv.schema.ts'
 import { normalizeArgv } from '../../core/parsing/argv_normalize.util.ts'
 import { parseArgv } from '../../core/parsing/argv_parse.service.ts'
 import { validateCommand } from '../../core/validation/validate_command.service.ts'
 import type { CliInstance } from '../factories/cli_instance.factory.ts'
 import { printCommandHelp, printHelp, printVersion } from '../help/help.formatter.ts'
+import { runInterceptorChain } from './interceptor_chain.service.ts'
 import { runChain } from './middleware_chain.service.ts'
 
 const EXIT_OK = 0
@@ -123,7 +129,16 @@ const executeKnownCommand = async <
 
   try {
     await runChain(chain, ctx, async () => {
-      await knownCommand.run(ctx as Parameters<(typeof knownCommand)['run']>[0])
+      const globalInterceptors = cli.interceptors
+      const commandInterceptors = knownCommand.interceptors ?? []
+      const interceptors = [
+        cli.emitterInterceptor as CliInterceptor<RunContext<DepsT, GlobalsT>>,
+        ...globalInterceptors,
+        ...commandInterceptors
+      ]
+      await runInterceptorChain(interceptors, ctx, () =>
+        Promise.resolve(knownCommand.run(ctx as Parameters<(typeof knownCommand)['run']>[0]))
+      )
     })
     return EXIT_OK
   } catch (error) {

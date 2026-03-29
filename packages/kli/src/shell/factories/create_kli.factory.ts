@@ -1,7 +1,16 @@
-import type { CliCommand, CliMiddlewareContext, Middleware } from '../../core/commands/command_handler.schema.ts'
+import type {
+  CliCommand,
+  CliInterceptor,
+  CliInterceptorContext,
+  CliMiddlewareContext,
+  Middleware
+} from '../../core/commands/command_handler.schema.ts'
 import { withCommand } from '../../core/commands/with_command.factory.ts'
 import type { ArgsDef, OptDef, OptsDef } from '../../core/parsing/argv.schema.ts'
 import { runCommand } from '../dispatch/run_command.service.ts'
+import type { CliEmitterDefinition, CliEmitterPackage } from '../emitter/cli_emitter.schema.ts'
+import { mergeEmitterGlobals } from '../emitter/cli_emitter.schema.ts'
+import { createEmitterPackage } from '../emitter/create_emitter_package.factory.ts'
 import type { CliInstance } from './cli_instance.factory.ts'
 import { withCli } from './cli_instance.factory.ts'
 
@@ -18,6 +27,7 @@ type KliAssemblyInput<DepsT, GlobalsT extends OptsDef> = {
   deps: DepsT
   globals?: GlobalsT
   middleware?: readonly Middleware<CliMiddlewareContext<DepsT, GlobalsT>>[]
+  interceptors?: readonly CliInterceptor<CliInterceptorContext<DepsT, GlobalsT>>[]
 }
 
 export type CreateKliInput<
@@ -30,9 +40,19 @@ export type CreateKliInput<
   deps: DepsT
   globals: GlobalsT
   middleware?: NoInfer<readonly Middleware<CliMiddlewareContext<DepsT, GlobalsT>>[]>
+  interceptors?: NoInfer<readonly CliInterceptor<CliInterceptorContext<DepsT, GlobalsT>>[]>
 }
 
 type NoGlobalOpts = Record<never, OptDef>
+
+type SetupRunner = (rawArgv?: readonly string[]) => Promise<number>
+
+/** Options for {@link KliHandle.setup} (typed object form; supports `emitter`). */
+export type KliSetupOptions<DepsT, GlobalsT extends OptsDef> = {
+  commands: readonly unknown[]
+  interceptors?: readonly CliInterceptor<CliInterceptorContext<DepsT, GlobalsT>>[]
+  emitter?: CliEmitterPackage<DepsT, GlobalsT, OptsDef>
+}
 
 export type KliHandle<DepsT, GlobalsT extends OptsDef> = {
   withCmd: <ArgsT extends ArgsDef = ArgsDef, OptsT extends OptsDef = OptsDef>(
@@ -43,15 +63,51 @@ export type KliHandle<DepsT, GlobalsT extends OptsDef> = {
   ) => CliInstance<DepsT, GlobalsT, CommandsT>
   kli: CliInstance<DepsT, GlobalsT, readonly []>
   run: (...args: unknown[]) => Promise<number>
-  setup: (...commands: unknown[]) => (rawArgv?: readonly string[]) => Promise<number>
+  /**
+   * Object form only (so `emitter` and `interceptors` are type-checked). For `setup(cmd1, cmd2)` use
+   * {@link setupCommands}.
+   */
+  setup: (options: KliSetupOptions<DepsT, GlobalsT>) => SetupRunner
+  /** Variadic shorthand: `setupCommands(a, b)` ≡ `setup({ commands: [a, b] })` (no `emitter`). */
+  setupCommands: (...commands: unknown[]) => SetupRunner
+  defineEmitter: <Extra extends OptsDef = Record<never, OptDef>>(
+    def: CliEmitterDefinition<DepsT, GlobalsT, Extra>
+  ) => CliEmitterPackage<DepsT, GlobalsT, Extra>
 }
 
 /** True when `x` is a non-empty `string[]` (used to detect `run([...argv], ...cmds)` overload). */
 const isArgvPrefix = (x: unknown): x is readonly string[] =>
   Array.isArray(x) && x.length > 0 && x.every((e): e is string => typeof e === 'string')
 
+const runKliWithCommandList = <const DepsT, const GlobalsT extends OptsDef = NoGlobalOpts>(
+  input: KliAssemblyInput<DepsT, GlobalsT>,
+  rawArgv: readonly string[],
+  commands: unknown[],
+  setupInterceptors?: readonly CliInterceptor<CliInterceptorContext<DepsT, GlobalsT>>[],
+  emitterPackage?: CliEmitterPackage<DepsT, GlobalsT, OptsDef>
+): Promise<number> => {
+  if (commands.length === 0) {
+    throw new Error('shell.run: pass at least one command')
+  }
+  const baseGlobals = (input.globals ?? {}) as OptsDef
+  const mergedGlobals = emitterPackage
+    ? mergeEmitterGlobals(baseGlobals, emitterPackage.globals as OptsDef)
+    : baseGlobals
+  const emitterInterceptor = emitterPackage
+    ? (emitterPackage.interceptor as CliInterceptor<CliInterceptorContext<DepsT, GlobalsT>>)
+    : undefined
+  const cli = withCli<DepsT, GlobalsT, readonly CliCommand<DepsT, ArgsDef, OptsDef, GlobalsT>[]>({
+    ...input,
+    globals: mergedGlobals as GlobalsT,
+    commands: commands as readonly CliCommand<DepsT, ArgsDef, OptsDef, GlobalsT>[],
+    interceptors: [...(input.interceptors ?? []), ...(setupInterceptors ?? [])],
+    ...(emitterInterceptor === undefined ? {} : { emitterInterceptor })
+  })
+  return runCommand(cli, rawArgv)
+}
+
 /**
- * Implements {@link KliHandle}: `withCmd`, `build`, `kli`, `run`, and `setup` over one assembly input.
+ * Implements {@link KliHandle}: `withCmd`, `build`, `kli`, `run`, `setup`, `setupCommands`, `defineEmitter`.
  *
  * @param input - Same shape as {@link createKli} (optional `globals` for empty-schema tests)
  */
@@ -67,16 +123,16 @@ const buildKliHandle = <const DepsT, const GlobalsT extends OptsDef = NoGlobalOp
 
   const kli = build([] as const)
 
-  const runWithCommands = (rawArgv: readonly string[], commands: unknown[]): Promise<number> => {
-    if (commands.length === 0) {
-      throw new Error('shell.run: pass at least one command')
-    }
-    const cli = withCli<DepsT, GlobalsT, readonly CliCommand<DepsT, ArgsDef, OptsDef, GlobalsT>[]>({
-      ...input,
-      commands: commands as readonly CliCommand<DepsT, ArgsDef, OptsDef, GlobalsT>[]
-    })
-    return runCommand(cli, rawArgv)
-  }
+  const runWithCommands = (
+    rawArgv: readonly string[],
+    commands: unknown[],
+    setupInterceptors?: readonly CliInterceptor<CliInterceptorContext<DepsT, GlobalsT>>[],
+    emitterPackage?: CliEmitterPackage<DepsT, GlobalsT, OptsDef>
+  ): Promise<number> => runKliWithCommandList(input, rawArgv, commands, setupInterceptors, emitterPackage)
+
+  const defineEmitter = <Extra extends OptsDef = Record<never, OptDef>>(
+    def: CliEmitterDefinition<DepsT, GlobalsT, Extra>
+  ) => createEmitterPackage<DepsT, GlobalsT, Extra>(def)
 
   const run = (...args: unknown[]): Promise<number> => {
     let rawArgv: readonly string[]
@@ -91,11 +147,21 @@ const buildKliHandle = <const DepsT, const GlobalsT extends OptsDef = NoGlobalOp
     return runWithCommands(rawArgv, commands)
   }
 
-  const setup = (...commands: unknown[]): ((rawArgv?: readonly string[]) => Promise<number>) => {
+  const setup = (options: KliSetupOptions<DepsT, GlobalsT>): SetupRunner => {
+    const commands = [...options.commands]
     if (commands.length === 0) {
       throw new Error('shell.setup: pass at least one command')
     }
-    return (rawArgv?: readonly string[]) => runWithCommands(rawArgv ?? Bun.argv, commands)
+    return (rawArgv?: readonly string[]) =>
+      runKliWithCommandList(input, rawArgv ?? Bun.argv, commands, options.interceptors, options.emitter)
+  }
+
+  const setupCommands = (...commands: unknown[]): SetupRunner => {
+    if (commands.length === 0) {
+      throw new Error('shell.setupCommands: pass at least one command')
+    }
+    return (rawArgv?: readonly string[]) =>
+      runKliWithCommandList(input, rawArgv ?? Bun.argv, commands, undefined, undefined)
   }
 
   return {
@@ -103,7 +169,9 @@ const buildKliHandle = <const DepsT, const GlobalsT extends OptsDef = NoGlobalOp
     build,
     kli,
     run,
-    setup
+    setup,
+    setupCommands,
+    defineEmitter
   }
 }
 
@@ -124,9 +192,10 @@ const buildKliHandle = <const DepsT, const GlobalsT extends OptsDef = NoGlobalOp
  *   - `deps`: Object containing injected dependencies available to all commands
  *   - `globals`: Definition of global CLI flags/options (type-safe)
  *   - `middleware`: (Optional) Array of middleware applied to all commands
+ *   - `interceptors`: (Optional) Interceptors between the default emitter and `command.run` (see README)
  *
- * @returns KliHandle - An object with helpers for defining commands (`withCmd`),
- *   building a typed CLI (`build`), and running the CLI (`run`, `setup`).
+ * @returns KliHandle - Helpers: `withCmd`, `build`, `run`, typed `setup({ commands, emitter? })`,
+ *   variadic `setupCommands(...)`, and `defineEmitter`.
  *
  * @example
  * ```ts

@@ -11,6 +11,6 @@ export const greetCommand = shell.withCmd({
       console.debug('DEBUG Enabled!', { args, deps, globals })
     }
 
-    console.log(deps.greeter({ name: args.name }))
+    return deps.greeter({ name: args.name })
   }
 })

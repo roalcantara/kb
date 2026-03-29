@@ -1,34 +1,74 @@
 import type { CliCommand } from '../../core/commands/command_handler.schema.ts'
-import type { ArgsDef, OptsDef } from '../../core/parsing/argv.schema.ts'
+import type { ArgsDef, OptDef, OptsDef } from '../../core/parsing/argv.schema.ts'
 import type { CliInstance } from '../factories/cli_instance.factory.ts'
 
 /** Right-pads `value` to `width` for aligned CLI columns. */
 const pad = (value: string, width: number): string => value.padEnd(width, ' ')
 
+type OptRow = { left: string; right: string }
+
+const metaSuffix = (def: OptDef): string => {
+  const meta: string[] = []
+  if (def.default !== undefined) meta.push(`default=${String(def.default)}`)
+  if (def.env) meta.push(`env=${def.env}`)
+  return meta.length > 0 ? `(${meta.join(', ')})` : ''
+}
+
+const plainOptionRow = (name: string, def: OptDef): OptRow => {
+  const short = def.short ? `-${def.short}, ` : '    '
+  const left = `${short}--${name}`
+  const metaStr = metaSuffix(def)
+  let right = ''
+  if (def.desc && metaStr) right = `${def.desc} ${metaStr}`
+  else if (def.desc) right = def.desc
+  else if (metaStr) right = metaStr
+  return { left, right }
+}
+
+const eitherRowsForDef = (def: OptDef): OptRow[] => {
+  const either = def.either
+  if (!either || Object.keys(either).length === 0) return []
+  const rows: OptRow[] = []
+  let firstEither = true
+  for (const [shortLetter, longValue] of Object.entries(either)) {
+    const left = `-${shortLetter}, --${longValue}`
+    const body = def.desc ? `${def.desc} (\`${longValue}\`)` : String(longValue)
+    const trail: string[] = []
+    if (def.default === longValue) trail.push('(default)')
+    if (def.env && firstEither) trail.push(`env=${def.env}`)
+    firstEither = false
+    const right = trail.length > 0 ? `${body} ${trail.join(' ')}` : body
+    rows.push({ left, right })
+  }
+  return rows
+}
+
 /**
- * Builds indented lines for option help (`--name`, short flag, env, default hints).
+ * One row per flag variant: either-group opts expand to `-s, --value` lines; plain opts stay `--name`.
+ */
+const buildOptionRows = (options: OptsDef): OptRow[] => {
+  const rows: OptRow[] = []
+  for (const [name, def] of Object.entries(options)) {
+    const eitherRows = eitherRowsForDef(def)
+    if (eitherRows.length > 0) rows.push(...eitherRows)
+    else rows.push(plainOptionRow(name, def))
+  }
+  return rows
+}
+
+/**
+ * Builds indented lines for option help (`--name`, `either` expansion, `desc`, defaults, env).
  *
- * @param options - Opt schema map (`short`, `env`, `default` shown when set)
+ * @param options - Opt schema map from {@link OptsDef}
  * @returns Lines without trailing newlines (caller joins)
  */
-const formatOptionLines = (options: Record<string, { short?: string; env?: string; default?: unknown }>): string[] => {
-  const entries = Object.entries(options)
-  if (entries.length === 0) return []
-
-  const leftValues = entries.map(([name, def]) => {
-    const short = def.short ? `-${def.short}, ` : '    '
-    return `${short}--${name}`
-  })
-  const leftWidth = Math.max(...leftValues.map(value => value.length))
-
-  return entries.map(([name, def], idx) => {
-    const left = pad(leftValues[idx] ?? `--${name}`, leftWidth)
-    const parts: string[] = []
-    if (def.default !== undefined) parts.push(`default=${String(def.default)}`)
-    if (def.env) parts.push(`env=${def.env}`)
-    const suffix = parts.length > 0 ? ` (${parts.join(', ')})` : ''
-    return `  ${left}${suffix}`
-  })
+const formatOptionLines = (options: OptsDef): string[] => {
+  const rows = buildOptionRows(options)
+  if (rows.length === 0) return []
+  const leftWidth = Math.max(...rows.map(r => r.left.length))
+  return rows.map(({ left, right }) =>
+    right.length > 0 ? `  ${pad(left, leftWidth)}  ${right}` : `  ${pad(left, leftWidth)}`
+  )
 }
 
 /**

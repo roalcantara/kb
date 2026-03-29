@@ -5,6 +5,12 @@ type EmptyGlobalOptsDef = Record<never, OptDef>
 
 export type Middleware<CtxT = unknown> = (ctx: CtxT, next: () => Promise<void>) => void | Promise<void>
 
+/**
+ * Wraps command execution and the returned value (Nest-style interceptors). `next` runs
+ * deeper interceptors, then `command.run`; return its result or a transformed value.
+ */
+export type CliInterceptor<CtxT = unknown> = (ctx: CtxT, next: () => Promise<unknown>) => unknown | Promise<unknown>
+
 type ScalarFromOptDef<DefT extends OptDef | ArgDef> = DefT['type'] extends 'boolean'
   ? boolean
   : DefT['type'] extends 'number'
@@ -86,6 +92,12 @@ export type CliMiddlewareContext<DepsT, _GlobalsT extends OptsDef = OptsDef> = C
   Record<string, RunScalar | undefined>
 >
 
+/**
+ * Context for interceptors — same fields as {@link CliMiddlewareContext}; distinct name so
+ * interceptors are not confused with middleware-only usage.
+ */
+export type CliInterceptorContext<DepsT, GlobalsT extends OptsDef = OptsDef> = CliMiddlewareContext<DepsT, GlobalsT>
+
 export type CliCommand<
   DepsT = unknown,
   ArgsT extends ArgsDef = ArgsDef,
@@ -97,5 +109,11 @@ export type CliCommand<
   args?: ArgsT
   opts?: OptsT
   middleware?: readonly Middleware<CliMiddlewareContext<DepsT, GlobalsT>>[]
-  run: (ctx: RunHandlerContext<DepsT, ArgsT, OptsT, GlobalsT>) => void | Promise<void>
+  /** Per-command interceptors run after global interceptors (closer to `run`). */
+  interceptors?: readonly CliInterceptor<CliInterceptorContext<DepsT, GlobalsT>>[]
+  /**
+   * Return structured data for global interceptors (e.g. formatters). `void` / `undefined`
+   * skips post-handling output from those interceptors.
+   */
+  run: (ctx: RunHandlerContext<DepsT, ArgsT, OptsT, GlobalsT>) => void | Promise<void> | unknown | Promise<unknown>
 }
