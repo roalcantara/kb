@@ -24,7 +24,7 @@
     "noUnusedParameters": false,
     "resolveJsonModule": true,
     "esModuleInterop": true,
-    "noPropertyAccessFromIndexSignature": true,
+    "noPropertyAccessFromIndexSignature": false,
     "allowUnusedLabels": false,
     "allowUnreachableCode": false,
     "noErrorTruncation": false, // true keeps full error messages - for better debugging

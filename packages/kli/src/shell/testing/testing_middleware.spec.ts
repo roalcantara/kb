@@ -1,7 +1,7 @@
 import { expect, test } from 'bun:test'
 
+import { withCommand } from '../../core/commands/with_command.factory.ts'
 import { testCommand, testMiddleware } from './testing.ts'
-import { withCommand } from './with_command.ts'
 
 test('testCommand captures stdout and returns exitCode 0', async () => {
   const command = withCommand({

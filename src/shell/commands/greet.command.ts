@@ -1,17 +1,16 @@
-import { withAppCommand } from '../cli_kit.ts'
+import { shell } from '../main.ts'
 
-const DEFAULT_GREET_NAME = 'World'
-
-const GREET_ARGS = {
-  name: { type: 'string', required: false }
-} as const
-
-export const greetCommand = withAppCommand({
+export const greetCommand = shell.withCmd({
   name: 'greet',
   desc: 'Greet someone',
-  args: GREET_ARGS,
-  run: ({ args, deps }) => {
-    const typedArgs = args as { name?: string }
-    console.log(deps.greeter({ name: typedArgs.name ?? DEFAULT_GREET_NAME }))
+  args: {
+    name: { type: 'string', required: false, default: 'World' }
+  },
+  run: ({ args, deps, globals }) => {
+    if (globals.debug) {
+      console.debug('DEBUG Enabled!', { args, deps, globals })
+    }
+
+    console.log(deps.greeter({ name: args.name }))
   }
 })

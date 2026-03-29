@@ -209,5 +209,28 @@
     "linter": {
       "enabled": true
     }
-  }
+  },
+  "overrides": [
+    {
+      "includes": ["**/*.test.ts", "**/*.spec.ts", "**/__tests__/**/*.ts"],
+      "linter": {
+        "rules": {
+          "complexity": {
+            "noExcessiveLinesPerFunction": {
+              "level": "warn",
+              "options": {
+                "maxLines": 200,
+                "skipBlankLines": true,
+                "skipIifes": true
+              }
+            },
+            "useLiteralKeys": "off"
+          },
+          "style": {
+            "noMagicNumbers": "off"
+          }
+        }
+      }
+    }
+  ]
 }

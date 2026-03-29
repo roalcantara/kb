@@ -1,21 +1,13 @@
-import type { CommandHandlerContext, Middleware } from '@kb/kli'
-
-import type { AppDeps } from '../deps.factory.ts'
-
-type TimingCtx = CommandHandlerContext<
-  Record<string, unknown>,
-  Record<string, unknown> & { verbose?: boolean },
-  AppDeps,
-  { verbose?: boolean }
->
+import type { CliMiddlewareContext, Middleware, OptsDef } from '@kb/kli'
 
 const NANOSECONDS_PER_MILLISECOND = 1_000_000
 
-export const timingMiddleware: Middleware<TimingCtx> = async (ctx, next) => {
+/** `DepsT` is unknown so this matches any `createKli` deps without a shared `deps.ts`. */
+export const timingMiddleware: Middleware<CliMiddlewareContext<unknown, OptsDef>> = async (ctx, next) => {
   const startedAt = process.hrtime.bigint()
   await next()
 
-  if (!ctx.opts.verbose) return
+  if (!ctx.globals.verbose) return
 
   const elapsedNs = process.hrtime.bigint() - startedAt
   const elapsedMs = Number(elapsedNs) / NANOSECONDS_PER_MILLISECOND

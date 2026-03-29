@@ -1,12 +1,8 @@
 import { describe, expect, test } from 'bun:test'
 
-import { type CommandDef, type OptsDef, parseArgv } from './parse_argv.ts'
-import { validateCommand } from './validate_command.ts'
-
-type KnownOpts = {
-  config?: string
-  format?: string
-}
+import type { CommandDef, OptsDef } from '../parsing/argv.schema.ts'
+import { parseArgv } from '../parsing/argv_parse.service.ts'
+import { validateCommand } from './validate_command.service.ts'
 
 const COMMAND: CommandDef = {
   name: 'build',
@@ -22,11 +18,10 @@ const COMMAND: CommandDef = {
   }
 }
 
-function argv(...tokens: string[]): string[] {
-  return ['/bun', 'index.ts', ...tokens]
-}
+/** Synthetic argv prefix + tokens for {@link parseArgv} tests. */
+const argv = (...tokens: string[]): string[] => ['/bun', 'index.ts', ...tokens]
 
-describe('validate_command', () => {
+describe('validate_command / basics', () => {
   test('returns ok when required args and opts are present', () => {
     const parsed = parseArgv(argv('build', 'prod', '--config', '/tmp/a.yml'), {}, [COMMAND], {})
     const result = validateCommand(parsed, COMMAND, {}, {})
@@ -62,7 +57,9 @@ describe('validate_command', () => {
     expect(joined).toContain('Missing required arg: target')
     expect(joined).toContain('Missing required opt: config')
   })
+})
 
+describe('validate_command / merge and scalars', () => {
   test('global and local opts merge with local precedence', () => {
     const globalOpts: OptsDef = {
       format: { type: 'number', default: 10 }
@@ -77,8 +74,7 @@ describe('validate_command', () => {
     const parsed = parseArgv(argv('build', 'prod', '--config', '/tmp/a.yml'), globalOpts, [localCommand], {})
     const result = validateCommand(parsed, localCommand, globalOpts, {})
     expect(result.isOk()).toBe(true)
-    const opts = result._unsafeUnwrap().opts as KnownOpts
-    expect(opts.format).toBe('json')
+    expect(result._unsafeUnwrap().opts['format']).toBe('json')
   })
 
   test('returns fully merged ctx data when valid', () => {
@@ -89,8 +85,21 @@ describe('validate_command', () => {
     const result = validateCommand(parsed, COMMAND, globalOpts, {})
     expect(result.isOk()).toBe(true)
     const data = result._unsafeUnwrap()
-    expect((data.args as { target?: string }).target).toBe('prod')
-    expect((data.opts as { region?: string }).region).toBe('eu-west-1')
-    expect((data.opts as KnownOpts).config).toBe('/tmp/a.yml')
+    expect(data.args['target']).toBe('prod')
+    expect(data.globals['region']).toBe('eu-west-1')
+    expect(data.opts['config']).toBe('/tmp/a.yml')
+  })
+
+  test('resolves opt from env when argv absent', () => {
+    const command: CommandDef = {
+      name: 'x',
+      opts: { apiKey: { type: 'string', env: 'KLI_TEST_API', required: true } }
+    }
+    const parsed = parseArgv(argv('x'), {}, [command], {})
+    const kliTestApiEnvKey = 'KLI_TEST_API'
+    const testEnv: Record<string, string | undefined> = { [kliTestApiEnvKey]: 'secret' }
+    const result = validateCommand(parsed, command, {}, testEnv)
+    expect(result.isOk()).toBe(true)
+    expect(result._unsafeUnwrap().opts['apiKey']).toBe('secret')
   })
 })

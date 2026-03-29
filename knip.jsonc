@@ -9,5 +9,5 @@
     }
   },
   "ignoreBinaries": ["mise", "dot"],
-  "ignoreFiles": ["**/tools/typia/templates/**", ".cursor/**"]
+  "ignoreFiles": ["**/tools/typia/templates/**", ".cursor/**", "**/tools/xml2yaml.ts"]
 }

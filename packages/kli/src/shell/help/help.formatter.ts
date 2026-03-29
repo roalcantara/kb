@@ -1,12 +1,17 @@
-import type { ArgsDef, OptsDef } from './parse_argv.ts'
-import type { CliInstance } from './with_cli.ts'
-import type { CliCommand } from './with_command.ts'
+import type { CliCommand } from '../../core/commands/command_handler.schema.ts'
+import type { ArgsDef, OptsDef } from '../../core/parsing/argv.schema.ts'
+import type { CliInstance } from '../factories/cli_instance.factory.ts'
 
-function pad(value: string, width: number): string {
-  return value.padEnd(width, ' ')
-}
+/** Right-pads `value` to `width` for aligned CLI columns. */
+const pad = (value: string, width: number): string => value.padEnd(width, ' ')
 
-function formatOptionLines(options: Record<string, { short?: string; env?: string; default?: unknown }>): string[] {
+/**
+ * Builds indented lines for option help (`--name`, short flag, env, default hints).
+ *
+ * @param options - Opt schema map (`short`, `env`, `default` shown when set)
+ * @returns Lines without trailing newlines (caller joins)
+ */
+const formatOptionLines = (options: Record<string, { short?: string; env?: string; default?: unknown }>): string[] => {
   const entries = Object.entries(options)
   if (entries.length === 0) return []
 
@@ -26,14 +31,23 @@ function formatOptionLines(options: Record<string, { short?: string; env?: strin
   })
 }
 
-export function printHelp<
+/**
+ * Prints the root help listing: header, usage, commands, and global options.
+ *
+ * @param cli - CLI instance (name, version, globals, commands)
+ * @param commands - Subset to list (defaults to `cli.commands`)
+ *
+ * @example
+ * printHelp(cli)
+ */
+export const printHelp = <
   DepsT,
   GlobalsT extends OptsDef,
   CommandsT extends readonly CliCommand<DepsT, ArgsDef, OptsDef, GlobalsT>[]
 >(
   cli: CliInstance<DepsT, GlobalsT, CommandsT>,
   commands: readonly CliCommand<DepsT, ArgsDef, OptsDef, GlobalsT>[] = cli.commands
-): void {
+): void => {
   const header = `${cli.name} ${cli.version} · ${cli.description}`
   const usage = `Usage: ${cli.name} <command> [opts]`
   const commandWidth = Math.max(0, ...commands.map(command => command.name.length))
@@ -46,7 +60,17 @@ export function printHelp<
   console.log(output.join('\n'))
 }
 
-export function printCommandHelp<
+/**
+ * Prints help for a single command: usage, args, and local options.
+ *
+ * @param cli - CLI instance (for name/version in header)
+ * @param command - Command whose schema is summarized
+ * @param name - Override printed command name (defaults to `command.name`)
+ *
+ * @example
+ * printCommandHelp(cli, myCmd)
+ */
+export const printCommandHelp = <
   DepsT,
   GlobalsT extends OptsDef,
   CommandsT extends readonly CliCommand<DepsT, ArgsDef, OptsDef, GlobalsT>[]
@@ -54,7 +78,7 @@ export function printCommandHelp<
   cli: CliInstance<DepsT, GlobalsT, CommandsT>,
   command: CliCommand<DepsT, ArgsDef, OptsDef, GlobalsT>,
   name = command.name
-): void {
+): void => {
   const header = `${cli.name} ${cli.version} · ${cli.description}`
   const usage = `Usage: ${cli.name} ${name} [opts]`
   const localOptLines = formatOptionLines(command.opts ?? {})
@@ -66,10 +90,20 @@ export function printCommandHelp<
   console.log(output.join('\n'))
 }
 
-export function printVersion<
+/**
+ * Prints `name version` on one line (for `--version`).
+ *
+ * @param cli - CLI instance
+ *
+ * @example
+ * printVersion(cli)
+ */
+export const printVersion = <
   DepsT,
   GlobalsT extends OptsDef,
   CommandsT extends readonly CliCommand<DepsT, ArgsDef, OptsDef, GlobalsT>[]
->(cli: CliInstance<DepsT, GlobalsT, CommandsT>): void {
+>(
+  cli: CliInstance<DepsT, GlobalsT, CommandsT>
+): void => {
   console.log(`${cli.name} ${cli.version}`)
 }

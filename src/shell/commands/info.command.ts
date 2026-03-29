@@ -1,22 +1,22 @@
-import { withAppCommand } from '../cli_kit.ts'
+import { shell } from '../main.ts'
 
-export const infoCommand = withAppCommand({
+export const infoCommand = shell.withCmd({
   name: 'info',
   desc: 'Print current CLI configuration',
   args: {
     path: { type: 'file', default: '~/.config/kodexb/config.yml' }
-  } as const,
+  },
   opts: {
     source: { type: 'string', default: '~/.config/kodexb/sources' }
-  } as const,
-  run: ({ deps, globals, args, opts }) => {
+  },
+  run: ({ deps, args, opts, globals }) => {
     if (globals.verbose) {
       console.log('Verbose mode is enabled')
     }
-    if (globals.verbose) {
-      console.debug('DEBUG Enabled!', { args, opts })
-      console.debug(`ARGS: path => ${args['path']}`) // => What does this print?
-      console.debug(`OPTS: config => ${opts['config']}`) // => What does this print?
+    if (globals.debug) {
+      console.debug('DEBUG Enabled!', { args, opts, globals })
+      console.debug(`ARGS: path => ${args.path}`)
+      console.debug(`OPTS: source => ${opts.source}`)
     }
     const output = {
       cli: 'kb',

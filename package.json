@@ -56,7 +56,8 @@
         "release-it": "^19.2.4"
       },
       "testing": {
-        "fishery": "^2.4.0"
+        "fishery": "^2.4.0",
+        "expect-type": "^0.20.0"
       },
       "utilities": {
         "radash": "^12.1.1"

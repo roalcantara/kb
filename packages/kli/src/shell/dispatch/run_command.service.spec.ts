@@ -1,8 +1,9 @@
 import { expect, mock, spyOn, test } from 'bun:test'
-
-import { runCommand } from './run_command.ts'
-import { withCli } from './with_cli.ts'
-import { type Middleware, withCommand } from './with_command.ts'
+import type { CliCommand, Middleware } from '../../core/commands/command_handler.schema.ts'
+import { withCommand } from '../../core/commands/with_command.factory.ts'
+import type { ArgsDef, OptsDef } from '../../core/parsing/argv.schema.ts'
+import { withCli } from '../factories/cli_instance.factory.ts'
+import { runCommand } from './run_command.service.ts'
 
 const BASE_PACKAGE = {
   name: 'kb',
@@ -10,19 +11,27 @@ const BASE_PACKAGE = {
   description: 'kb cli'
 }
 
-function createCli(overrides?: {
+const TEST_GLOBALS = {
+  region: { type: 'string' as const, default: 'eu-west-1' }
+} as const
+
+type TestGlobals = typeof TEST_GLOBALS
+
+/** Test {@link withCli} fixture with optional deps/middleware/commands overrides. */
+const createCli = (overrides?: {
   deps?: unknown
   middleware?: readonly Middleware<unknown>[]
-  commands?: readonly ReturnType<typeof withCommand>[]
-}) {
-  const info = withCommand({
+  /** Heterogeneous commands are erased to ArgsDef/OptsDef at the CLI boundary (run stays typed per command). */
+  commands?: readonly unknown[]
+}) => {
+  const info = withCommand<unknown, ArgsDef, { format: { type: 'string'; default: string } }, TestGlobals>({
     name: 'info',
     desc: 'show info',
     opts: {
       format: { type: 'string', default: 'json' }
     },
     run: ({ opts }) => {
-      console.log(JSON.stringify({ ok: true, format: (opts as { format?: string }).format ?? 'json' }))
+      console.log(JSON.stringify({ ok: true, format: opts.format ?? 'json' }))
     }
   })
 
@@ -30,19 +39,23 @@ function createCli(overrides?: {
     name: 'kb',
     packageJson: BASE_PACKAGE,
     deps: overrides?.deps ?? { marker: 'deps' },
-    globals: { region: { type: 'string', default: 'eu-west-1' } },
+    globals: TEST_GLOBALS,
     middleware: overrides?.middleware ?? [],
-    commands: overrides?.commands ?? [info]
+    commands: (overrides?.commands ?? [info]) as unknown as readonly CliCommand<
+      unknown,
+      ArgsDef,
+      OptsDef,
+      TestGlobals
+    >[]
   })
 }
 
-function argv(...tokens: string[]): string[] {
-  return ['/bun', 'index.ts', ...tokens]
-}
+/** argv prefix for {@link runCommand} integration tests. */
+const argv = (...tokens: string[]): string[] => ['/bun', 'index.ts', ...tokens]
 
 test('known command runs with expected context', async () => {
   const handler = mock((_ctx: unknown) => undefined)
-  const command = withCommand({
+  const command = withCommand<unknown, ArgsDef, { format: { type: 'string'; default: string } }, TestGlobals>({
     name: 'info',
     desc: 'show info',
     opts: { format: { type: 'string', default: 'json' } },
@@ -52,8 +65,12 @@ test('known command runs with expected context', async () => {
   const code = await runCommand(cli, argv('info'))
   expect(code).toBe(0)
   expect(handler).toHaveBeenCalled()
-  const ctx = handler.mock.calls[0]?.[0] as { deps: unknown; opts: { region?: string; format?: string } }
-  expect(ctx.opts.region).toBe('eu-west-1')
+  const ctx = handler.mock.calls[0]?.[0] as {
+    deps: unknown
+    opts: { format?: string }
+    globals: { region?: string }
+  }
+  expect(ctx.globals.region).toBe('eu-west-1')
   expect(ctx.opts.format).toBe('json')
 })
 
@@ -92,7 +109,12 @@ test('unknown option exits 1', async () => {
 })
 
 test('validation failure exits 1 and prints all errors', async () => {
-  const command = withCommand({
+  const command = withCommand<
+    unknown,
+    { target: { type: 'string'; required: true } },
+    { config: { type: 'file'; required: true } },
+    TestGlobals
+  >({
     name: 'info',
     desc: 'show info',
     args: { target: { type: 'string', required: true } },
@@ -109,7 +131,7 @@ test('validation failure exits 1 and prints all errors', async () => {
 })
 
 test('handler throw exits 1 with command context', async () => {
-  const command = withCommand({
+  const command = withCommand<unknown, ArgsDef, OptsDef, TestGlobals>({
     name: 'info',
     desc: 'show info',
     run: () => {
@@ -126,11 +148,15 @@ test('handler throw exits 1 with command context', async () => {
 test('global and command middleware run in order', async () => {
   const order: string[] = []
   const handler = mock((ctx: unknown) => {
-    const typed = ctx as { deps: { marker: string }; opts: { region?: string; format?: string } }
-    order.push(`handler:${typed.deps.marker}:${typed.opts.region}:${typed.opts.format}`)
+    const typed = ctx as {
+      deps: { marker: string }
+      opts: { format?: string }
+      globals: { region?: string }
+    }
+    order.push(`handler:${typed.deps.marker}:${typed.globals.region}:${typed.opts.format}`)
   })
 
-  const command = withCommand({
+  const command = withCommand<unknown, ArgsDef, { format: { type: 'string'; default: string } }, TestGlobals>({
     name: 'info',
     desc: 'show info',
     opts: { format: { type: 'string', default: 'json' } },
@@ -169,7 +195,7 @@ test('global and command middleware run in order', async () => {
 
 test('middleware without next short-circuits handler', async () => {
   const handler = mock((_ctx: unknown) => undefined)
-  const noNextCommand = withCommand({
+  const noNextCommand = withCommand<unknown, ArgsDef, OptsDef, TestGlobals>({
     name: 'info',
     desc: 'show info',
     middleware: [async () => undefined],
@@ -181,7 +207,7 @@ test('middleware without next short-circuits handler', async () => {
 
 test('middleware throw exits 1', async () => {
   const handler = mock((_ctx: unknown) => undefined)
-  const throwMiddlewareCommand = withCommand({
+  const throwMiddlewareCommand = withCommand<unknown, ArgsDef, OptsDef, TestGlobals>({
     name: 'info',
     desc: 'show info',
     middleware: [

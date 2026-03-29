@@ -1,6 +1,17 @@
 import { sift } from 'radash'
-
-import { normalizeArgv } from './minimal_cli.ts'
+import type {
+  ArgsDef,
+  CommandDef,
+  EnvMap,
+  OptDef,
+  OptsDef,
+  ParseResult,
+  ParseState,
+  ScalarType,
+  ScalarValue
+} from './argv.schema.ts'
+import { normalizeArgv } from './argv_normalize.util.ts'
+import { expandFileValue } from './path_expand.util.ts'
 
 const LONG_PREFIX_SIZE = 2
 const SHORT_PREFIX_SIZE = 1
@@ -8,49 +19,16 @@ const NEGATED_PREFIX = 'no-'
 const NEGATED_PREFIX_SIZE = 3
 const VARIADIC_SUFFIX = '...'
 const VARIADIC_SUFFIX_SIZE = 3
-const HOME_KEY = 'HOME'
 
-type ScalarType = 'string' | 'number' | 'boolean' | 'file'
-type ScalarValue = string | number | boolean
-type EnvMap = Record<string, string | undefined>
-
-export type ArgDef = { type: ScalarType; required?: boolean }
-export type ArgsDef = Record<string, ArgDef>
-export type EitherDef = Record<string, string>
-export type OptDef = {
-  type: ScalarType
-  required?: boolean
-  short?: string
-  env?: string
-  default?: ScalarValue
-  either?: EitherDef
-}
-export type OptsDef = Record<string, OptDef>
-export type CommandDef = { name: string; args?: ArgsDef; opts?: OptsDef }
-
-export type ParseResult = {
-  commandName?: string
-  opts: Record<string, ScalarValue>
-  args: Record<string, ScalarValue | ScalarValue[]>
-  positional: string[]
-  errors: string[]
-}
-
-type ParseState = {
-  opts: Record<string, ScalarValue>
-  positional: string[]
-  errors: string[]
-  eitherSelections: Record<string, string>
-}
-
-function expandFileValue(value: string, env: EnvMap): string {
-  const home = env[HOME_KEY] ?? ''
-  const homeExpanded =
-    value === '~' ? home : value.startsWith('~/') ? `${home}/${value.slice(LONG_PREFIX_SIZE)}` : value
-  return homeExpanded.replace(/\$([A-Za-z_][A-Za-z0-9_]*)/g, (_full, envName: string) => env[envName] ?? '')
-}
-
-function coerceValue(raw: string | undefined, type: ScalarType, env: EnvMap): ScalarValue | undefined {
+/**
+ * Coerces a raw CLI token to a scalar matching the schema type.
+ *
+ * @param raw - Token text, or `undefined` (boolean flags default to `true` when absent)
+ * @param type - Schema type for the arg or opt
+ * @param env - Used when `type` is `file` (see {@link expandFileValue})
+ * @returns Coerced value, or `undefined` if invalid / missing
+ */
+const coerceValue = (raw: string | undefined, type: ScalarType, env: EnvMap): ScalarValue | undefined => {
   if (raw === undefined) return type === 'boolean' ? true : undefined
   if (type === 'string') return raw
   if (type === 'file') return expandFileValue(raw, env)
@@ -63,7 +41,14 @@ function coerceValue(raw: string | undefined, type: ScalarType, env: EnvMap): Sc
   if (normalized === 'false' || normalized === '0') return false
 }
 
-function pickCommand(tokens: string[], commands: readonly CommandDef[]): { commandName?: string; rest: string[] } {
+/**
+ * Finds the first positional token that names a known command and returns it with that token removed from the stream.
+ *
+ * @param tokens - Normalized argv tokens (after {@link normalizeArgv})
+ * @param commands - Registered command definitions (names compared to first non-flag token)
+ * @returns `commandName` when matched, plus `rest` tokens with the command name removed once
+ */
+const pickCommand = (tokens: string[], commands: readonly CommandDef[]): { commandName?: string; rest: string[] } => {
   const commandToken = tokens.find(token => !token.startsWith('-'))
   if (!commandToken) return { rest: tokens }
   const command = commands.find(c => c.name === commandToken)
@@ -72,15 +57,20 @@ function pickCommand(tokens: string[], commands: readonly CommandDef[]): { comma
   return { commandName: commandToken, rest: [...tokens.slice(0, idx), ...tokens.slice(idx + 1)] }
 }
 
-function findOptionByEitherShort(options: OptsDef, short: string): [string, OptDef] | undefined {
-  return Object.entries(options).find(([, def]) => def.either?.[short] !== undefined)
-}
+/** Looks up an option whose `either` map maps this short flag letter to a long name. */
+const findOptionByEitherShort = (options: OptsDef, short: string): [string, OptDef] | undefined =>
+  Object.entries(options).find(([, def]) => def.either?.[short] !== undefined)
 
-function findOptionByEitherLong(options: OptsDef, long: string): [string, OptDef] | undefined {
-  return Object.entries(options).find(([, def]) => Object.values(def.either ?? {}).includes(long))
-}
+/** Looks up an option whose `either` map includes this long flag name as a value. */
+const findOptionByEitherLong = (options: OptsDef, long: string): [string, OptDef] | undefined =>
+  Object.entries(options).find(([, def]) => Object.values(def.either ?? {}).includes(long))
 
-function consumeUnknownOption(tokens: string[], idx: number, token: string, errors: string[]): number {
+/**
+ * Records an unknown flag error and returns the next token index to continue from (skips value if consumed).
+ *
+ * @returns New index into `tokens` after handling this option token
+ */
+const consumeUnknownOption = (tokens: string[], idx: number, token: string, errors: string[]): number => {
   const option = token.startsWith('--') ? token.slice(LONG_PREFIX_SIZE).split('=')[0] : token.slice(SHORT_PREFIX_SIZE)
   errors.push(`Unknown option: ${option ? `--${option}` : token}`)
   if (token.includes('=')) return idx
@@ -88,7 +78,8 @@ function consumeUnknownOption(tokens: string[], idx: number, token: string, erro
   return next && !next.startsWith('-') ? idx + 1 : idx
 }
 
-function writeEitherSelection(state: ParseState, key: string, selected: string): void {
+/** Records a mutually exclusive group selection, or pushes an error if two different members were chosen. */
+const writeEitherSelection = (state: ParseState, key: string, selected: string): void => {
   const previous = state.eitherSelections[key]
   if (previous && previous !== selected) {
     state.errors.push(`Either conflict for "${key}": "${previous}" and "${selected}"`)
@@ -96,15 +87,22 @@ function writeEitherSelection(state: ParseState, key: string, selected: string):
   }
   state.eitherSelections[key] = selected
   state.opts[key] = selected
+  state.optSources[key] = 'argv'
 }
 
-function readInlineValue(body: string): { name: string; value?: string } {
+/** Parses `--name` or `--name=value` style long-option bodies (without the leading `--`). */
+const readInlineValue = (body: string): { name: string; value?: string } => {
   const eqAt = body.indexOf('=')
   if (eqAt === -1) return { name: body }
   return { name: body.slice(0, eqAt), value: body.slice(eqAt + 1) }
 }
 
-function writeDirectLongOption(
+/**
+ * Applies a single long option token to parse state; returns the next index to use in `tokens`.
+ *
+ * @returns Updated `idx` after consuming optional separate value token
+ */
+const writeDirectLongOption = (
   idx: number,
   parsed: { name: string; value?: string },
   negated: boolean,
@@ -112,22 +110,31 @@ function writeDirectLongOption(
   tokens: string[],
   state: ParseState,
   env: EnvMap
-): number {
+): number => {
   const next = tokens[idx + 1]
   const valueToken = parsed.value ?? (directOpt.type === 'boolean' || next?.startsWith('-') ? undefined : next)
   const consumed = parsed.value === undefined && directOpt.type !== 'boolean' && valueToken !== undefined
 
   if (negated && directOpt.type === 'boolean') {
     state.opts[parsed.name] = false
+    state.optSources[parsed.name] = 'argv'
     return consumed ? idx + 1 : idx
   }
 
   const coerced = coerceValue(valueToken, directOpt.type, env)
-  if (coerced !== undefined) state.opts[parsed.name] = coerced
+  if (coerced !== undefined) {
+    state.opts[parsed.name] = coerced
+    state.optSources[parsed.name] = 'argv'
+  }
   return consumed ? idx + 1 : idx
 }
 
-function parseLongToken(tokens: string[], idx: number, options: OptsDef, state: ParseState, env: EnvMap): number {
+/**
+ * Consumes one `--long` or `--no-long` token and updates `state`.
+ *
+ * @returns Next index into `tokens` (same or advanced if a value was eaten)
+ */
+const parseLongToken = (tokens: string[], idx: number, options: OptsDef, state: ParseState, env: EnvMap): number => {
   const current = tokens[idx]
   if (current === undefined) return idx
   const raw = current.slice(LONG_PREFIX_SIZE)
@@ -146,7 +153,12 @@ function parseLongToken(tokens: string[], idx: number, options: OptsDef, state: 
   return writeDirectLongOption(idx, parsed, negated, directOpt, tokens, state, env)
 }
 
-function parseShortToken(tokens: string[], idx: number, options: OptsDef, state: ParseState, env: EnvMap): number {
+/**
+ * Consumes one short-cluster token (e.g. `-cv`) and updates `state`.
+ *
+ * @returns Next index into `tokens`
+ */
+const parseShortToken = (tokens: string[], idx: number, options: OptsDef, state: ParseState, env: EnvMap): number => {
   const current = tokens[idx]
   if (current === undefined) return idx
   const parsed = readInlineValue(current.slice(SHORT_PREFIX_SIZE))
@@ -166,12 +178,16 @@ function parseShortToken(tokens: string[], idx: number, options: OptsDef, state:
   const valueToken = parsed.value ?? (def.type === 'boolean' || next?.startsWith('-') ? undefined : next)
   const consumed = parsed.value === undefined && def.type !== 'boolean' && valueToken !== undefined
   const coerced = coerceValue(valueToken, def.type, env)
-  if (coerced !== undefined) state.opts[key] = coerced
+  if (coerced !== undefined) {
+    state.opts[key] = coerced
+    state.optSources[key] = 'argv'
+  }
   return consumed ? idx + 1 : idx
 }
 
-function parseTokens(tokens: string[], options: OptsDef, env: EnvMap): ParseState {
-  const state: ParseState = { opts: {}, positional: [], errors: [], eitherSelections: {} }
+/** Walks all tokens after the command name: flags into `opts`, remainder into `positional`. */
+const parseTokens = (tokens: string[], options: OptsDef, env: EnvMap): ParseState => {
+  const state: ParseState = { opts: {}, optSources: {}, positional: [], errors: [], eitherSelections: {} }
   for (let i = 0; i < tokens.length; i += 1) {
     const token = tokens[i]
     if (token === undefined) continue
@@ -190,28 +206,36 @@ function parseTokens(tokens: string[], options: OptsDef, env: EnvMap): ParseStat
   return state
 }
 
-function applyFallbacks(opts: Record<string, ScalarValue>, options: OptsDef, env: EnvMap): void {
+/** Fills missing options from `def.env` and `def.default` after argv parse. */
+const applyFallbacks = (state: ParseState, options: OptsDef, env: EnvMap): void => {
   for (const [key, def] of Object.entries(options)) {
-    if (opts[key] !== undefined) continue
+    if (state.opts[key] !== undefined) continue
     if (def.env && env[def.env] !== undefined) {
       const envValue = coerceValue(env[def.env], def.type, env)
       if (envValue !== undefined) {
-        opts[key] = envValue
+        state.opts[key] = envValue
+        state.optSources[key] = 'env'
         continue
       }
     }
     if (def.default !== undefined) {
-      opts[key] =
+      state.opts[key] =
         def.type === 'file' && typeof def.default === 'string' ? expandFileValue(def.default, env) : def.default
+      state.optSources[key] = 'default'
     }
   }
 }
 
-function parseNamedArgs(
+/**
+ * Maps positional tokens to named args using `argDefs` order; supports `key...` variadic keys.
+ *
+ * @returns Arg map keyed by logical name (variadic base name without `...`)
+ */
+const parseNamedArgs = (
   argDefs: ArgsDef,
   positional: string[],
   env: EnvMap
-): Record<string, ScalarValue | ScalarValue[]> {
+): Record<string, ScalarValue | ScalarValue[]> => {
   const args: Record<string, ScalarValue | ScalarValue[]> = {}
   let cursor = 0
   for (const [rawKey, def] of Object.entries(argDefs)) {
@@ -229,25 +253,46 @@ function parseNamedArgs(
   return args
 }
 
-export function parseArgv(
+/**
+ * Parses `rawArgv` into opts, positional args, optional `commandName`, and parse errors.
+ *
+ * @param rawArgv - Full process argv (e.g. `Bun.argv`)
+ * @param globalOpts - CLI-wide option definitions merged with the active command’s opts
+ * @param commands - Command list (names, per-command `args` / `opts`)
+ * @param env - Environment for `env:` keys and file expansion (defaults to `Bun.env`)
+ * @returns Structured parse result; validation is {@link validateCommand}
+ *
+ * @example
+ * parseArgv(['bun', 'app.ts', 'build', '--verbose'], { verbose: { type: 'boolean' } }, [
+ *   { name: 'build', args: { target: { type: 'string' } } }
+ * ])
+ */
+export const parseArgv = (
   rawArgv: readonly string[],
   globalOpts: OptsDef = {},
   commands: readonly CommandDef[] = [],
   env: EnvMap = Bun.env
-): ParseResult {
+): ParseResult => {
   const tokens = normalizeArgv(rawArgv)
   const commandPick = pickCommand(tokens, commands)
   const command = commands.find(c => c.name === commandPick.commandName)
   const options = { ...globalOpts, ...(command?.opts ?? {}) }
   const state = parseTokens(commandPick.rest, options, env)
-  applyFallbacks(state.opts, options, env)
+  applyFallbacks(state, options, env)
   const args = parseNamedArgs(command?.args ?? {}, state.positional, env)
 
   return commandPick.commandName === undefined
-    ? { opts: state.opts, args, positional: state.positional, errors: state.errors }
+    ? {
+        opts: state.opts,
+        optSources: state.optSources,
+        args,
+        positional: state.positional,
+        errors: state.errors
+      }
     : {
         commandName: commandPick.commandName,
         opts: state.opts,
+        optSources: state.optSources,
         args,
         positional: state.positional,
         errors: state.errors

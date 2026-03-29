@@ -1,6 +1,6 @@
-import { describe, expect, test } from 'bun:test'
-
-import { type CommandDef, parseArgv } from '../parse_argv.ts'
+import { describe, expect, it } from 'bun:test'
+import type { CommandDef } from './argv.schema.ts'
+import { parseArgv } from './argv_parse.service.ts'
 
 const LIMIT_FIFTY = 50
 const HOME_KEY = 'HOME'
@@ -38,22 +38,26 @@ const COMMANDS: readonly CommandDef[] = [
   }
 ]
 
-function argv(...tokens: string[]): string[] {
-  return ['/bun', 'index.ts', ...tokens]
-}
+/** Builds a Bun-style argv: runtime, script, then user tokens. */
+const argv = (...tokens: string[]): string[] => ['/bun', 'index.ts', ...tokens]
 
-function env(overrides: Record<string, string | undefined> = {}): Record<string, string | undefined> {
+/**
+ * Test env map with a default `HOME` unless overridden.
+ *
+ * @param overrides - Extra or replacement env entries
+ */
+const env = (overrides: Record<string, string | undefined> = {}): Record<string, string | undefined> => {
   const vars: Record<string, string | undefined> = { ...overrides }
   vars[HOME_KEY] = vars[HOME_KEY] ?? '/home/tester'
   return vars
 }
 
-function parseKnown(tokens: string[], overrides?: Record<string, string | undefined>) {
-  return parseArgv(argv(...tokens), {}, COMMANDS, env(overrides))
-}
+/** Runs {@link parseArgv} against {@link COMMANDS} with synthetic argv/env. */
+const parseKnown = (tokens: string[], overrides?: Record<string, string | undefined>) =>
+  parseArgv(argv(...tokens), {}, COMMANDS, env(overrides))
 
 describe('parse_argv options', () => {
-  test('parses long and short flags with coercion', () => {
+  it('parses long and short flags with coercion', () => {
     expect((parseKnown(['build', '--config=/tmp/a.yml']).opts as KnownOpts).config).toBe('/tmp/a.yml')
     expect((parseKnown(['build', '--config', '/tmp/a.yml']).opts as KnownOpts).config).toBe('/tmp/a.yml')
     expect((parseKnown(['build', '-c', '/tmp/a.yml']).opts as KnownOpts).config).toBe('/tmp/a.yml')
@@ -62,7 +66,7 @@ describe('parse_argv options', () => {
     expect((parseKnown(['build', '--no-verbose']).opts as KnownOpts).verbose).toBe(false)
   })
 
-  test('supports either groups and conflicts', () => {
+  it('supports either groups and conflicts', () => {
     expect((parseKnown(['build', '-p']).opts as KnownOpts).format).toBe('pretty')
     expect((parseKnown(['build', '--pretty']).opts as KnownOpts).format).toBe('pretty')
     expect((parseKnown(['build', '--format', 'json']).opts as KnownOpts).format).toBe('json')
@@ -73,7 +77,7 @@ describe('parse_argv options', () => {
 })
 
 describe('parse_argv fallback and expansion', () => {
-  test('expands file values and env fallback', () => {
+  it('expands file values and env fallback', () => {
     const envWithRoot = env()
     envWithRoot[KLI_ROOT_KEY] = 'workspace'
     expect(
@@ -85,13 +89,13 @@ describe('parse_argv fallback and expansion', () => {
     expect((parseArgv(argv('build'), {}, COMMANDS, envWithConfig).opts as KnownOpts).config).toBe('/env/config.yml')
   })
 
-  test('uses default when env and flag are absent', () => {
+  it('uses default when env and flag are absent', () => {
     expect((parseKnown(['build']).opts as KnownOpts).config).toBe('/home/tester/default.yml')
   })
 })
 
 describe('parse_argv command and positional behavior', () => {
-  test('extracts command and maps positional args in declaration order', () => {
+  it('extracts command and maps positional args in declaration order', () => {
     const parsed = parseKnown(['build', 'prod', 'a.ts', 'b.ts'])
     expect(parsed.commandName).toBe('build')
     const args = parsed.args as KnownArgs
@@ -99,7 +103,7 @@ describe('parse_argv command and positional behavior', () => {
     expect(args.files).toEqual(['a.ts', 'b.ts'])
   })
 
-  test('reports unknown flags as parse errors', () => {
+  it('reports unknown flags as parse errors', () => {
     const parsed = parseKnown(['build', '--nope', 'x', '--also-nope=y', 'prod'])
     expect(parsed.commandName).toBe('build')
     expect((parsed.args as KnownArgs).target).toBe('prod')

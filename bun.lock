@@ -29,6 +29,9 @@
         "neverthrow": "catalog:validation",
         "radash": "catalog:utilities",
       },
+      "devDependencies": {
+        "expect-type": "catalog:testing",
+      },
     },
   },
   "catalogs": {
@@ -49,6 +52,7 @@
       "typescript": "^5",
     },
     "testing": {
+      "expect-type": "^0.20.0",
       "fishery": "^2.4.0",
     },
     "utilities": {
@@ -471,6 +475,8 @@
     "eventemitter3": ["eventemitter3@5.0.4", "", {}, "sha512-mlsTRyGaPBjPedk6Bvw+aqbsXDtoAyAzm5MO7JgU+yVRyMQ5O8bD4Kcci7BS85f93veegeCPkL8R4GLClnjLFw=="],
 
     "execa": ["execa@4.1.0", "", { "dependencies": { "cross-spawn": "^7.0.0", "get-stream": "^5.0.0", "human-signals": "^1.1.1", "is-stream": "^2.0.0", "merge-stream": "^2.0.0", "npm-run-path": "^4.0.0", "onetime": "^5.1.0", "signal-exit": "^3.0.2", "strip-final-newline": "^2.0.0" } }, "sha512-j5W0//W7f8UxAn8hXVnwG8tLwdiUy4FJLcSupCg6maBYZDpyBvTApK7KyuI4bKj8KOh1r2YH+6ucuYtJv1bTZA=="],
+
+    "expect-type": ["expect-type@0.20.0", "", {}, "sha512-uHaC9LYNv6BcW+8SvXcwUUDCrrUxt3GSa61DFvTHj8JC+M0hekMFBwMlCarLQDk5bbpZ2vStpnQPIwRuV98YMw=="],
 
     "exsolve": ["exsolve@1.0.8", "", {}, "sha512-LmDxfWXwcTArk8fUEnOfSZpHOJ6zOMUJKOtFLFqJLoKJetuQG874Uc7/Kki7zFLzYybmZhp1M7+98pfMqeX8yA=="],
 

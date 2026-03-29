@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'bun:test'
 
-import { withCommand } from './with_command.ts'
+import { withCommand } from './with_command.factory.ts'
 
 describe('with_command', () => {
   test('keeps desc, args, opts, and run', () => {

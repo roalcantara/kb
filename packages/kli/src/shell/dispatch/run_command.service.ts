@@ -1,9 +1,11 @@
-import { printCommandHelp, printHelp, printVersion } from './help_command.ts'
-import { normalizeArgv } from './minimal_cli.ts'
-import { type ArgsDef, type OptsDef, type ParseResult, parseArgv } from './parse_argv.ts'
-import { validateCommand } from './validate_command.ts'
-import type { CliInstance } from './with_cli.ts'
-import type { CliCommand, CommandHandlerContext, Middleware, ResolvedOptValues } from './with_command.ts'
+import type { CliCommand, CliMiddlewareContext, Middleware } from '../../core/commands/command_handler.schema.ts'
+import type { ArgsDef, OptsDef, ParseResult } from '../../core/parsing/argv.schema.ts'
+import { normalizeArgv } from '../../core/parsing/argv_normalize.util.ts'
+import { parseArgv } from '../../core/parsing/argv_parse.service.ts'
+import { validateCommand } from '../../core/validation/validate_command.service.ts'
+import type { CliInstance } from '../factories/cli_instance.factory.ts'
+import { printCommandHelp, printHelp, printVersion } from '../help/help.formatter.ts'
+import { runChain } from './middleware_chain.service.ts'
 
 const EXIT_OK = 0
 const EXIT_ERROR = 1
@@ -11,55 +13,36 @@ const HELP_SHORT = '-h'
 const HELP_LONG = '--help'
 const VERSION_LONG = '--version'
 
-type RunContext<DepsT, GlobalsT extends OptsDef> = CommandHandlerContext<
-  Record<string, unknown>,
-  Record<string, unknown>,
-  DepsT,
-  ResolvedOptValues<GlobalsT>
-> & { raw: ParseResult }
+type RunContext<DepsT, GlobalsT extends OptsDef> = CliMiddlewareContext<DepsT, GlobalsT> & { raw: ParseResult }
 
-function firstNonFlag(args: readonly string[]): string | undefined {
-  return args.find(arg => !arg.startsWith('-'))
-}
+/** First argv token that is not a flag (used to detect unknown subcommands). */
+const firstNonFlag = (args: readonly string[]): string | undefined => args.find(arg => !arg.startsWith('-'))
 
-function startTuiStub(): number {
+/** Placeholder until real TUI wiring exists. */
+const startTuiStub = (): number => {
   console.log('TUI phase 2')
   return EXIT_OK
 }
 
-async function runChain<CtxT>(
-  middlewares: readonly Middleware<CtxT>[],
-  ctx: CtxT,
-  handler: () => Promise<void>,
-  index = 0
-): Promise<void> {
-  if (index >= middlewares.length) {
-    await handler()
-    return
-  }
-
-  const middleware = middlewares[index]
-  if (!middleware) return
-
-  await middleware(ctx, async () => {
-    // Short-circuit is automatic when middleware omits next().
-    await runChain(middlewares, ctx, handler, index + 1)
-  })
-}
-
-function resolveCommand<
+/** Looks up the command object for `parsed.commandName`, if any. */
+const resolveCommand = <
   DepsT,
   GlobalsT extends OptsDef,
   CommandsT extends readonly CliCommand<DepsT, ArgsDef, OptsDef, GlobalsT>[]
 >(
   cli: CliInstance<DepsT, GlobalsT, CommandsT>,
   parsed: ParseResult
-): CliCommand<DepsT, ArgsDef, OptsDef, GlobalsT> | undefined {
+): CliCommand<DepsT, ArgsDef, OptsDef, GlobalsT> | undefined => {
   if (!parsed.commandName) return
   return cli.commands.find(command => command.name === parsed.commandName)
 }
 
-function handleHelpOrVersion<
+/**
+ * Handles `--help` / `-h` / `--version` before dispatch.
+ *
+ * @returns Exit code when handled, or `undefined` to continue normal dispatch
+ */
+const handleHelpOrVersion = <
   DepsT,
   GlobalsT extends OptsDef,
   CommandsT extends readonly CliCommand<DepsT, ArgsDef, OptsDef, GlobalsT>[]
@@ -67,7 +50,7 @@ function handleHelpOrVersion<
   cli: CliInstance<DepsT, GlobalsT, CommandsT>,
   args: readonly string[],
   knownCommand: CliCommand<DepsT, ArgsDef, OptsDef, GlobalsT> | undefined
-): number | undefined {
+): number | undefined => {
   if (args.includes(HELP_SHORT) || args.includes(HELP_LONG)) {
     if (knownCommand) {
       printCommandHelp(cli, knownCommand, knownCommand.name)
@@ -83,11 +66,19 @@ function handleHelpOrVersion<
   }
 }
 
-function handleMissingCommand<
+/**
+ * No subcommand: error on stray token, stub TUI when TTY+tui, else root help.
+ *
+ * @returns Process exit code
+ */
+const handleMissingCommand = <
   DepsT,
   GlobalsT extends OptsDef,
   CommandsT extends readonly CliCommand<DepsT, ArgsDef, OptsDef, GlobalsT>[]
->(cli: CliInstance<DepsT, GlobalsT, CommandsT>, args: readonly string[]): number {
+>(
+  cli: CliInstance<DepsT, GlobalsT, CommandsT>,
+  args: readonly string[]
+): number => {
   const unknownCommand = firstNonFlag(args)
   if (unknownCommand) {
     console.error(`Unknown command: ${unknownCommand}`)
@@ -98,7 +89,12 @@ function handleMissingCommand<
   return EXIT_OK
 }
 
-async function executeKnownCommand<
+/**
+ * Validates argv for `knownCommand`, builds handler context, runs middleware chain, then `run`.
+ *
+ * @returns Exit code from handler or middleware errors
+ */
+const executeKnownCommand = async <
   DepsT,
   GlobalsT extends OptsDef,
   CommandsT extends readonly CliCommand<DepsT, ArgsDef, OptsDef, GlobalsT>[]
@@ -106,7 +102,7 @@ async function executeKnownCommand<
   cli: CliInstance<DepsT, GlobalsT, CommandsT>,
   knownCommand: CliCommand<DepsT, ArgsDef, OptsDef, GlobalsT>,
   parsed: ParseResult
-): Promise<number> {
+): Promise<number> => {
   const validated = validateCommand(parsed, knownCommand, cli.globals)
   if (validated.isErr()) {
     for (const error of validated.error) console.error(error)
@@ -114,9 +110,9 @@ async function executeKnownCommand<
   }
 
   const ctx: RunContext<DepsT, GlobalsT> = {
-    args: validated.value.args as Record<string, unknown>,
-    opts: validated.value.opts as Record<string, unknown>,
-    globals: validated.value.globals as ResolvedOptValues<GlobalsT>,
+    args: validated.value.args,
+    opts: validated.value.opts,
+    globals: validated.value.globals,
     deps: cli.deps,
     raw: parsed
   }
@@ -127,7 +123,7 @@ async function executeKnownCommand<
 
   try {
     await runChain(chain, ctx, async () => {
-      await knownCommand.run(ctx)
+      await knownCommand.run(ctx as Parameters<(typeof knownCommand)['run']>[0])
     })
     return EXIT_OK
   } catch (error) {
@@ -137,11 +133,25 @@ async function executeKnownCommand<
   }
 }
 
-export async function runCommand<
+/**
+ * Full CLI dispatch: parse argv, help/version, validate, middleware, command handler.
+ *
+ * @param cli - Built instance from {@link withCli}
+ * @param rawArgv - Defaults to `Bun.argv`
+ * @returns Process exit code
+ *
+ * @example
+ * await runCommand(cli)
+ * await runCommand(cli, ['bun', 'app.ts', 'info'])
+ */
+export const runCommand = async <
   DepsT,
   GlobalsT extends OptsDef,
   CommandsT extends readonly CliCommand<DepsT, ArgsDef, OptsDef, GlobalsT>[]
->(cli: CliInstance<DepsT, GlobalsT, CommandsT>, rawArgv: readonly string[] = Bun.argv): Promise<number> {
+>(
+  cli: CliInstance<DepsT, GlobalsT, CommandsT>,
+  rawArgv: readonly string[] = Bun.argv
+): Promise<number> => {
   const args = normalizeArgv(rawArgv)
   const parsed = parseArgv(rawArgv, cli.globals, cli.commands)
   const knownCommand = resolveCommand(cli, parsed)
