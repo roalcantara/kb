@@ -1,0 +1,65 @@
+---
+description: Coding patterns, 12-Factor, SOLID for kodexb
+globs: **/*.ts
+alwaysApply: false
+---
+
+# Code Style
+
+Source: `assets/docs/guides/CODESTYLE_GUIDE.md`
+
+## Core
+
+- Simple solutions; DRY (never repeat — abstract); minimal changes; exhaust before new patterns
+- Files: refactor when >200–300 lines
+- No one-off scripts — use mise.toml tasks
+
+## Non-Negotiable
+
+- **No magic numbers or strings** — Extract to named constants
+- **Abstract repeated logic** — If you copy-paste, extract a function
+- **Open for extension** — Add modules, don't branch; prefer registries over switch/if
+
+## 12-Factor (adapted)
+
+- Config in env/files/flags; no hardcoded paths or secrets
+- Dev/prod parity (in-memory DB for tests)
+- Logs to stdout/stderr
+
+## SOLID (adapted)
+
+- **S** — One reason to change per function/module
+- **O** — Extend via new modules; avoid modifying for new behavior
+- **D** — Depend on abstractions; inject deps
+
+## Single Responsibility (files)
+
+Each file should have **one primary concern**. Avoid mixing schemas, helpers, and wiring in the same file.
+
+- **Schema files** (e.g. `*.schema.ts`) — Typia schemas and type exports only
+- **Loader/service files** (e.g. `*.loader.ts`, `*.service.ts`) — loading, validation, orchestration
+- **Helper/utils files** (e.g. `*.utils.ts`) — pure functions, no schema definitions
+- **Formatters** (e.g. `*.formatter.ts`) — format output only;
+  - Do **not** define config→display transformation (e.g. `buildConfigRows`).
+  - That logic lives in the config module (`config.info.rows.ts`).
+
+## Module boundaries (FCIS)
+
+- Functional core vs shell: `assets/docs/guides/FCIS.guide.md`
+- **Barrel imports** (when you use barrels): import from the package/barrel entry (e.g. `@core`), not deep internals—if dependency-cruiser is configured, follow its rules.
+
+## File Naming
+
+Use a suffix that explains the file's responsibility:
+
+- `defaults.config.ts` — config defaults
+- `theme.config.ts` — theme-related config
+- `config.schema.ts` — Typia schemas
+- `config.loader.ts` — config loading logic
+
+Pattern: `{name}.{responsibility}.ts`
+
+## Avoid
+
+- Mocking/stubbing outside tests
+- Overwriting .env without asking

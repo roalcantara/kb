@@ -1,0 +1,74 @@
+---
+description: Refactoring and engineer fundamentals - DRY, SOLID, scalable code, no ignores
+alwaysApply: true
+---
+
+# Refactoring & Engineer Fundamentals
+
+Code must be **short, clear, maintainable, and scalable**. These are baseline expectations.
+
+## Core principles
+
+- **DRY** – One place for each fact or behavior. Reuse or extract; no copy-paste. Derive types from data (e.g. from a registry) instead of hand-written parallel lists.
+- **KISS** – Simplest solution that works. No speculative abstraction; no cleverness for its own sake.
+- **YAGNI** – Implement what’s needed now. No “we might need this later” code.
+- **Single Responsibility** – One function/type/module, one clear purpose. If you need “and” to describe it, split it.
+- **Single source of truth** – One registry, one config, one mapping. Everything else derives from it. Adding a new case = one change in one place.
+- **No linter/test ignores** – Fix the cause or adjust config for the whole project. Per-line ignores hide debt.
+- **New automation** – Mise task only; logic in the task body. No new scripts in `tools/` or elsewhere. See `.cursor/rules/mise-tasks.mdc`.
+
+## Naming & clarity
+
+- Names reveal intent. `getUserById` not `getData`. `isValid` not `check`.
+- No magic numbers or strings. Use named constants or config. Exceptions: 0, 1, -1 in obvious contexts.
+- Comments explain **why**, not what. If the code needs a comment to say what it does, simplify the code.
+
+## Functions
+
+- Small: do one thing, fit on one screen. Compose small functions instead of big branching ones.
+- Pure when possible: same inputs → same outputs, no hidden state or side effects. Push I/O to the edges.
+- Few parameters (≤3). Use an options object for more. No boolean flags that change behavior in opaque ways.
+- Return early; avoid deep nesting. Guard clauses over `if/else` chains when it helps readability.
+
+## Types & APIs
+
+- Prefer one generic signature over many overloads when the type system can infer (e.g. from a literal first argument).
+- Types derive from runtime data: `type X = { [K in keyof registry]: ... }`. No duplicate type list that mirrors a registry.
+- Public API: minimal surface. Internal helpers stay non-exported unless needed elsewhere.
+
+## Errors & boundaries
+
+- Fail fast: validate at boundaries, return errors or throw clearly. No silent swallow (empty catch, ignore return).
+- Errors are values when the language allows (e.g. Result/Either). One consistent style per codebase.
+- No generic `catch (e)` without handling or rethrowing with context.
+
+## Dependencies & config
+
+- Explicit over implicit: pass config and dependencies in; no global state or hidden imports for behavior.
+- Dependencies point inward: domain/core does not depend on shell, UI, or I/O. See `assets/docs/guides/FCIS.guide.md`.
+
+## Scalable registries / factories
+
+- One map/object defines the set. Types and functions derive from it. No parallel overload list.
+- Adding an item = (1) add to the registry, (2) implement the item. No new overloads, no new switch arms, no edits in multiple files.
+- One generic signature per function when inference from the first argument is enough.
+
+## Before writing
+
+- Can an existing function/type be reused?
+- Can a generic or shared helper replace duplication?
+- Are N overloads necessary, or can one signature + inference suffice?
+
+## After writing
+
+- Would a peer understand this in 30 seconds?
+- Is this the shortest clear version?
+- Any linter/test ignores? Remove or fix the cause.
+- If we add another X (factory, handler, etc.), do we touch only one place?
+
+## Prompts that raise the bar
+
+- *"Implement to production standard: DRY, single source of truth, scalable. No ignores. Follow refactoring rules."*
+- *"Propose the minimal type-safe API first. One signature per function if inference allows."*
+- *"Adding a new X must require only [one place]. No parallel overloads or duplicate mappings."*
+- *"Review for: duplicate overloads, or edits in more than one place when we add a new X."*

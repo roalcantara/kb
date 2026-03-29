@@ -24,14 +24,16 @@
     "noUnusedParameters": false,
     "resolveJsonModule": true,
     "esModuleInterop": true,
-    "noPropertyAccessFromIndexSignature": true,
+    "noPropertyAccessFromIndexSignature": false,
     "allowUnusedLabels": false,
     "allowUnreachableCode": false,
     "noErrorTruncation": false, // true keeps full error messages - for better debugging
     "exactOptionalPropertyTypes": true,
     "types": ["bun", "bun-types"],
     "paths": {
+      "@kb/kli": ["./packages/kli/src/index.ts"],
       "@core": ["./src/core/index.ts"],
+      "@shell": ["./src/shell/index.ts"],
       "@tools": ["./tools/index.ts"],
       "@tests": ["./src/__tests__/index.ts"]
     }

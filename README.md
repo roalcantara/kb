@@ -4,7 +4,7 @@
 
 A terminal-based personal knowledge base management system.
 
-[![MIT license](https://img.shields.io/badge/License-MIT-brightgreen.svg?style=flat-square)](LICENSE) [![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-2.0-4baaaa.svg?style=flat-square)][2] [![Editor Config](https://img.shields.io/badge/Editor%20Config-1.0.1-crimson.svg?style=flat-square)][3] [![standard-readme compliant](https://img.shields.io/badge/readme%20style-standard-brightgreen.svg?style=flat-square)][4] [![Conventional Commits](https://img.shields.io/badge/Conventional%20Commits-1.0.0-yellow.svg?style=flat-square)][8] [![Biome](https://img.shields.io/badge/Biome-2.4.8-blue.svg?style=flat-square)][11] [![Renovate](https://img.shields.io/badge/Renovate-blue.svg?style=flat-square)][30]
+[![MIT license](https://img.shields.io/badge/License-MIT-brightgreen.svg?style=flat-square)](LICENSE) [![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-2.0-4baaaa.svg?style=flat-square)][2] [![Editor Config](https://img.shields.io/badge/Editor%20Config-1.0.1-crimson.svg?style=flat-square)][3] [![standard-readme compliant](https://img.shields.io/badge/readme%20style-standard-brightgreen.svg?style=flat-square)][4] [![Conventional Commits](https://img.shields.io/badge/Conventional%20Commits-1.0.0-yellow.svg?style=flat-square)][8] [![Biome](https://img.shields.io/badge/Biome-2.4.9-blue.svg?style=flat-square)][11] [![Renovate](https://img.shields.io/badge/Renovate-blue.svg?style=flat-square)][30]
 
 ## INSTALL
 
@@ -31,6 +31,23 @@ git clone https://github.com/roalcantara/kb
 - [Renovate][30] - **Automated dependency updates:** Keep dependencies up to date
 - [Gitlint][9] - **Git commit message linter:** Enforce commit message conventions
 - [Docker][15] - **Containerization platform:** Build, ship, and run containers
+
+#### [BUN CATALOGS][35]
+
+This workspace uses [Bun named catalogs][35] (`catalogs`, plural) instead of a single default catalog. The strategy is to group dependencies by role so version ownership is explicit and easy to evolve. For example:
+
+- `runtime`: TypeScript and type packages (`typescript`, `@types/*`, `bun-types`)
+- `quality`: Code-quality and static analysis tooling (`biome`, `knip`, `jscpd`, `dependency-cruiser`)
+- `release`: Release orchestration tooling (`release-it`, changelog plugin)
+- `testing`: Test factory tooling (`fishery`)
+- `utilities`: Utility libraries (`radash`)
+- `validation`: Runtime schema and validation tooling (`typia`)
+
+##### RATIONALE
+
+1. **Portability**: Every package can consume the same version contract via `catalog:<group>` without copying semver ranges.
+2. **Sustainability**: Upgrades happen in one place and are naturally batched by concern (quality vs release vs types).
+3. **Scalability**: New workspace packages can adopt shared standards immediately by referencing existing catalogs.
 
 ### USAGE
 
@@ -163,6 +180,7 @@ Triggered when the [Release](.github/workflows/release.yml) workflow completes (
 
 - [Standard Readme][4]
 - [Fishery][33] - Test data factories for TypeScript
+- [Bun Workspaces][34] - Develop complex monorepos with multiple independent packages
 
 ---
 
@@ -212,3 +230,5 @@ The project is available as open source under the terms of the [MIT][1] [License
 [31]: http://containers.dev 'Containers.dev - Container development platform'
 [32]: https://typia.io 'Typia — transform TypeScript types into runtime validators'
 [33]: https://fishery.dev 'Fishery - Test data factories for TypeScript'
+[34]: https://bun.com/docs/pm/workspaces 'Bun Workspaces'
+[35]: https://bun.com/docs/pm/catalogs 'Bun Catalogs'

@@ -6,6 +6,12 @@
 !package.json
 !tsconfig.json
 !index.ts
+!packages/
+!packages/kli/
+!packages/kli/package.json
+!packages/kli/src/
+!packages/kli/src/**
+!packages/kli/tsconfig.json
 !tools/
 !tools/typia/
 !tools/typia/generated/
