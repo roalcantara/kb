@@ -2,7 +2,7 @@
   "$schema": "https://unpkg.com/knip@5/schema-jsonc.json",
   "workspaces": {
     ".": {
-      "entry": ["package.json"],
+      "entry": ["package.json", "src/shell/index.headless.ts"],
       "project": ["**/*.ts", "**/*.tsx"]
     },
     "packages/kli": {
