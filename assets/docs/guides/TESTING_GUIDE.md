@@ -7,16 +7,9 @@ description: Bun test runner, factories, table-driven tests, FCIS-friendly patte
 
 Cursor rule (detailed patterns): `.cursor/rules/testing.mdc`
 
-## Bun: `context` vs `describe`
+## Bun: nested `describe` (no `context`)
 
-`bun:test` exports **`describe`** (and `it`, `expect`, …) but **not** `context`. For RSpec-style naming in examples below, add once per file:
-
-```ts
-import { describe, expect, it } from 'bun:test'
-const context = describe
-```
-
-Or use nested **`describe`** instead of **`context`** — same structure, same readability.
+`bun:test` exports **`describe`** (and `it`, `expect`, …) but **not** RSpec’s `context`. **Do not** alias (`const context = describe`); that adds noise. Use **nested `describe` blocks** for situation groups (“when …”, “with …”). Same structure as Better Specs “contexts”, one API only.
 
 ## Core Principles
 
@@ -186,18 +179,18 @@ describe('create', () => {
 })
 ```
 
-##### 2. Use Contexts
+##### 2. Use nested `describe` for situations
 
-Contexts make tests clear and well-organized. Start context descriptions with 'when', 'with', or 'without'.
+Nested groups make tests clear. Start inner `describe` names with 'when', 'with', or 'without'.
 
 ```typescript
 // ✅ Good
 describe('#destroy', () => {
-  context('when resource is found', () => {
+  describe('when resource is found', () => {
     it('deletes the resource', () => {})
   })
 
-  context('when resource is not found', () => {
+  describe('when resource is not found', () => {
     it('returns 404', () => {})
   })
 })
@@ -211,11 +204,11 @@ describe('#destroy', () => {
 
 ##### 3. Keep Descriptions Short
 
-Spec descriptions should never be longer than 40 characters. If longer, split using contexts.
+Spec descriptions should never be longer than 40 characters. If longer, split using another nested `describe`.
 
 ```typescript
 // ✅ Good
-context('when authenticated', () => {
+describe('when authenticated', () => {
   it('returns user data', () => {})
 })
 
@@ -255,17 +248,17 @@ Test valid, edge, and invalid cases. Think of all possible inputs.
 
 ```typescript
 describe('#destroy', () => {
-  context('when resource exists', () => {
-    context('when user owns resource', () => {
+  describe('when resource exists', () => {
+    describe('when user owns resource', () => {
       it('deletes the resource', () => {})
     })
 
-    context('when user does not own resource', () => {
+    describe('when user does not own resource', () => {
       it('returns 403 forbidden', () => {})
     })
   })
 
-  context('when resource does not exist', () => {
+  describe('when resource does not exist', () => {
     it('returns 404 not found', () => {})
   })
 })
@@ -404,13 +397,13 @@ describe('DocumentValidator', () => {
   })
 
   describe('#validate', () => {
-    context('when document is valid', () => {
+    describe('when document is valid', () => {
       it('returns true', () => {
         expect(subject.validate(validDoc)).toBe(true)
       })
     })
 
-    context('when document is invalid', () => {
+    describe('when document is invalid', () => {
       it('returns false', () => {
         expect(subject.validate(invalidDoc)).toBe(false)
       })
@@ -427,7 +420,7 @@ describe('DocumentValidator', () => {
 #### Summary Checklist
 
 - [ ] Use `.` for class methods, `#` for instance methods in descriptions
-- [ ] Use contexts starting with 'when', 'with', or 'without'
+- [ ] Use nested `describe` names starting with 'when', 'with', or 'without'
 - [ ] Keep descriptions under 40 characters
 - [ ] One expectation per test (except slow integration tests)
 - [ ] Test valid, edge, and invalid cases

@@ -93,10 +93,12 @@ Use descriptive suffixes to indicate the artifact type:
 
 Some files follow established TypeScript/Node conventions without suffixes:
 
-| File       | Purpose        | Rationale            |
-| ---------- | -------------- | -------------------- |
-| `index.ts` | Barrel exports | Universal convention |
-| `main.ts`  | Entrypoints    | Universal convention |
+| File           | Purpose         | Rationale            |
+| -------------- | --------------- | -------------------- |
+| `index.ts`     | Barrel exports  | Universal convention |
+| `main.ts`      | Entrypoints     | Universal convention |
+| `main.cli.ts`  | CLI entrypoints | Universal convention |
+| `main.tui.tsx` | TUI entrypoints | Universal convention |
 
 ### Test Files
 
@@ -110,6 +112,29 @@ Some files follow established TypeScript/Node conventions without suffixes:
 2. **Discoverability** — Easy to find all services, schemas, or commands
 3. **Consistency** — Same pattern across the codebase
 4. **Real-world alignment** — Combines NestJS-style suffixes with standard TypeScript conventions for common files
+
+## Folder Naming Conventions
+
+nouns, not verbs (widely used pattern)
+
+Although there is no single ISO standard, but the dominant convention in industry and books is to name packages / modules / feature folders after nouns (the thing or concern), not imperative verbs:
+
+- **Domain-Driven Design** — bounded contexts and modules are named as things (Billing, Inventory, Shipping), not validate or process.
+- **Package by feature** — (common in Angular, React, backend services) — folders are feature nouns (auth, profile, checkout).
+- **Rails / Django layers** — use plural nouns (models, controllers, views)—again nominal, not doStuff/.
+- **Practical rule for topic dirs** - use domain nouns or clear nominalizations:
+
+  | Avoid `(verb-y)` | Rationale                                  | Prefer `(noun / nominal)` |
+  | ---------------- | ------------------------------------------ | ------------------------- |
+  | validate/        | noun; pairs cleanly with parse/            | validation/               |
+  | parse/           | noun; pairs cleanly with validation/       | parsing/                  |
+  | argv/            | Matches Bun.argv / parseArgv; Unix-honest. | parsing/                  |
+  | run/             | ambiguous                                  | dispatch/ or execution/   |
+  | compose/         | often read as verb                         | factories/                |
+
+> **NOTE:** Files inside still use verb phrases in function names (validateCommand, parseArgv)
+> and **.service.ts / .factory.ts** suffixes—that is correct;
+> the folder is the area, the file is the artefact type.
 
 ## Structure
 
