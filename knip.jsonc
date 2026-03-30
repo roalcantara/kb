@@ -1,6 +1,15 @@
 {
   "$schema": "https://unpkg.com/knip@5/schema-jsonc.json",
-  "project": ["**/*.ts"],
+  "workspaces": {
+    ".": {
+      "entry": ["package.json"],
+      "project": ["**/*.ts", "**/*.tsx"]
+    },
+    "packages/kli": {
+      "entry": ["package.json"],
+      "project": ["src/**/*.ts"]
+    }
+  },
   "ignoreBinaries": ["mise", "dot"],
-  "ignoreFiles": ["**/tools/typia/templates/**"]
+  "ignoreFiles": ["**/tools/**", ".cursor/**", "**/*.typetest.ts"]
 }

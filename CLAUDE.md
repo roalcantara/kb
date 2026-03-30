@@ -1,8 +1,17 @@
 ---
 description: Use Bun instead of Node.js, npm, pnpm, or vite.
-globs: "*.ts, *.tsx, *.html, *.css, *.js, *.jsx, package.json"
+globs:
+  - "**/*.ts"
+  - "**/*.tsx"
+  - "**/*.html"
+  - "**/*.css"
+  - "**/*.js"
+  - "**/*.jsx"
+  - package.json
 alwaysApply: false
 ---
+
+Long-form doc index: `.cursor/rules/bun-runtime.mdc`. In-repo API notes: `assets/docs/guides/BUN_RUNTIME.md`.
 
 Default to using Bun instead of Node.js.
 

@@ -26,6 +26,8 @@ report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
 .eslintcache
 .cache
 *.tsbuildinfo
+# Bun `bun build --compile` temp files (often left in cwd; no reloc option — oven-sh/bun#14020)
+**/*.bun-build
 
 # IntelliJ based IDEs
 .idea

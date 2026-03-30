@@ -1,6 +1,7 @@
 import type { GreeterInput } from '@core'
 import { Factory } from 'fishery'
 import { type FactoryBuildOpts, isFactoryOpts, type WrappedFactoryOpts } from './factories.types'
+import { type InfoCommandTestCtx, makeCtx } from './factories/ctx.factory.ts'
 import { params_for } from './param.parser'
 
 // FACTORIES
@@ -9,8 +10,11 @@ const greeterFactory = Factory.define<GreeterInput>(() => ({
   name: 'World',
   times: 1
 }))
+
+const infoCommandCtxFactory = Factory.define<InfoCommandTestCtx>(() => makeCtx())
 const factories = {
-  greeter: greeterFactory
+  greeter: greeterFactory,
+  ctx: infoCommandCtxFactory
 } as const
 
 // FACTORIES' DERIVED TYPES
@@ -43,3 +47,5 @@ export const factory_for = <T extends FactoryNames>(name: T, opts?: FactoryOptio
   }
   return factory.build(opts as FactoryParams<T>) as FactoryResults[T]
 }
+
+// NOTE: CLI stdout capture lives in `mocks.helper.ts` as `mock_for('runAndCaptureStdout', ...)`

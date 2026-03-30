@@ -1,0 +1,2 @@
+# OpenTUI Solid preload (https://opentui.com/docs/plugins/solid/)
+preload = ["@opentui/solid/preload"]

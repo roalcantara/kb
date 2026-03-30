@@ -1,9 +1,10 @@
 {
-  "$schema": "https://biomejs.dev/schemas/2.4.8/schema.json",
+  "$schema": "https://biomejs.dev/schemas/2.4.9/schema.json",
   "files": {
     "ignoreUnknown": false,
     "includes": [
       "**/*.ts",
+      "**/*.tsx",
       "**/*.js",
       "**/*.json",
       "**/*.jsonc",
@@ -209,5 +210,54 @@
     "linter": {
       "enabled": true
     }
-  }
+  },
+  "overrides": [
+    {
+      "includes": ["**/main.cli.spec.ts"],
+      "linter": {
+        "rules": {}
+      }
+    },
+    {
+      "includes": ["**/*.test.ts", "**/*.spec.ts", "**/__tests__/**/*.ts"],
+      "assist": {
+        "enabled": true,
+        "actions": {
+          "source": {
+            "organizeImports": "off"
+          }
+        }
+      },
+      "linter": {
+        "rules": {
+          "complexity": {
+            "noExcessiveLinesPerFunction": {
+              "level": "warn",
+              "options": {
+                "maxLines": 200,
+                "skipBlankLines": true,
+                "skipIifes": true
+              }
+            },
+            "useLiteralKeys": "off"
+          },
+          "style": {
+            "noMagicNumbers": "off"
+          },
+          "security": {
+            "noSecrets": "off"
+          },
+          "nursery": {
+            "noExcessiveLinesPerFile": {
+              "level": "warn",
+              "options": {
+                "maxLines": 300,
+                "skipBlankLines": true
+              }
+            }
+          }
+        }
+      }
+    }
+  ]
 }
