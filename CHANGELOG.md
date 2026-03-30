@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.5.3](https://github.com/roalcantara/kb/compare/v0.5.2...v0.5.3) (2026-03-30)
+
+### Bug Fixes
+
+* **kli:** Lazy-load interactive missing-command path ([#6](https://github.com/roalcantara/kb/issues/6)) ([8ee741e](https://github.com/roalcantara/kb/commit/8ee741e3400178b9485991582d668fb8e48decd0))
+
 ## [0.5.2](https://github.com/roalcantara/kb/compare/v0.5.1...v0.5.2) (2026-03-30)
 
 ### Bug Fixes
