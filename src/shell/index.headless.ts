@@ -8,7 +8,7 @@
 import { greetCommand, infoCommand } from './commands'
 import { formatEmitter } from './interceptors'
 import { shell } from './main.ts'
-import { runCliMain } from './run_cli_main.ts'
+import { runCliEntry } from './run_cli_main.ts'
 
 const commands = [infoCommand, greetCommand] as const
 
@@ -17,4 +17,4 @@ export const runCli = shell.setup({
   emitter: formatEmitter
 })
 
-runCliMain(runCli)
+runCliEntry(runCli)
