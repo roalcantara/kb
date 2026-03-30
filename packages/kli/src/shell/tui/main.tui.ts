@@ -1,7 +1,7 @@
 import type { ArgsDef, CliCommand, OptsDef, ParseResult } from '@kli/core/cli'
 import type { CliInstance } from '../cli/factories/cli_instance.factory.ts'
 
-import { pickResolvedGlobals } from './pick_resolved_globals.util.ts'
+import { pickResolvedGlobals } from './commands/index.ts'
 
 export type TuiRootProps = {
   deps: unknown
@@ -11,8 +11,6 @@ export type TuiRootProps = {
 
 /** Solid / OpenTUI root registered on {@link CliInstance#tui}. */
 export type TuiRoot = (props: TuiRootProps) => unknown
-
-export { pickResolvedGlobals }
 
 /**
  * Mounts the registered TUI via dynamic OpenTUI imports (pipe / non-TTY pays no load cost).

@@ -10,7 +10,7 @@ import {
   parseArgv,
   validateCommand
 } from '@kli/core/cli'
-import type { TuiRoot } from '@kli/shell/tui'
+import { handleMissingCommandHeadless, handleMissingCommandInteractive } from './commands/index.ts'
 import { runChain, runInterceptorChain } from './dispatch'
 import type { CliInstance } from './factories'
 import { printCommandHelp, printHelp, printVersion } from './help'
@@ -25,9 +25,6 @@ const HELP_LONG = '--help'
 const VERSION_LONG = '--version'
 
 type RunContext<DepsT, GlobalsT extends OptsDef> = CliMiddlewareContext<DepsT, GlobalsT> & { raw: ParseResult }
-
-/** First argv token that is not a flag (used to detect unknown subcommands). */
-const firstNonFlag = (args: readonly string[]): string | undefined => args.find(arg => !arg.startsWith('-'))
 
 /** Looks up the command object for `parsed.commandName`, if any. */
 const resolveCommand = <
@@ -72,12 +69,15 @@ const handleHelpOrVersion = <
 }
 
 /**
- * No subcommand: error on stray token; if `cli.tui` is set and stdout is a TTY, OpenTUI mount; else root help.
- * When `tui` was not passed to `createKli` / `setup({ tui })`, behavior is plain CLI (help) even on a TTY.
+ * No subcommand: headless compile → help only (no OpenTUI in the binary graph).
+ * Otherwise TTY + `cli.tui` → OpenTUI; else root help.
+ *
+ * TUI lives in {@link handleMissingCommandInteractive} so `bun build --compile`
+ * with `--define KB_HEADLESS_BUILD=true` can drop that module and `@opentui/*`.
  *
  * @returns Process exit code
  */
-const handleMissingCommand = async <
+const handleMissingCommand = <
   DepsT,
   GlobalsT extends OptsDef,
   CommandsT extends readonly CliCommand<DepsT, ArgsDef, OptsDef, GlobalsT>[]
@@ -85,19 +85,11 @@ const handleMissingCommand = async <
   cli: CliInstance<DepsT, GlobalsT, CommandsT>,
   args: readonly string[],
   parsed: ParseResult
-): Promise<number> => {
-  const unknownCommand = firstNonFlag(args)
-  if (unknownCommand) {
-    console.error(`Unknown command: ${unknownCommand}`)
-    return EXIT_ERROR
+): number | Promise<number> => {
+  if (typeof KB_HEADLESS_BUILD !== 'undefined' && KB_HEADLESS_BUILD === true) {
+    return handleMissingCommandHeadless(cli, args, parsed)
   }
-  const kbHeadlessCompile = typeof KB_HEADLESS_BUILD !== 'undefined' && KB_HEADLESS_BUILD === true
-  if (!kbHeadlessCompile && process.stdout.isTTY === true && cli.tui !== undefined) {
-    const { startTui } = await import('../tui/main.tui.ts')
-    return await startTui(cli.tui as TuiRoot, cli, parsed)
-  }
-  printHelp(cli, cli.commands)
-  return EXIT_OK
+  return handleMissingCommandInteractive(cli, args, parsed)
 }
 
 /**

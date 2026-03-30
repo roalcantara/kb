@@ -10,7 +10,7 @@
     "cleanup": "bun run clean && rm -rf node_modules bun.lock*",
     "reinstall": "bun run cleanup && bun install",
     "build": "bun build src/shell/index.ts --compile --outfile dist/kb",
-    "build:prod": "bun build src/shell/index.ts --define KB_HEADLESS_BUILD=true --minify --sourcemap --no-compile-autoload-dotenv --no-compile-autoload-bunfig --compile --outfile dist/kb",
+    "build:prod": "bun build src/shell/index.headless.ts --define KB_HEADLESS_BUILD=true --minify --sourcemap --no-compile-autoload-dotenv --no-compile-autoload-bunfig --compile --outfile dist/kb",
     "dev": "bun src/shell/index.ts",
     "dev:watch": "bun run dev -- --watch --hot",
     "generate:typia": "typia generate --input tools/typia/templates --output tools/typia/generated --project tsconfig.json",
@@ -37,9 +37,7 @@
     "release:ci": "bunx release-it --ci"
   },
   "workspaces": {
-    "packages": [
-      "packages/*"
-    ],
+    "packages": ["packages/*"],
     "catalogs": {
       "runtime": {
         "@types/bun": "^1.3.11",

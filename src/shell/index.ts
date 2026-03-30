@@ -4,6 +4,7 @@ declare const KB_HEADLESS_BUILD: boolean | undefined
 import { greetCommand, infoCommand } from './commands'
 import { formatEmitter } from './interceptors'
 import { shell } from './main.ts'
+import { runCliMain } from './run_cli_main.ts'
 
 const commands = [infoCommand, greetCommand] as const
 
@@ -20,12 +21,4 @@ export const runCli = isHeadless
       tui: (await import('./main.tui.tsx')).ShellTuiApp
     })
 
-if (import.meta.main) {
-  ;(async () => {
-    const code = await runCli(Bun.argv)
-    if (code !== 0) process.exitCode = code
-  })().catch(error => {
-    console.error(error)
-    process.exitCode = 1
-  })
-}
+runCliMain(runCli)
