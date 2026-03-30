@@ -36,7 +36,7 @@
       "@kli/tests": ["./packages/kli/src/__tests__/index.ts"],
       "@kli/core/cli": ["./packages/kli/src/core/cli/index.ts"],
       "@kli/shell/cli": ["./packages/kli/src/shell/cli/index.ts"],
-      "@kli/shell/tui": ["./packages/kli/src/shell/tui/main.tui.ts"],
+      "@kli/shell/tui": ["./packages/kli/src/shell/tui/index.ts"],
       "@core": ["./src/core/index.ts"],
       "@shell": ["./src/shell/index.ts"],
       "@tools": ["./tools/index.ts"],
