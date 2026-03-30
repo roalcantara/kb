@@ -1,0 +1,86 @@
+---
+description: Git commit message guidelines - Conventional Commits
+alwaysApply: true
+---
+
+# Commit Message Guidelines
+
+**Primary:** `assets/docs/guides/GIT_COMMITS_GUIDE.md`  
+**Extended:** `assets/docs/guides/GIT_GUIDE.md`  
+**Automation:** `.gitlint` (title conventional types, lengths; body min length).  
+Guide is **stricter** than gitlint where they differ (e.g. subject **50** vs gitlint title **80**).
+
+## Format (Conventional Commits)
+
+```gitcommit
+<type>(<scope>): <description ≤50 chars>
+
+<body>
+
+<footer>
+```
+
+### Types (use the narrow set from `GIT_COMMITS_GUIDE.md`)
+
+`feat` `fix` `docs` `style` `ref` `test` `chore` `ci` `build`
+
+`GIT_GUIDE.md` also lists `perf`, `revert` (and gitlint adds `perf`, `revert`, `git`) — use those when the change truly matches; default to the list above for consistency.
+
+### Scope
+
+Noun; area affected. Examples: `cli`, `kli`, `shell`, `config`, `biome`, `workspace`, `catalog`, `codestyle`.  
+Keep scope short so the **entire subject line** stays ≤**50** characters (including `type(scope): `).
+
+## Subject line (7 rules — [cbea.ms/git-commit](https://cbea.ms/git-commit))
+
+1. Blank line between subject and body
+2. **≤50 characters** total (strict; count before commit)
+3. Capitalize first letter of the description; **no** trailing period
+4. **Imperative mood** — “Add feature”, not “Added” / “Adds”
+5. **WHAT** in one line; details belong in the body
+
+## Body
+
+1. **First paragraph:** one **WHAT + WHY** sentence (intent and motivation). Not implementation steps.
+2. **`Changes:`** — bullet list of **capabilities / intent**, not file-by-file or API micro-steps.
+3. **`References:`** — links for specs, upstream bugs, standards (Bun, Conventional Commits, etc.) when useful.
+4. Wrap body at **72** characters per line.
+5. **Breaking changes:** `feat(cli)!: …` and/or `BREAKING CHANGE:` footer per Conventional Commits (see `GIT_GUIDE.md`).
+
+Do **not** add tool provenance footers (e.g. “Made-with: …”) unless the project adopts that as policy.
+
+## Standard template (copy and fill)
+
+```
+feat(cli): Add search with FTS and filters
+
+Enable fast full-text lookup across entry types with composable filters
+for day-to-day kb navigation.
+
+Changes:
+- Search title, description, tags, and type-specific fields
+- Combine FTS with --type and --tag filters
+- Paginate with --page and --page-size
+
+References:
+- https://www.sqlite.org/fts5.html
+```
+
+## Checklist (before `git commit`)
+
+- [ ] Subject ≤50 characters  
+- [ ] Imperative mood; capitalized; no period  
+- [ ] Blank line after subject  
+- [ ] Body wrapped at 72 columns  
+- [ ] Summary states WHAT + WHY  
+- [ ] `Changes:` bullets are intent-level  
+- [ ] `References:` when external context matters  
+
+## Atomic commits
+
+One logical change per commit. Split mixed concerns.
+
+## Further reading
+
+- [Conventional Commits](https://www.conventionalcommits.org/)
+- [Atomic commits](https://www.aleksandrhovhannisyan.com/blog/atomic-git-commits/)

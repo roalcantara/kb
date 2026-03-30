@@ -1,0 +1,40 @@
+---
+description: Definition of Done - comprehensive task completion checklist
+alwaysApply: true
+---
+
+# Definition of Done
+
+Source: `assets/docs/guides/DoD.md`. Automated checks: `bun run typecheck`, `bun run lint`, `bun test` (and pre-commit where configured).
+
+## 1. Requirements → Tests
+
+When implementing a requirement from a spec under `assets/docs/specs/` (e.g. `assets/docs/specs/kli/`):
+
+- At least one test per acceptance criterion where it applies
+- Follow `assets/docs/guides/TESTING_GUIDE.md` and `.cursor/rules/testing.mdc` (Bun test, minimal mocking, table-driven where helpful)
+
+## 2. Best Practices
+
+- Follow `assets/docs/guides/CODESTYLE_GUIDE.md` and `.cursor/rules/codestyle.mdc`
+- Code: shortest, clearest, self-explanatory, non-redundant
+- Architecture: see `assets/docs/guides/FCIS.guide.md` when using core/shell split
+
+## 3. Learn and Document
+
+- When you establish a new team-wide practice, add it to the relevant guide under `assets/docs/guides/`
+
+## 4–6. Automated Checks
+
+- No TypeScript errors — `bun run typecheck`
+- No linter failures — `bun run lint`
+- All tests pass — `bun test`
+
+## 7. Task tracking
+
+- When a spec includes `tasks.md`, mark completed items there
+
+## 8. Git commit
+
+- Follow `assets/docs/guides/GIT_COMMITS_GUIDE.md` (and `.cursor/rules/git-commits.mdc`)
+- Pre-commit / gitlint must pass where enabled

@@ -1,0 +1,836 @@
+---
+description: Testing guidelines - Bun, no mocking, table-driven, Better Specs
+globs: "**/*.spec.ts"
+alwaysApply: false
+---
+
+# FCIS Testing Guidelines
+
+**Bun:** `bun:test` has no RSpec `context`. Use **nested `describe`** for situation groups; do **not** add `const context = describe`. See `assets/docs/guides/TESTING_GUIDE.md`.
+
+## Philosophy
+
+> Tests are living documentation. A reader should understand what the system
+> does by reading test output alone - without reading the implementation.
+
+Four sources shape these guidelines:
+- **BetterSpecs** - describe methods, nested situation `describe`s, single expectation, short descriptions
+- **BDD / Cucumber** - Given / When / Then thinking expressed as nested `describe` + `it`
+- **Shoulda Matchers spirit** - one-liner declarative assertions for simple cases
+- **Fishery** - typed factories, `build()` for core tests, `create()` for integration tests
+
+---
+
+## Test Structure - Invariants
+
+1. Nest by: **file → function → situation (`describe`) → variation → expectation**
+2. `describe` names: use the function signature - `validateTitle`, `canTransitionTo`
+3. Inner `describe` names (situations): always start with `when`, `with`, or `without`
+4. `it` descriptions: third person present tense - "returns", "rejects", "sets" - never "should"
+5. One expectation per `it` - split if you need more
+6. Use `it.each` tables for multiple inputs to the same rule
+7. Never use `beforeEach` in core tests - use Fishery `build()` per test
+8. `beforeEach` is allowed only in shell / integration tests to set up DB state
+
+## What Produces Living Documentation
+
+The nested output of `bun test --reporter=verbose` reads like a spec sheet:
+
+```
+src/core/tasks/task.domain.spec.ts
+  validateTitle
+    when title is valid
+      ✓ returns ok with trimmed value
+    when title is empty
+      ✓ returns validation error
+    when title exceeds 200 characters
+      ✓ returns validation error
+  canTransitionTo
+    when transitioning from todo
+      ✓ allows in_progress
+      ✓ allows cancelled
+      ✓ rejects done
+    when transitioning from done
+      ✓ rejects all statuses (terminal state)
+```
+
+---
+
+## Factories (`src/__tests__/factories/`)
+
+### Setup
+
+```typescript
+// src/__tests__/factories/index.ts
+// Central export - import all factories from here
+export { taskFactory }    from './task.domain.factory'
+export { projectFactory } from './project.domain.factory'
+export { userFactory }    from './user.domain.factory'
+```
+
+### Task Factory
+
+```typescript
+// src/__tests__/factories/task.domain.factory.ts
+
+import { Factory } from 'fishery'
+import { Task, TaskStatus, TaskPriority } from '@core/tasks/task.types'
+import { randomUUID } from 'crypto'
+
+export const taskFactory = Factory.define<Task>(({ sequence }) => ({
+  id:          `task-${sequence}`,
+  projectId:   'proj-1',
+  title:       `Task ${sequence}`,
+  description: null,
+  status:      'todo' as TaskStatus,
+  priority:    'medium' as TaskPriority,
+  dueAt:       null,
+  tags:        [],
+  createdAt:   new Date('2024-01-01'),
+  updatedAt:   new Date('2024-01-01'),
+}))
+
+// ✅ Usage:
+// taskFactory.build()                              - default task
+// taskFactory.build({ status: 'done' })            - override one field
+// taskFactory.buildList(3)                         - list of 3 tasks
+// taskFactory.build({ title: 'Pay bills', tags: ['finance'] })
+```
+
+### Project Factory
+
+```typescript
+// src/__tests__/factories/project.domain.factory.ts
+
+import { Factory } from 'fishery'
+import { Project } from '@core/projects/project.types'
+
+export const projectFactory = Factory.define<Project>(({ sequence }) => ({
+  id:          `proj-${sequence}`,
+  name:        `Project ${sequence}`,
+  description: null,
+  createdAt:   new Date('2024-01-01'),
+}))
+```
+
+### User Factory
+
+```typescript
+// src/__tests__/factories/user.domain.factory.ts
+
+import { Factory } from 'fishery'
+import { User, UserRole } from '@core/users/user.types'
+
+export const userFactory = Factory.define<User>(({ sequence }) => ({
+  id:       `user-${sequence}`,
+  username: `user${sequence}`,
+  role:     'viewer' as UserRole,
+}))
+
+// Trait-like variants via build() overrides:
+// userFactory.build({ role: 'admin' })   - admin user
+// userFactory.build({ role: 'viewer' })  - viewer (default)
+```
+
+### Factory Rules
+
+```typescript
+// ✅ Use build() in core tests - synchronous, no DB
+const task = taskFactory.build({ status: 'done' })
+
+// ✅ Use buildList() for collection tests
+const tasks = taskFactory.buildList(3, { status: 'todo' })
+
+// ✅ Use create() only in shell/integration tests - async, hits DB
+const task = await taskFactory.create({ title: 'Persisted task' })
+
+// ✅ Compose factories - project owns tasks
+const project = projectFactory.build()
+const task    = taskFactory.build({ projectId: project.id })
+
+// ❌ Never: hand-written object literals in tests when a factory exists
+// ❌ Never: create() in core tests - core tests are synchronous
+// ❌ Never: one mega-factory with 20 parameters - keep factories minimal
+```
+
+---
+
+## PATTERNS
+
+### Describe the file and function (BetterSpecs - Describe Your Methods)
+
+```typescript
+// ✅ Top-level describe = file path relative to src/
+// Inner describe = exact function name
+describe('task.domain', () => {
+  describe('validateTitle', () => { ... })
+  describe('canTransitionTo', () => { ... })
+  describe('isOverdue', () => { ... })
+  describe('applyTaskUpdate', () => { ... })
+})
+
+// ❌ Never: vague top-level descriptions
+describe('task utilities', () => { ... })          // too vague
+describe('the task module and its helpers', () => { ... }) // never
+```
+
+### Situation groups (BetterSpecs; nested `describe`, BDD Given/When/Then)
+
+```typescript
+// ✅ Inner describe = When / With / Without
+// Maps to BDD: Given (factory setup) → When (situation) → Then (it)
+describe('validateTitle', () => {
+  describe('when title is valid', () => {
+    it('returns ok with trimmed value', () => { ... })
+  })
+
+  describe('when title is empty', () => {
+    it('returns a VALIDATION error', () => { ... })
+    it('identifies the field as "title"', () => { ... })
+  })
+
+  describe('when title is only whitespace', () => {
+    it('returns a VALIDATION error', () => { ... })
+  })
+
+  describe('when title exceeds 200 characters', () => {
+    it('returns a VALIDATION error', () => { ... })
+  })
+})
+
+// ❌ Never: situation describe without when/with/without
+describe('invalid title', () => { ... })            // missing "when"
+describe('the user is not found', () => { ... })    // missing "when"
+```
+
+### Short `it` descriptions (BetterSpecs - Keep Your Description Short)
+
+```typescript
+// ✅ Short - the parent describe carries the meaning
+describe('when title is empty', () => {
+  it('returns a VALIDATION error', () => { ... })  // clear, short
+})
+
+// ❌ Never: long it descriptions that duplicate the parent describe
+it('returns a VALIDATION error when the title is empty and the user did not provide a value', () => { ... })
+```
+
+### One-liner declarative assertions (Shoulda Matchers spirit)
+
+```typescript
+// ✅ For simple boolean or ok/fail checks - terse one-liner
+describe('when title is valid', () => {
+  it('returns ok', () => expect(validateTitle('Write tests').ok).toBe(true))
+})
+
+describe('when title is empty', () => {
+  it('returns fail', () => expect(validateTitle('').ok).toBe(false))
+})
+
+// ✅ For richer assertions - multi-line is fine when you need to inspect the error
+describe('when title is empty', () => {
+  it('returns a VALIDATION error for field "title"', () => {
+    const result = validateTitle('')
+    expect(result.ok).toBe(false)
+    if (!result.ok) {
+      expect(result.error.kind).toBe('VALIDATION')
+      expect(result.error.field).toBe('title')
+    }
+  })
+})
+
+// ❌ Never: multi-line when one line is enough
+describe('when valid', () => {
+  it('returns ok', () => {
+    const result = validateTitle('Write tests')  // unnecessary verbosity
+    expect(result.ok).toBe(true)
+  })
+})
+```
+
+### Table-driven tests with `it.each` (DRY up cases)
+
+```typescript
+// ✅ Use it.each for multiple inputs to the same rule
+
+describe('validateTitle', () => {
+  describe('valid inputs', () => {
+    it.each([
+      ['normal title',          'Write tests'],
+      ['title with spaces',     '  Write tests  '],
+      ['single character',      'A'],
+      ['exactly 200 chars',     'A'.repeat(200)],
+    ])('returns ok - %s', (_, title) => {
+      expect(validateTitle(title).ok).toBe(true)
+    })
+  })
+
+  describe('invalid inputs', () => {
+    it.each([
+      ['empty string',          ''],
+      ['only whitespace',       '   '],
+      ['201 characters',        'A'.repeat(201)],
+    ])('returns VALIDATION error - %s', (_, title) => {
+      expect(validateTitle(title).ok).toBe(false)
+    })
+  })
+})
+
+describe('canTransitionTo', () => {
+  it.each([
+    // from            to              allowed
+    ['todo',        'in_progress',  true],
+    ['todo',        'cancelled',    true],
+    ['todo',        'done',         false],
+    ['in_progress', 'done',         true],
+    ['in_progress', 'cancelled',    true],
+    ['in_progress', 'todo',         true],
+    ['done',        'todo',         false],
+    ['done',        'in_progress',  false],
+    ['done',        'cancelled',    false],
+    ['cancelled',   'todo',         false],
+    ['cancelled',   'in_progress',  false],
+    ['cancelled',   'done',         false],
+  ] as const)('%s → %s returns %s', (from, to, expected) => {
+    expect(canTransitionTo(from, to)).toBe(expected)
+  })
+})
+
+// ❌ Never: one it block per case when a table covers them all
+it('returns true for todo → in_progress', () => ...)
+it('returns true for todo → cancelled', () => ...)
+it('returns false for todo → done', () => ...)
+// ... 9 more identical blocks
+```
+
+### Table-driven tests with `describe.each` (DRY up cases)
+
+```typescript
+// ✅ Use describe.each for multiple inputs to the same rule
+describe.each([
+  ['todo',        'in_progress',  true],
+  ['todo',        'cancelled',    true],
+  ['todo',        'done',         false],
+])('canTransitionTo %s → %s returns %s', (from, to, expected) => {
+  expect(canTransitionTo(from, to)).toBe(expected)
+})
+```
+
+### Single expectation rule (BetterSpecs)
+
+```typescript
+// ✅ One assertion per it - failures point to the exact broken behaviour
+describe('when task is overdue', () => {
+  it('returns true', () =>
+    expect(isOverdue(taskFactory.build({ dueAt: yesterday, status: 'todo' }), now)).toBe(true)
+  )
+})
+
+// ✅ Exception: integration/shell tests may assert multiple things
+//    to avoid expensive setup duplication (BetterSpecs acknowledges this)
+it('creates and persists a task', async () => {
+  const result = await taskAddCommand(['Pay bills', '--project=proj-1'])
+  const stored = await findTaskById(db, result.taskId)
+  expect(stored).not.toBeNull()
+  expect(stored?.title).toBe('Pay bills')
+  expect(stored?.status).toBe('todo')
+})
+
+// ❌ Never: multiple assertions in a core test
+it('validates and trims the title', () => {
+  const result = validateTitle('  hello  ')
+  expect(result.ok).toBe(true)          // two assertions
+  if (result.ok) expect(result.value).toBe('hello')  // in one it - split these
+})
+```
+
+### Test all cases (BetterSpecs - Test All Possible Cases)
+
+```typescript
+// ✅ Cover valid, invalid, AND edge cases
+describe('validateDueAt', () => {
+  describe('with a valid ISO date string', () => {
+    it('returns ok with a Date object', () => ...)
+  })
+
+  describe('with null', () => {
+    it('returns ok with null', () => ...)  // edge: optional field
+  })
+
+  describe('with an invalid date string', () => {
+    it('returns a VALIDATION error', () => ...)
+  })
+
+  describe('with an empty string', () => {
+    it('returns a VALIDATION error', () => ...)  // edge: empty ≠ null
+  })
+})
+
+// ❌ Never: test only the happy path
+describe('validateDueAt', () => {
+  it('validates a date', () => ...)  // only one case - insufficient
+})
+```
+
+### Immutability tests - always explicit (FCIS-specific)
+
+```typescript
+// ✅ Every function that returns a new value MUST have an immutability test
+describe('applyTaskUpdate', () => {
+  describe('when called with a patch', () => {
+    it('returns a new task object', () => {
+      const task    = taskFactory.build({ title: 'Original' })
+      const updated = applyTaskUpdate(task, { title: 'Updated' }, new Date())
+      expect(updated).not.toBe(task)              // different reference
+    })
+
+    it('does not mutate the original task', () => {
+      const task = taskFactory.build({ title: 'Original' })
+      applyTaskUpdate(task, { title: 'Updated' }, new Date())
+      expect(task.title).toBe('Original')         // original untouched
+    })
+
+    it('applies the patch to the returned task', () => {
+      const task    = taskFactory.build()
+      const updated = applyTaskUpdate(task, { title: 'Updated' }, new Date())
+      expect(updated.title).toBe('Updated')
+    })
+
+    it('sets updatedAt to the provided timestamp', () => {
+      const now     = new Date('2024-06-01')
+      const task    = taskFactory.build()
+      const updated = applyTaskUpdate(task, {}, now)
+      expect(updated.updatedAt).toEqual(now)
+    })
+  })
+})
+```
+
+### Result<T,E> - always test both branches
+
+```typescript
+// ✅ Test both ok and fail branches - never assume one
+describe('createTask', () => {
+  describe('when input is valid', () => {
+    it('returns ok', () => {
+      const result = createTask(projectFactory.build(), { title: 'Pay bills' }, new Date())
+      expect(result.ok).toBe(true)
+    })
+
+    it('includes the new task in the result', () => {
+      const result = createTask(projectFactory.build(), { title: 'Pay bills' }, new Date())
+      if (result.ok) expect(result.value.task.title).toBe('Pay bills')
+    })
+  })
+
+  describe('when title is empty', () => {
+    it('returns fail', () => {
+      const result = createTask(projectFactory.build(), { title: '' }, new Date())
+      expect(result.ok).toBe(false)
+    })
+
+    it('returns a VALIDATION error', () => {
+      const result = createTask(projectFactory.build(), { title: '' }, new Date())
+      if (!result.ok) expect(result.error.kind).toBe('VALIDATION')
+    })
+  })
+
+  describe('when priority is invalid', () => {
+    it('returns fail', () => {
+      const result = createTask(projectFactory.build(), { title: 'Ok', priority: 'urgent' }, new Date())
+      expect(result.ok).toBe(false)
+    })
+  })
+})
+```
+
+---
+
+## Complete Example - `task.domain.spec.ts`
+
+```typescript
+// src/core/task/task.domain.spec.ts
+
+import { describe, expect, it } from 'bun:test'
+
+import { taskFactory, projectFactory }   from '@/__tests__/factories'
+import {
+  validateTitle,
+  validatePriority,
+  canTransitionTo,
+  isOverdue,
+  applyTaskUpdate,
+} from './task.domain'
+
+const NOW      = new Date('2024-06-01')
+const PAST     = new Date('2024-01-01')
+const FUTURE   = new Date('2025-01-01')
+
+// ── validateTitle ─────────────────────────────────────────────────────────────
+
+describe('task.domain', () => {
+  describe('validateTitle', () => {
+    describe('valid inputs - returns ok', () => {
+      it.each([
+        ['a normal title',    'Write tests'],
+        ['padded whitespace', '  Write tests  '],
+        ['single character',  'A'],
+        ['exactly 200 chars', 'A'.repeat(200)],
+      ])('%s', (_, title) => expect(validateTitle(title).ok).toBe(true))
+    })
+
+    describe('trims the value on success', () => {
+      it('returns trimmed value', () => {
+        const result = validateTitle('  Write tests  ')
+        if (result.ok) expect(result.value).toBe('Write tests')
+      })
+    })
+
+    describe('invalid inputs - returns VALIDATION error', () => {
+      it.each([
+        ['empty string',   ''],
+        ['only spaces',    '   '],
+        ['201 characters', 'A'.repeat(201)],
+      ])('%s', (_, title) => {
+        const result = validateTitle(title)
+        expect(result.ok).toBe(false)
+        if (!result.ok) expect(result.error.kind).toBe('VALIDATION')
+      })
+    })
+  })
+
+  // ── validatePriority ──────────────────────────────────────────────────────
+
+  describe('validatePriority', () => {
+    describe('valid values', () => {
+      it.each([['low'], ['medium'], ['high']])('%s returns ok', (priority) => {
+        expect(validatePriority(priority).ok).toBe(true)
+      })
+    })
+
+    describe('invalid values', () => {
+      it.each([['urgent'], ['critical'], [''], ['LOW']])('%s returns fail', (priority) => {
+        expect(validatePriority(priority).ok).toBe(false)
+      })
+    })
+  })
+
+  // ── canTransitionTo ───────────────────────────────────────────────────────
+
+  describe('canTransitionTo', () => {
+    it.each([
+      // from            to              expected  label
+      ['todo',        'in_progress',  true,  'starts work'],
+      ['todo',        'cancelled',    true,  'cancels before starting'],
+      ['todo',        'done',         false, 'cannot skip in_progress'],
+      ['in_progress', 'done',         true,  'completes work'],
+      ['in_progress', 'cancelled',    true,  'cancels in flight'],
+      ['in_progress', 'todo',         true,  'moves back to backlog'],
+      ['done',        'todo',         false, 'terminal: cannot reopen'],
+      ['done',        'in_progress',  false, 'terminal: cannot restart'],
+      ['done',        'cancelled',    false, 'terminal: cannot cancel'],
+      ['cancelled',   'todo',         false, 'terminal: cannot reopen'],
+      ['cancelled',   'in_progress',  false, 'terminal: cannot restart'],
+      ['cancelled',   'done',         false, 'terminal: cannot complete'],
+    ] as const)('%s → %s (%s)', (from, to, expected) => {
+      expect(canTransitionTo(from, to)).toBe(expected)
+    })
+  })
+
+  // ── isOverdue ─────────────────────────────────────────────────────────────
+
+  describe('isOverdue', () => {
+    describe('when dueAt is in the past', () => {
+      describe('with status todo', () => {
+        it('returns true', () =>
+          expect(isOverdue(taskFactory.build({ dueAt: PAST, status: 'todo' }), NOW)).toBe(true)
+        )
+      })
+
+      describe('with status in_progress', () => {
+        it('returns true', () =>
+          expect(isOverdue(taskFactory.build({ dueAt: PAST, status: 'in_progress' }), NOW)).toBe(true)
+        )
+      })
+
+      describe('with status done', () => {
+        it('returns false - completed tasks are never overdue', () =>
+          expect(isOverdue(taskFactory.build({ dueAt: PAST, status: 'done' }), NOW)).toBe(false)
+        )
+      })
+
+      describe('with status cancelled', () => {
+        it('returns false - cancelled tasks are never overdue', () =>
+          expect(isOverdue(taskFactory.build({ dueAt: PAST, status: 'cancelled' }), NOW)).toBe(false)
+        )
+      })
+    })
+
+    describe('when dueAt is in the future', () => {
+      it('returns false', () =>
+        expect(isOverdue(taskFactory.build({ dueAt: FUTURE, status: 'todo' }), NOW)).toBe(false)
+      )
+    })
+
+    describe('without a dueAt', () => {
+      it('returns false', () =>
+        expect(isOverdue(taskFactory.build({ dueAt: null }), NOW)).toBe(false)
+      )
+    })
+  })
+
+  // ── applyTaskUpdate ───────────────────────────────────────────────────────
+
+  describe('applyTaskUpdate', () => {
+    describe('when called with a patch', () => {
+      it('returns a new object reference', () => {
+        const task = taskFactory.build()
+        expect(applyTaskUpdate(task, { title: 'New' }, NOW)).not.toBe(task)
+      })
+
+      it('does not mutate the original', () => {
+        const task = taskFactory.build({ title: 'Original' })
+        applyTaskUpdate(task, { title: 'Updated' }, NOW)
+        expect(task.title).toBe('Original')
+      })
+
+      it('applies the patch fields', () => {
+        const task    = taskFactory.build()
+        const updated = applyTaskUpdate(task, { title: 'Updated', priority: 'high' }, NOW)
+        expect(updated.title).toBe('Updated')
+        expect(updated.priority).toBe('high')
+      })
+
+      it('sets updatedAt to the provided timestamp', () => {
+        const task    = taskFactory.build()
+        const updated = applyTaskUpdate(task, {}, NOW)
+        expect(updated.updatedAt).toEqual(NOW)
+      })
+
+      it('preserves unpatch fields unchanged', () => {
+        const task    = taskFactory.build({ description: 'Keep this' })
+        const updated = applyTaskUpdate(task, { title: 'New title' }, NOW)
+        expect(updated.description).toBe('Keep this')
+      })
+    })
+  })
+})
+```
+
+---
+
+## Complete Example - `task.flow.spec.ts`
+
+```typescript
+// src/core/task/task.flow.spec.ts
+
+import { describe, expect, it } from 'bun:test'
+
+import { taskFactory, projectFactory }   from '@/__tests__/factories'
+import { createTask, transitionTask }    from './task.flow'
+
+const NOW = new Date('2024-06-01')
+
+describe('task.flow', () => {
+
+  // ── createTask ──────────────────────────────────────────────────────────────
+
+  describe('createTask', () => {
+    describe('when input is valid', () => {
+      const project = projectFactory.build()
+      const input   = { title: 'Pay bills', priority: 'high' }
+
+      it('returns ok', () =>
+        expect(createTask(project, input, NOW).ok).toBe(true)
+      )
+
+      it('assigns the project id', () => {
+        const result = createTask(project, input, NOW)
+        if (result.ok) expect(result.value.task.projectId).toBe(project.id)
+      })
+
+      it('sets status to todo', () => {
+        const result = createTask(project, input, NOW)
+        if (result.ok) expect(result.value.task.status).toBe('todo')
+      })
+
+      it('sets createdAt to the provided timestamp', () => {
+        const result = createTask(project, input, NOW)
+        if (result.ok) expect(result.value.task.createdAt).toEqual(NOW)
+      })
+
+      it('generates a unique id', () => {
+        const r1 = createTask(project, input, NOW)
+        const r2 = createTask(project, input, NOW)
+        if (r1.ok && r2.ok) expect(r1.value.task.id).not.toBe(r2.value.task.id)
+      })
+    })
+
+    describe('when title is empty', () => {
+      it('returns fail', () =>
+        expect(createTask(projectFactory.build(), { title: '' }, NOW).ok).toBe(false)
+      )
+
+      it('returns a VALIDATION error for field "title"', () => {
+        const result = createTask(projectFactory.build(), { title: '' }, NOW)
+        if (!result.ok) {
+          expect(result.error.kind).toBe('VALIDATION')
+          if (result.error.kind === 'VALIDATION') expect(result.error.field).toBe('title')
+        }
+      })
+    })
+
+    describe('when priority is not a valid enum value', () => {
+      it('returns fail', () =>
+        expect(createTask(projectFactory.build(), { title: 'Ok', priority: 'urgent' }, NOW).ok).toBe(false)
+      )
+    })
+
+    describe('without a priority', () => {
+      it('defaults to medium', () => {
+        const result = createTask(projectFactory.build(), { title: 'Ok' }, NOW)
+        if (result.ok) expect(result.value.task.priority).toBe('medium')
+      })
+    })
+  })
+
+  // ── transitionTask ──────────────────────────────────────────────────────────
+
+  describe('transitionTask', () => {
+    describe('when transition is allowed', () => {
+      it('returns ok', () => {
+        const task   = taskFactory.build({ status: 'todo' })
+        const result = transitionTask(task, { toStatus: 'in_progress' }, NOW)
+        expect(result.ok).toBe(true)
+      })
+
+      it('returns the updated task with the new status', () => {
+        const task   = taskFactory.build({ status: 'todo' })
+        const result = transitionTask(task, { toStatus: 'in_progress' }, NOW)
+        if (result.ok) expect(result.value.updatedTask.status).toBe('in_progress')
+      })
+
+      it('does not mutate the original task', () => {
+        const task = taskFactory.build({ status: 'todo' })
+        transitionTask(task, { toStatus: 'in_progress' }, NOW)
+        expect(task.status).toBe('todo')
+      })
+    })
+
+    describe('when transition is not allowed', () => {
+      it.each([
+        ['done',      'todo'],
+        ['done',      'in_progress'],
+        ['cancelled', 'todo'],
+        ['cancelled', 'done'],
+      ] as const)('from %s to %s returns fail', (from, to) => {
+        const task   = taskFactory.build({ status: from })
+        const result = transitionTask(task, { toStatus: to }, NOW)
+        expect(result.ok).toBe(false)
+      })
+
+      it('returns a BUSINESS_RULE error', () => {
+        const task   = taskFactory.build({ status: 'done' })
+        const result = transitionTask(task, { toStatus: 'todo' }, NOW)
+        if (!result.ok) expect(result.error.kind).toBe('BUSINESS_RULE')
+      })
+    })
+  })
+})
+```
+
+---
+
+## Shell / Integration Tests
+
+```typescript
+// src/shell/cli/commands/task/add.spec.ts
+// Integration tests - allowed to be async, use DB, use factory.create()
+
+import { afterEach, beforeEach, describe, expect, it } from 'bun:test'
+
+import { taskFactory, projectFactory } from '@/__tests__/factories'
+import { taskAddCommand }  from './add.command'
+import { findTaskById }    from '../../../db/queries/task.queries.db'
+import { setupTestDb, teardownTestDb } from '@/__tests__/helpers/db'
+
+describe('add.command', () => {
+  describe('taskAddCommand', () => {
+    // ✅ beforeEach is allowed in integration tests - needs fresh DB state
+    beforeEach(async () => { await setupTestDb() })
+    afterEach(async ()  => { await teardownTestDb() })
+
+    describe('when input is valid', () => {
+      it('exits without error', async () => {
+        const project = await projectFactory.create()
+        await expect(
+          taskAddCommand(['Pay bills', `--project=${project.id}`])
+        ).resolves.not.toThrow()
+      })
+
+      it('persists the task to the database', async () => {
+        const project = await projectFactory.create()
+        const { taskId } = await taskAddCommand(['Pay bills', `--project=${project.id}`])
+        const stored = await findTaskById(db, taskId)
+        expect(stored).not.toBeNull()
+        expect(stored?.title).toBe('Pay bills')
+      })
+    })
+
+    describe('when project does not exist', () => {
+      it('exits with code 1', async () => {
+        await expect(
+          taskAddCommand(['Pay bills', '--project=nonexistent'])
+        ).rejects.toThrow()
+      })
+    })
+  })
+})
+```
+
+---
+
+## File Naming and Location
+
+```
+src/
+  core/
+    __tests__/factories/
+      index.ts              ← central export
+      task.domain.factory.ts
+      project.domain.factory.ts
+      user.domain.factory.ts
+    task/
+      task.domain.ts
+      task.domain.spec.ts          ← co-located with the file under test
+      task.flow.ts
+      task.flow.spec.ts
+    project/
+      project.domain.ts
+      project.domain.spec.ts
+      project.flow.ts
+      project.flow.spec.ts
+  shell/
+    cli/
+      commands/
+        task/
+          add.command.ts
+          add.command.e2e.spec.ts     ← integration tests
+```
+
+---
+
+## Quick Reference - Anti-patterns
+
+| Anti-pattern                                    | Why                               | Fix                                        |
+| ----------------------------------------------- | --------------------------------- | ------------------------------------------ |
+| `it('should return ok')`                        | "should" tense - BetterSpecs rule | `it('returns ok')`                         |
+| `beforeEach` in core test                       | core tests need no setup          | use `factory.build()` per test             |
+| `factory.create()` in core test                 | `create()` is async and hits DB   | use `factory.build()`                      |
+| Multiple `expect` in core `it`                  | hides which assertion fails       | one `expect` per `it`                      |
+| `describe('invalid title')`                      | missing `when`/`with`/`without`   | `describe('when title is empty')`           |
+| 10 identical `it` blocks                        | should be a table                 | use `it.each`                              |
+| Hand-written object literal when factory exists | inconsistency, drift              | use `factory.build()`                      |
+| `describe('task helpers')`                      | vague, not self-documenting       | `describe('src/core/task/task.domain.ts')` |
+| Mutation not tested                             | core contract is immutability     | always add `not.toBe(original)` test       |
+| Only happy path tested                          | BetterSpecs: test all cases       | add error + edge cases                     |
