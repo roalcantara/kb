@@ -5,12 +5,14 @@
  *
  * Local dev continues to use {@link ./index.ts} (TUI when not headless).
  */
-import { greetCommand, infoCommand } from './commands'
-import { formatEmitter } from './interceptors'
-import { shell } from './main.ts'
+import { defineGreetCommand, defineInfoCommand } from './commands'
+import { defineFormatEmitter } from './interceptors'
+import { shell } from './main.headless.ts'
 import { runCliEntry } from './run_cli_main.ts'
 
-const commands = [infoCommand, greetCommand] as const
+const commands = [defineInfoCommand(shell), defineGreetCommand(shell)] as const
+
+const formatEmitter = defineFormatEmitter(shell)
 
 export const runCli = shell.setup({
   commands,

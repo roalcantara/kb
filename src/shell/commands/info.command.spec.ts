@@ -1,8 +1,11 @@
 import { describe, expect, it } from 'bun:test'
 import { testCommand } from '@kb/kli/testing'
 import { factory_for, mock_for } from '@tests'
+import { shell } from '../main.ts'
 import { runCli } from '../index.ts'
-import { infoCommand } from './info.command.ts'
+import { defineInfoCommand } from './info.command.ts'
+
+const infoCommand = defineInfoCommand(shell)
 
 const RAW_LINE_STARTS_WITH_CLI_TAB = /^cli\t/
 

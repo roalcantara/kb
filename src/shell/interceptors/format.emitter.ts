@@ -1,4 +1,5 @@
-import { shell } from '../main.ts'
+import type { OptsDef } from '@kli/core/cli'
+import type { KliHandle } from '@kb/kli'
 
 const FORMAT_KEYS = ['pretty', 'json', 'yaml', 'raw'] as const
 type FormatKey = (typeof FORMAT_KEYS)[number]
@@ -34,23 +35,30 @@ const formatPayload = <T>(format: FormatKey, result: T) => {
   return f.stringify(result, format)
 }
 
-export const formatEmitter = shell.defineEmitter({
-  globals: {
-    format: {
-      type: 'string',
-      either: { p: 'pretty', j: 'json', y: 'yaml', r: 'raw' },
-      default: 'raw',
-      desc: 'Output format'
+/** Bind format globals + emitter to a shell from {@link ../main.ts} or {@link ../main.headless.ts}. */
+export const defineFormatEmitter = <
+  DepsT extends Record<string, unknown>,
+  GlobalsT extends OptsDef
+>(
+  shell: KliHandle<DepsT, GlobalsT>
+) =>
+  shell.defineEmitter({
+    globals: {
+      format: {
+        type: 'string',
+        either: { p: 'pretty', j: 'json', y: 'yaml', r: 'raw' },
+        default: 'raw',
+        desc: 'Output format'
+      }
+    },
+    run: (output, { globals }) => {
+      if (output === undefined) return
+      const raw = globals.format
+      if (!f.isFormatKey(raw)) {
+        console.error(`Invalid --format: ${String(raw)} (expected ${FORMAT_KEYS.join('|')})`)
+        return
+      }
+      const formatted = formatPayload(raw, output)
+      console.log(formatted)
     }
-  },
-  run: (output, { globals }) => {
-    if (output === undefined) return
-    const raw = globals.format
-    if (!f.isFormatKey(raw)) {
-      console.error(`Invalid --format: ${String(raw)} (expected ${FORMAT_KEYS.join('|')})`)
-      return
-    }
-    const formatted = formatPayload(raw, output)
-    console.log(formatted)
-  }
-})
+  })

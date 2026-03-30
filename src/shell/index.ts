@@ -1,12 +1,14 @@
 /** Inlined by `build:prod` via `--define KB_HEADLESS_BUILD=true`. */
 declare const KB_HEADLESS_BUILD: boolean | undefined
 
-import { greetCommand, infoCommand } from './commands'
-import { formatEmitter } from './interceptors'
+import { defineGreetCommand, defineInfoCommand } from './commands'
+import { defineFormatEmitter } from './interceptors'
 import { shell } from './main.ts'
 import { runCliMain } from './run_cli_main.ts'
 
-const commands = [infoCommand, greetCommand] as const
+const commands = [defineInfoCommand(shell), defineGreetCommand(shell)] as const
+
+const formatEmitter = defineFormatEmitter(shell)
 
 const isHeadless = typeof KB_HEADLESS_BUILD !== 'undefined' && KB_HEADLESS_BUILD === true
 

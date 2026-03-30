@@ -1,1 +1,1 @@
-export * from './format.emitter.ts'
+export { defineFormatEmitter } from './format.emitter.ts'
