@@ -9,9 +9,9 @@
     "clean": "rm -rf dist tmp",
     "cleanup": "bun run clean && rm -rf node_modules bun.lock*",
     "reinstall": "bun run cleanup && bun install",
-    "build": "bun build index.ts --compile --outfile dist/kb",
-    "build:prod": "bun build index.ts --bytecode --minify --sourcemap --no-compile-autoload-dotenv --no-compile-autoload-bunfig --compile --outfile dist/kb",
-    "dev": "bun run index.ts",
+    "build": "bun build src/shell/index.ts --compile --outfile dist/kb",
+    "build:prod": "bun build src/shell/index.ts --define KB_HEADLESS_BUILD=true --minify --sourcemap --no-compile-autoload-dotenv --no-compile-autoload-bunfig --compile --outfile dist/kb",
+    "dev": "bun src/shell/index.ts",
     "dev:watch": "bun run dev -- --watch --hot",
     "generate:typia": "typia generate --input tools/typia/templates --output tools/typia/generated --project tsconfig.json",
     "test": "bun test --pass-with-no-tests",
@@ -56,11 +56,15 @@
         "release-it": "^19.2.4"
       },
       "testing": {
-        "fishery": "^2.4.0"
+        "fishery": "^2.4.0",
+        "expect-type": "^0.20.0"
       },
-      "utilities": {},
+      "utilities": {
+        "radash": "^12.1.1"
+      },
       "validation": {
-        "typia": "^12.0.1"
+        "typia": "^12.0.1",
+        "neverthrow": "^8.2.0"
       }
     }
   },
@@ -78,6 +82,7 @@
     "typescript": "catalog:runtime"
   },
   "dependencies": {
+    "@kb/kli": "workspace:*",
     "typia": "catalog:validation"
   }
 }

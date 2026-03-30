@@ -53,8 +53,7 @@ This workspace uses [Bun named catalogs][35] (`catalogs`, plural) instead of a s
 
 ```sh
 bun install               # Install dependencies
-bun run index.ts          # Run the app
-bun run dev               # Run the app in dev mode
+bun run dev               # Run the app (`src/shell/index.ts`)
 bun run dev:watch         # Run the app in dev mode with hot reloading
 bun run test              # Run tests
 bun run test:watch        # Run tests with hot reloading

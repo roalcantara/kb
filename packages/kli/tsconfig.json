@@ -1,0 +1,14 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@kli/tests": ["./src/__tests__/index.ts"],
+      "@kli/core/cli": ["./src/core/cli/index.ts"],
+      "@kli/shell/cli": ["./src/shell/cli/index.ts"],
+      "@kli/shell/tui": ["./src/shell/tui/index.ts"]
+    }
+  },
+  "include": ["src/**/*.ts"],
+  "exclude": ["node_modules"]
+}

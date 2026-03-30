@@ -1,0 +1,20 @@
+{
+  "name": "@kb/kli",
+  "version": "0.1.0",
+  "private": true,
+  "description": "App-agnostic Bun CLI foundation: argv normalization, help text, command dispatch (no product-specific commands)",
+  "type": "module",
+  "module": "src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./testing": "./src/shell/cli/testing/testing.ts"
+  },
+  "dependencies": {
+    "radash": "catalog:utilities",
+    "neverthrow": "catalog:validation"
+  },
+  "devDependencies": {
+    "expect-type": "catalog:testing",
+    "fishery": "catalog:testing"
+  }
+}
