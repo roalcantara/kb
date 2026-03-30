@@ -15,6 +15,9 @@ import { runChain, runInterceptorChain } from './dispatch'
 import type { CliInstance } from './factories'
 import { printCommandHelp, printHelp, printVersion } from './help'
 
+/** Inlined by `build:prod` via `--define KB_HEADLESS_BUILD=true` (Docker / minified compile). */
+declare const KB_HEADLESS_BUILD: boolean | undefined
+
 const EXIT_OK = 0
 const EXIT_ERROR = 1
 const HELP_SHORT = '-h'
@@ -88,7 +91,8 @@ const handleMissingCommand = async <
     console.error(`Unknown command: ${unknownCommand}`)
     return EXIT_ERROR
   }
-  if (process.stdout.isTTY === true && cli.tui !== undefined) {
+  const kbHeadlessCompile = typeof KB_HEADLESS_BUILD !== 'undefined' && KB_HEADLESS_BUILD === true
+  if (!kbHeadlessCompile && process.stdout.isTTY === true && cli.tui !== undefined) {
     const { startTui } = await import('../tui/main.tui.ts')
     return await startTui(cli.tui as TuiRoot, cli, parsed)
   }

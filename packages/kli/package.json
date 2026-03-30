@@ -16,5 +16,15 @@
   "devDependencies": {
     "expect-type": "catalog:testing",
     "fishery": "catalog:testing"
+  },
+  "peerDependencies": {
+    "@opentui/core": "catalog:tui",
+    "@opentui/solid": "catalog:tui",
+    "solid-js": "catalog:tui"
+  },
+  "peerDependenciesMeta": {
+    "solid-js": {
+      "optional": true
+    }
   }
 }

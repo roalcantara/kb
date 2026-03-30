@@ -180,6 +180,8 @@ Triggered when the [Release](.github/workflows/release.yml) workflow completes (
 - [Standard Readme][4]
 - [Fishery][33] - Test data factories for TypeScript
 - [Bun Workspaces][34] - Develop complex monorepos with multiple independent packages
+- [OpenTUI][36] - Terminal User Interface
+- [Solid Binding][37] - Solid Binding for OpenTUI
 
 ---
 
@@ -231,3 +233,5 @@ The project is available as open source under the terms of the [MIT][1] [License
 [33]: https://fishery.dev 'Fishery - Test data factories for TypeScript'
 [34]: https://bun.com/docs/pm/workspaces 'Bun Workspaces'
 [35]: https://bun.com/docs/pm/catalogs 'Bun Catalogs'
+[36]: https://opentui.com 'OpenTUI - Terminal User Interface'
+[37]: https://opentui.com/docs/bindings/solid 'OpenTUI - Solid Binding'
