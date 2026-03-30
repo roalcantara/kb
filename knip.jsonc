@@ -6,7 +6,7 @@
       "project": ["**/*.ts", "**/*.tsx"]
     },
     "packages/kli": {
-      "entry": ["package.json", "src/shell/tui/index.ts"],
+      "entry": ["package.json", "src/shell/cli/commands/index.ts", "src/shell/tui/index.ts"],
       "project": ["src/**/*.ts"]
     }
   },

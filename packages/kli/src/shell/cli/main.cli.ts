@@ -10,7 +10,7 @@ import {
   parseArgv,
   validateCommand
 } from '@kli/core/cli'
-import { handleMissingCommandHeadless, handleMissingCommandInteractive } from './commands/index.ts'
+import { handleMissingCommandHeadless } from './commands/headless.command.ts'
 import { runChain, runInterceptorChain } from './dispatch'
 import type { CliInstance } from './factories'
 import { printCommandHelp, printHelp, printVersion } from './help'
@@ -72,23 +72,20 @@ const handleHelpOrVersion = <
  * No subcommand: headless compile → help only (no OpenTUI in the binary graph).
  * Otherwise TTY + `cli.tui` → OpenTUI; else root help.
  *
- * TUI lives in {@link handleMissingCommandInteractive} so `bun build --compile`
- * with `--define KB_HEADLESS_BUILD=true` can drop that module and `@opentui/*`.
+ * Interactive path is loaded only via dynamic `import()` so headless
+ * `--compile` bundles omit `interactive.command.ts` and `@opentui/*`.
  *
  * @returns Process exit code
  */
-const handleMissingCommand = <
-  DepsT,
-  GlobalsT extends OptsDef,
-  CommandsT extends readonly CliCommand<DepsT, ArgsDef, OptsDef, GlobalsT>[]
->(
-  cli: CliInstance<DepsT, GlobalsT, CommandsT>,
+const handleMissingCommand = async (
+  cli: CliInstance,
   args: readonly string[],
   parsed: ParseResult
-): number | Promise<number> => {
+): Promise<number> => {
   if (typeof KB_HEADLESS_BUILD !== 'undefined' && KB_HEADLESS_BUILD === true) {
     return handleMissingCommandHeadless(cli, args, parsed)
   }
+  const { handleMissingCommandInteractive } = await import('./commands/interactive.command.ts')
   return handleMissingCommandInteractive(cli, args, parsed)
 }
 
@@ -176,7 +173,9 @@ export const runCommand = async <
     return EXIT_ERROR
   }
 
-  if (!parsed.commandName) return await handleMissingCommand(cli, args, parsed)
+  if (!parsed.commandName) {
+    return await handleMissingCommand(cli as CliInstance, args, parsed)
+  }
 
   if (!knownCommand) {
     console.error(`Unknown command: ${parsed.commandName}`)
