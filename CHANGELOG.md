@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.5.2](https://github.com/roalcantara/kb/compare/v0.5.1...v0.5.2) (2026-03-30)
+
+### Bug Fixes
+
+* **build:** Headless prod compile skips OpenTUI ([#5](https://github.com/roalcantara/kb/issues/5)) ([f2c76ff](https://github.com/roalcantara/kb/commit/f2c76ff41771c0de5bfe69da80aff378cc87f1cd))
+
 ## [0.5.1](https://github.com/roalcantara/kb/compare/v0.5.0...v0.5.1) (2026-03-30)
 
 ## [0.5.0](https://github.com/roalcantara/kb/compare/v0.3.1...v0.5.0) (2026-03-26)
