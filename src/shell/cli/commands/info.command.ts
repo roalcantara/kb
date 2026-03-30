@@ -1,9 +1,6 @@
 import type { KliHandle, OptsDef } from '@kb/kli/headless'
 
-export const defineInfoCommand = <
-  DepsT extends { greeter: unknown },
-  GlobalsT extends OptsDef
->(
+export const defineInfoCommand = <DepsT extends { greeter: unknown }, GlobalsT extends OptsDef>(
   shell: KliHandle<DepsT, GlobalsT>
 ) =>
   shell.withCmd({

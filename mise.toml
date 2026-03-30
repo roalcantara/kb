@@ -64,6 +64,7 @@ devcontainer-cli = "latest"
 # mise run docker:run --tag local
 # mise run docker:run --image roalcantara/kb:local
 # mise run docker:run --xcompile all
+# mise run docker:run --xcompile all --prod
 # mise run docker:run --xcompile bun-linux-arm64
 "docker:run" = { description = "Start a Docker container or cross-compile prod binaries with --xcompile", usage = '''
   flag "--tag <tag>" help="Image tag (use with built image)" default="latest"
@@ -72,6 +73,7 @@ devcontainer-cli = "latest"
     help "Cross-compile dist/kb in Ubuntu (clean bun install) instead of an interactive shell"
     choices "all" "bun-linux-x64-modern" "bun-linux-arm64" "bun-darwin-arm64"
   }
+  flag "--prod" help="With --xcompile: bun install --production (omit devDependencies)"
  ''', run = '''
   #!/usr/bin/env bash
   set -euo pipefail
@@ -84,9 +86,11 @@ devcontainer-cli = "latest"
       *) echo "unknown --xcompile: $target" >&2; exit 1 ;;
     esac
     export XCOMPILE_TARGETS="${targets[*]}"
-    echo "  ==> docker xcompile (Ubuntu 24.04): $XCOMPILE_TARGETS"
+    export XCOMPILE_PROD="${usage_prod:-false}"
+    echo "  ==> docker xcompile (Ubuntu 24.04): $XCOMPILE_TARGETS prod=${XCOMPILE_PROD}"
     docker run --rm \
       -e XCOMPILE_TARGETS \
+      -e XCOMPILE_PROD \
       -v "$PWD:/repo" \
       -w /repo \
       ubuntu:24.04 \
@@ -101,13 +105,17 @@ devcontainer-cli = "latest"
         mkdir -p "$work"
         rsync -a /repo/ "$work/" --exclude node_modules --exclude dist --exclude .git
         cd "$work"
-        bun install --frozen-lockfile
+        if [ "${XCOMPILE_PROD:-false}" = "true" ]; then
+          bun install --frozen-lockfile --production
+        else
+          bun install --frozen-lockfile
+        fi
         mkdir -p /repo/dist
         for t in $XCOMPILE_TARGETS; do
           echo "=== build:prod --target=$t ==="
           slug="${t#bun-}"
           out="/tmp/kb.$slug"
-          bun build src/shell/index.headless.ts --define KB_HEADLESS_BUILD=true --minify --sourcemap --no-compile-autoload-dotenv --no-compile-autoload-bunfig --compile --outfile "$out" --target="$t"
+          bun build src/shell/cli/main.cli.headless.ts --define KB_HEADLESS_BUILD=true --minify --sourcemap --no-compile-autoload-dotenv --no-compile-autoload-bunfig --compile --outfile "$out" --target="$t"
           cp "$out" "/repo/dist/kb-$slug"
           rm -f "$out"
         done'
@@ -133,4 +141,3 @@ devcontainer-cli = "latest"
   echo "  ==> container-structure-test test --image $image --config $usage_config"
   mise exec -- container-structure-test test --image "$image" --config "$usage_config"
   ''' }
-

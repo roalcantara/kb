@@ -3,12 +3,12 @@
  * in the bundle graph). Cross-target `bun build --compile` must not resolve
  * `@opentui/core-*` platform packages.
  *
- * Local dev continues to use {@link ./index.ts} (TUI when not headless).
+ * Local dev continues to use {@link ../index.ts} (TUI when not headless).
  */
-import { defineGreetCommand, defineInfoCommand } from './commands'
-import { defineFormatEmitter } from './interceptors'
-import { shell } from './main.headless.ts'
-import { runCliEntry } from './run_cli_main.ts'
+import { defineGreetCommand, defineInfoCommand } from './commands/index.ts'
+import { shell } from './entry/main.headless.ts'
+import { runCliEntry } from './entry/main.run.ts'
+import { defineFormatEmitter } from './interceptors/index.ts'
 
 const commands = [defineInfoCommand(shell), defineGreetCommand(shell)] as const
 

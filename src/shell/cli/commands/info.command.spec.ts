@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'bun:test'
 import { testCommand } from '@kb/kli/testing'
 import { factory_for, mock_for } from '@tests'
-import { shell } from '../main.ts'
-import { runCli } from '../index.ts'
+import { shell } from '../main.cli.ts'
+import { runCli } from '../../index.ts'
 import { defineInfoCommand } from './info.command.ts'
 
 const infoCommand = defineInfoCommand(shell)

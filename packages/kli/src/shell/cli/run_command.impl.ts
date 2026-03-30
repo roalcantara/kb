@@ -22,11 +22,7 @@ const VERSION_LONG = '--version'
 
 type RunContext<DepsT, GlobalsT extends OptsDef> = CliMiddlewareContext<DepsT, GlobalsT> & { raw: ParseResult }
 
-export type HandleMissingCommandFn = (
-  cli: CliInstance,
-  args: readonly string[],
-  parsed: ParseResult
-) => Promise<number>
+export type HandleMissingCommandFn = (cli: CliInstance, args: readonly string[], parsed: ParseResult) => Promise<number>
 
 /** `makeRunCommand` product — used by {@link ./create_kli_handle.factory.ts}. */
 export type RunCommand = <
@@ -129,11 +125,7 @@ const executeKnownCommand = async <
  */
 export const makeRunCommand =
   (handleMissingCommand: HandleMissingCommandFn) =>
-  async <
-    DepsT,
-    GlobalsT extends OptsDef,
-    CommandsT extends readonly CliCommand<DepsT, ArgsDef, OptsDef, GlobalsT>[]
-  >(
+  async <DepsT, GlobalsT extends OptsDef, CommandsT extends readonly CliCommand<DepsT, ArgsDef, OptsDef, GlobalsT>[]>(
     cli: CliInstance<DepsT, GlobalsT, CommandsT>,
     rawArgv: readonly string[] = Bun.argv
   ): Promise<number> => {

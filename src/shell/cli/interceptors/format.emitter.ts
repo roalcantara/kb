@@ -1,5 +1,5 @@
-import type { OptsDef } from '@kli/core/cli'
 import type { KliHandle } from '@kb/kli'
+import type { OptsDef } from '@kli/core/cli'
 
 const FORMAT_KEYS = ['pretty', 'json', 'yaml', 'raw'] as const
 type FormatKey = (typeof FORMAT_KEYS)[number]
@@ -36,10 +36,7 @@ const formatPayload = <T>(format: FormatKey, result: T) => {
 }
 
 /** Bind format globals + emitter to a shell from {@link ../main.ts} or {@link ../main.headless.ts}. */
-export const defineFormatEmitter = <
-  DepsT extends Record<string, unknown>,
-  GlobalsT extends OptsDef
->(
+export const defineFormatEmitter = <DepsT extends Record<string, unknown>, GlobalsT extends OptsDef>(
   shell: KliHandle<DepsT, GlobalsT>
 ) =>
   shell.defineEmitter({
