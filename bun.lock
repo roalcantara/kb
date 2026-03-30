@@ -6,6 +6,8 @@
       "name": "@kb/wkp",
       "dependencies": {
         "@kb/kli": "workspace:*",
+        "@opentui/core": "catalog:tui",
+        "@opentui/solid": "catalog:tui",
         "solid-js": "catalog:tui",
         "typia": "catalog:validation",
       },
