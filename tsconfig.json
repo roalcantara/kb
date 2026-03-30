@@ -33,6 +33,7 @@
     "types": ["bun", "bun-types"],
     "paths": {
       "@kb/kli": ["./packages/kli/src/index.ts"],
+      "@kb/kli/headless": ["./packages/kli/src/headless.ts"],
       "@kli/tests": ["./packages/kli/src/__tests__/index.ts"],
       "@kli/core/cli": ["./packages/kli/src/core/cli/index.ts"],
       "@kli/shell/cli": ["./packages/kli/src/shell/cli/index.ts"],

@@ -2,11 +2,11 @@
   "$schema": "https://unpkg.com/knip@5/schema-jsonc.json",
   "workspaces": {
     ".": {
-      "entry": ["package.json", "src/shell/index.headless.ts"],
+      "entry": ["package.json", "src/shell/index.ts", "src/shell/cli/main.cli.headless.ts"],
       "project": ["**/*.ts", "**/*.tsx"]
     },
     "packages/kli": {
-      "entry": ["package.json", "src/shell/tui/index.ts"],
+      "entry": ["package.json", "src/shell/cli/commands/index.ts", "src/shell/tui/index.ts"],
       "project": ["src/**/*.ts"]
     }
   },

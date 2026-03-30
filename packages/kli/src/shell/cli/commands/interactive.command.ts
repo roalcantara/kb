@@ -1,5 +1,5 @@
-import type { ArgsDef, CliCommand, OptsDef, ParseResult } from '@kli/core/cli'
-import type { TuiRoot } from '../../tui/main.tui.ts'
+import type { ParseResult } from '@kli/core/cli'
+import type { TuiRoot } from '../../tui/tui_root.types.ts'
 import type { CliInstance } from '../factories/cli_instance.factory.ts'
 import { printHelp } from '../help'
 import { firstNonFlag } from './first_non_flag.util.ts'
@@ -12,12 +12,8 @@ const EXIT_ERROR = 1
  * module so headless `bun build --compile` can tree-shake it when
  * `KB_HEADLESS_BUILD=true`.
  */
-export const handleMissingCommandInteractive = async <
-  DepsT,
-  GlobalsT extends OptsDef,
-  CommandsT extends readonly CliCommand<DepsT, ArgsDef, OptsDef, GlobalsT>[]
->(
-  cli: CliInstance<DepsT, GlobalsT, CommandsT>,
+export const handleMissingCommandInteractive = async (
+  cli: CliInstance,
   args: readonly string[],
   parsed: ParseResult
 ): Promise<number> => {

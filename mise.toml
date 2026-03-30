@@ -63,15 +63,67 @@ devcontainer-cli = "latest"
 # mise run docker:run
 # mise run docker:run --tag local
 # mise run docker:run --image roalcantara/kb:local
-"docker:run" = { description = "Start a Docker container", usage = '''
+# mise run docker:run --xcompile all
+# mise run docker:run --xcompile all --prod
+# mise run docker:run --xcompile bun-linux-arm64
+"docker:run" = { description = "Start a Docker container or cross-compile prod binaries with --xcompile", usage = '''
   flag "--tag <tag>" help="Image tag (use with built image)" default="latest"
   flag "--image <image>" help="Image name (without tag)" env="REGISTRY_IMAGE"
+  flag "--xcompile <target>" {
+    help "Cross-compile dist/kb in Ubuntu (clean bun install) instead of an interactive shell"
+    choices "all" "bun-linux-x64-modern" "bun-linux-arm64" "bun-darwin-arm64"
+  }
+  flag "--prod" help="With --xcompile: bun install --production (omit devDependencies)"
  ''', run = '''
   #!/usr/bin/env bash
   set -euo pipefail
 
+  if [ -n "${usage_xcompile:-}" ]; then
+    target="${usage_xcompile:?}"
+    case "$target" in
+      all) targets=(bun-linux-x64-modern bun-linux-arm64 bun-darwin-arm64) ;;
+      bun-linux-x64-modern|bun-linux-arm64|bun-darwin-arm64) targets=("$target") ;;
+      *) echo "unknown --xcompile: $target" >&2; exit 1 ;;
+    esac
+    export XCOMPILE_TARGETS="${targets[*]}"
+    export XCOMPILE_PROD="${usage_prod:-false}"
+    echo "  ==> docker xcompile (Ubuntu 24.04): $XCOMPILE_TARGETS prod=${XCOMPILE_PROD}"
+    docker run --rm \
+      -e XCOMPILE_TARGETS \
+      -e XCOMPILE_PROD \
+      -v "$PWD:/repo" \
+      -w /repo \
+      ubuntu:24.04 \
+      bash -lc 'set -euo pipefail
+        apt-get update -y >/dev/null
+        apt-get install -y curl unzip ca-certificates rsync >/dev/null
+        curl -fsSL https://bun.sh/install | bash >/dev/null
+        export PATH="/root/.bun/bin:$PATH"
+        bun --version
+        work=/tmp/kb-work
+        rm -rf "$work"
+        mkdir -p "$work"
+        rsync -a /repo/ "$work/" --exclude node_modules --exclude dist --exclude .git
+        cd "$work"
+        if [ "${XCOMPILE_PROD:-false}" = "true" ]; then
+          bun install --frozen-lockfile --production
+        else
+          bun install --frozen-lockfile
+        fi
+        mkdir -p /repo/dist
+        for t in $XCOMPILE_TARGETS; do
+          echo "=== build:prod --target=$t ==="
+          slug="${t#bun-}"
+          out="/tmp/kb.$slug"
+          bun build src/shell/cli/main.cli.headless.ts --define KB_HEADLESS_BUILD=true --minify --sourcemap --no-compile-autoload-dotenv --no-compile-autoload-bunfig --compile --outfile "$out" --target="$t"
+          cp "$out" "/repo/dist/kb-$slug"
+          rm -f "$out"
+        done'
+    exit 0
+  fi
+
   echo "  ==> docker run -it --rm $usage_image:${usage_tag}"
-  docker run -it --rm $usage_image:${usage_tag}
+  docker run -it --rm "$usage_image:$usage_tag"
   ''' }
 
 # mise run docker:test

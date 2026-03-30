@@ -1,6 +1,9 @@
 import { describe, expect, it } from 'bun:test'
 import { mock_for } from '@tests'
-import { formatEmitter } from './format.emitter.ts'
+import { shell } from '../main.cli.ts'
+import { defineFormatEmitter } from './format.emitter.ts'
+
+const formatEmitter = defineFormatEmitter(shell)
 
 const FORMAT_GLOBAL_SCHEMA = {
   format: {
