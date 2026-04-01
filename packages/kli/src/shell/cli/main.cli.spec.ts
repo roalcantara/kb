@@ -2,7 +2,6 @@ import { describe, expect, mock, spyOn, it } from 'bun:test'
 import type { ArgsDef, CliCommand, CliInterceptor, Middleware, OptsDef } from '@kli/core/cli'
 import { factory_for, mock_for } from '@kli/tests'
 import { withCli } from './factories'
-import { mockStartTui } from './testing/main_cli_tui_mock.ts'
 import { runCommand } from './main.cli.ts'
 
 describe('runCommand()', () => {
@@ -52,6 +51,7 @@ describe('runCommand()', () => {
   })
 
   describe('on TTY with tui registered', () => {
+    const mockStartTui = mock_for('mockStartTui')
     it('invokes startTui', async () => {
       mockStartTui.mockClear()
       const withStdoutTty = mock_for('withStdoutTty', {

@@ -7,10 +7,10 @@ import type {
 } from '@kli/core/cli'
 
 /**
- * Context for {@link CliEmitterDefinition.run}: wide `args` / `opts` (heterogeneous commands),
+ * Context for {@link OutputEmitterDefinition.run}: wide `args` / `opts` (heterogeneous commands),
  * **`globals` from {@link ResolvedGlobalsMap}** of base + emitter schema.
  */
-export type CliEmitterRunContext<DepsT, MergedGlobals extends OptsDef> = Pick<
+export type OutputEmitterRunContext<DepsT, MergedGlobals extends OptsDef> = Pick<
   CliMiddlewareContext<DepsT, OptsDef>,
   'deps' | 'args' | 'opts'
 > & {
@@ -23,14 +23,14 @@ export type CliEmitterRunContext<DepsT, MergedGlobals extends OptsDef> = Pick<
  * `command.run`. Runs as the outermost interceptor: `await next()` yields the handler result
  * (after inner interceptors transform it).
  */
-export type CliEmitterDefinition<DepsT, BaseGlobals extends OptsDef, ExtraGlobals extends OptsDef> = {
+export type OutputEmitterDefinition<DepsT, BaseGlobals extends OptsDef, ExtraGlobals extends OptsDef> = {
   /** Extra global flags merged into the CLI schema for this `setup` runner (duplicate keys vs `createKli` globals throw). */
   globals?: ExtraGlobals
-  run: (output: unknown, ctx: CliEmitterRunContext<DepsT, BaseGlobals & ExtraGlobals>) => void | Promise<void>
+  run: (output: unknown, ctx: OutputEmitterRunContext<DepsT, BaseGlobals & ExtraGlobals>) => void | Promise<void>
 }
 
 /** Return value of {@link createEmitterPackage} / `shell.defineEmitter` for `setup({ emitter })`. */
-export type CliEmitterPackage<DepsT, BaseGlobals extends OptsDef, ExtraGlobals extends OptsDef> = {
+export type OutputEmitterPackage<DepsT, BaseGlobals extends OptsDef, ExtraGlobals extends OptsDef> = {
   globals: ExtraGlobals
   interceptor: CliInterceptor<CliInterceptorContext<DepsT, BaseGlobals & ExtraGlobals>>
 }

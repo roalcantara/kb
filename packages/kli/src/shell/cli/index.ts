@@ -1,3 +1,3 @@
-export * from './dispatch'
+export * from './dispatchers'
 export * from './emitter'
 export * from './factories'

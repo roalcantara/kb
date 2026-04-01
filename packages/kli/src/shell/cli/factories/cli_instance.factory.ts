@@ -7,7 +7,7 @@ import type {
   Middleware,
   OptsDef
 } from '@kli/core/cli'
-import { defaultEmitterInterceptor } from '../emitter'
+import { outputEmitter } from '../emitter'
 
 export type CliInstance<
   DepsT = unknown,
@@ -96,7 +96,7 @@ export const withCli = <
   middleware: input.middleware ?? [],
   interceptors: input.interceptors ?? [],
   emitterInterceptor:
-    input.emitterInterceptor ?? (defaultEmitterInterceptor as CliInterceptor<CliInterceptorContext<DepsT, GlobalsT>>),
+    input.emitterInterceptor ?? (outputEmitter as CliInterceptor<CliInterceptorContext<DepsT, GlobalsT>>),
   commands: input.commands,
   ...(input.tui === undefined ? {} : { tui: input.tui })
 })
