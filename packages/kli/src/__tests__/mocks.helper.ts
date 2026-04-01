@@ -116,6 +116,13 @@ const mockWithStdoutTty =
 
 type EmptyOptions = Record<never, never>
 
+/** Side-effect: register before `./main.cli.ts` is loaded in specs. */
+const mockStartTui = mock(() => Promise.resolve(0))
+
+mock.module(new URL('../shell/tui/main.tui.ts', import.meta.url).href, () => ({
+  startTui: mockStartTui
+}))
+
 /**
  * Single source of truth: each entry is a wrapper that normalizes the API
  * to a single `options?` argument.
@@ -127,7 +134,8 @@ const mocks = {
   createCli: (overrides?: Parameters<typeof mockCreateCli>[0]) => mockCreateCli(overrides),
   withStdoutTty: (opts: Parameters<typeof mockWithStdoutTty>[0]) => mockWithStdoutTty(opts),
   handlerWithNextCommand: (_opts?: EmptyOptions) => mockHandlerWithNextCommand(),
-  withCommandWithInvalidValidation: (_opts?: EmptyOptions) => mockWithCommandWithInvalidValidation()
+  withCommandWithInvalidValidation: (_opts?: EmptyOptions) => mockWithCommandWithInvalidValidation(),
+  mockStartTui: () => mockStartTui
 } as const
 
 type Mocks = typeof mocks

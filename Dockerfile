@@ -22,6 +22,7 @@ WORKDIR /app
 # this layer only busts when dependencies change, not on source edits.
 COPY package.json bun.lock ./
 COPY packages/kli/package.json ./packages/kli/package.json
+COPY apps/kb/package.json ./apps/kb/package.json
 RUN --mount=type=cache,target=/root/.bun/install/cache \
     bun install --frozen-lockfile
 COPY . .

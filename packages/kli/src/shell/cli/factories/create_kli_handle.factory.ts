@@ -10,10 +10,10 @@ import {
   withCommand
 } from '@kli/core/cli'
 import {
-  type CliEmitterDefinition,
-  type CliEmitterPackage,
   createEmitterPackage,
-  mergeEmitterGlobals
+  mergeEmitterGlobals,
+  type OutputEmitterDefinition,
+  type OutputEmitterPackage
 } from '../emitter'
 import type { RunCommand } from '../run_command.impl.ts'
 import { type CliInstance, withCli } from './cli_instance.factory.ts'
@@ -54,7 +54,7 @@ type SetupRunner = (rawArgv?: readonly string[]) => Promise<number>
 export type KliSetupOptions<DepsT, GlobalsT extends OptsDef> = {
   commands: readonly unknown[]
   interceptors?: readonly CliInterceptor<CliInterceptorContext<DepsT, GlobalsT>>[]
-  emitter?: CliEmitterPackage<DepsT, GlobalsT, OptsDef>
+  emitter?: OutputEmitterPackage<DepsT, GlobalsT, OptsDef>
   tui?: unknown
 }
 
@@ -70,8 +70,8 @@ export type KliHandle<DepsT, GlobalsT extends OptsDef> = {
   setup: (options: KliSetupOptions<DepsT, GlobalsT>) => SetupRunner
   setupCommands: (...commands: unknown[]) => SetupRunner
   defineEmitter: <Extra extends OptsDef = Record<never, OptDef>>(
-    def: CliEmitterDefinition<DepsT, GlobalsT, Extra>
-  ) => CliEmitterPackage<DepsT, GlobalsT, Extra>
+    def: OutputEmitterDefinition<DepsT, GlobalsT, Extra>
+  ) => OutputEmitterPackage<DepsT, GlobalsT, Extra>
 }
 
 const isArgvPrefix = (x: unknown): x is readonly string[] =>
@@ -88,7 +88,7 @@ const makeRunKliWithCommandList =
     rawArgv: readonly string[],
     commands: unknown[],
     setupInterceptors?: readonly CliInterceptor<CliInterceptorContext<DepsT, GlobalsT>>[],
-    emitterPackage?: CliEmitterPackage<DepsT, GlobalsT, OptsDef>,
+    emitterPackage?: OutputEmitterPackage<DepsT, GlobalsT, OptsDef>,
     tui?: unknown
   ): Promise<number> => {
     assertNonEmptyCommands(commands, 'shell.run: pass at least one command')
@@ -124,7 +124,7 @@ export const buildKliHandle = <const DepsT, const GlobalsT extends OptsDef = NoG
     (
       commands: unknown[],
       setupInterceptors?: readonly CliInterceptor<CliInterceptorContext<DepsT, GlobalsT>>[],
-      emitterPackage?: CliEmitterPackage<DepsT, GlobalsT, OptsDef>,
+      emitterPackage?: OutputEmitterPackage<DepsT, GlobalsT, OptsDef>,
       tui?: unknown
     ): SetupRunner =>
     (rawArgv?: readonly string[]) =>
@@ -140,7 +140,7 @@ export const buildKliHandle = <const DepsT, const GlobalsT extends OptsDef = NoG
   const kli = build([] as const)
 
   const defineEmitter = <Extra extends OptsDef = Record<never, OptDef>>(
-    def: CliEmitterDefinition<DepsT, GlobalsT, Extra>
+    def: OutputEmitterDefinition<DepsT, GlobalsT, Extra>
   ) => createEmitterPackage<DepsT, GlobalsT, Extra>(def)
 
   const run = (...args: unknown[]): Promise<number> => {

@@ -10,7 +10,7 @@ import {
   parseArgv,
   validateCommand
 } from '@kli/core/cli'
-import { runChain, runInterceptorChain } from './dispatch'
+import { runChain, runInterceptorChain } from './dispatchers/index.ts'
 import type { CliInstance } from './factories/cli_instance.factory.ts'
 import { printCommandHelp, printHelp, printVersion } from './help'
 

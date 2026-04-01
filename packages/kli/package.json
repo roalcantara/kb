@@ -4,11 +4,11 @@
   "private": true,
   "description": "App-agnostic Bun CLI foundation: argv normalization, help text, command dispatch (no product-specific commands)",
   "type": "module",
-  "module": "src/index.ts",
+  "module": "src/main.app.ts",
   "exports": {
-    ".": "./src/index.ts",
-    "./headless": "./src/headless.ts",
-    "./testing": "./src/shell/cli/testing/testing.ts"
+    ".": "./src/main.app.ts",
+    "./headless": "./src/headless.app.ts",
+    "./testing": "./src/__tests__/testing.ts"
   },
   "dependencies": {
     "radash": "catalog:utilities",

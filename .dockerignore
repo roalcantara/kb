@@ -16,5 +16,9 @@
 !tools/typia/
 !tools/typia/generated/
 !tools/typia/generated/**
-!src/
-!src/**
+!apps/
+!apps/kb/
+!apps/kb/package.json
+!apps/kb/tsconfig.json
+!apps/kb/src/
+!apps/kb/src/**

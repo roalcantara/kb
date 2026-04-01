@@ -1,0 +1,21 @@
+{
+  "name": "@kb/cli",
+  "version": "0.1.0",
+  "private": true,
+  "description": "KodexB CLI application",
+  "type": "module",
+  "module": "src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./cli": "./src/shell/cli/index.ts"
+  },
+  "dependencies": {
+    "@kb/kli": "workspace:*",
+    "radash": "catalog:utilities",
+    "neverthrow": "catalog:validation"
+  },
+  "devDependencies": {
+    "@types/bun": "catalog:runtime",
+    "typescript": "catalog:runtime"
+  }
+}

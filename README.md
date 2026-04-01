@@ -1,3 +1,4 @@
+<!-- markdownlint-disable -->
 # kb
 
 [![Review](https://github.com/roalcantara/kb/actions/workflows/review.yml/badge.svg)](https://github.com/roalcantara/kb/actions/workflows/review.yml) [![Release](https://github.com/roalcantara/kb/actions/workflows/release.yml/badge.svg)](https://github.com/roalcantara/kb/actions/workflows/release.yml) [![Publish](https://github.com/roalcantara/kb/actions/workflows/publish.yml/badge.svg)](https://github.com/roalcantara/kb/actions/workflows/publish.yml)
@@ -53,7 +54,7 @@ This workspace uses [Bun named catalogs][35] (`catalogs`, plural) instead of a s
 
 ```sh
 bun install               # Install dependencies
-bun run dev               # Run the app (`src/shell/index.ts`)
+bun run dev               # Run the app (`apps/kb/src/index.ts`)
 bun run dev:watch         # Run the app in dev mode with hot reloading
 bun run test              # Run tests
 bun run test:watch        # Run tests with hot reloading

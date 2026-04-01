@@ -2,7 +2,7 @@ import type { ParseResult } from '@kli/core/cli'
 import type { TuiRoot } from '../../tui/tui_root.types.ts'
 import type { CliInstance } from '../factories/cli_instance.factory.ts'
 import { printHelp } from '../help'
-import { firstNonFlag } from './first_non_flag.util.ts'
+import { firstNonFlag } from './command.helpers.ts'
 
 const EXIT_OK = 0
 const EXIT_ERROR = 1

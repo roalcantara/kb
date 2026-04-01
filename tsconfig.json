@@ -32,16 +32,19 @@
     "exactOptionalPropertyTypes": true,
     "types": ["bun", "bun-types"],
     "paths": {
-      "@kb/kli": ["./packages/kli/src/index.ts"],
-      "@kb/kli/headless": ["./packages/kli/src/headless.ts"],
+      "@kb/core": ["./apps/kb/src/core/index.ts"],
+      "@kb/kli/headless": ["./packages/kli/src/headless.app.ts"],
+      "@kb/kli/testing": ["./packages/kli/src/__tests__/testing.ts"],
+      "@kb/kli": ["./packages/kli/src/main.app.ts"],
+      "@kb/shell": ["./apps/kb/src/index.ts"],
       "@kli/tests": ["./packages/kli/src/__tests__/index.ts"],
       "@kli/core/cli": ["./packages/kli/src/core/cli/index.ts"],
       "@kli/shell/cli": ["./packages/kli/src/shell/cli/index.ts"],
       "@kli/shell/tui": ["./packages/kli/src/shell/tui/index.ts"],
-      "@core": ["./src/core/index.ts"],
-      "@shell": ["./src/shell/index.ts"],
+      "@core": ["./apps/kb/src/core/index.ts"],
+      "@shell": ["./apps/kb/src/index.ts"],
       "@tools": ["./tools/index.ts"],
-      "@tests": ["./src/__tests__/index.ts"]
+      "@tests": ["./__tests__/index.ts"]
     }
   },
   "include": ["**/*.ts", "**/*.tsx"],

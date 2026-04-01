@@ -46,7 +46,7 @@ Each file should have **one primary concern**. Avoid mixing schemas, helpers, an
 ## Module boundaries (FCIS)
 
 - Functional core vs shell: `assets/docs/guides/FCIS.guide.md`
-- **Barrel imports** (when you use barrels): import from the package/barrel entry (e.g. `@core`), not deep internals—if dependency-cruiser is configured, follow its rules.
+- **Barrel imports** (when you use barrels): import from the package/barrel entry (e.g. `@kb/core` or `@core` for KodexB under `apps/kb`), not deep internals—if dependency-cruiser is configured, follow its rules.
 
 ## File Naming
 

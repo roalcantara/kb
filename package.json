@@ -9,9 +9,9 @@
     "clean": "rm -rf dist tmp",
     "cleanup": "bun run clean && rm -rf node_modules bun.lock*",
     "reinstall": "bun run cleanup && bun install",
-    "build": "bun build src/shell/index.ts --compile --outfile dist/kb",
-    "build:prod": "bun build src/shell/cli/main.cli.headless.ts --define KB_HEADLESS_BUILD=true --minify --sourcemap --no-compile-autoload-dotenv --no-compile-autoload-bunfig --compile --outfile dist/kb",
-    "dev": "bun src/shell/index.ts",
+    "build": "bun build apps/kb/src/index.ts --compile --outfile dist/kb",
+    "build:prod": "bun build apps/kb/src/index.ts --minify --sourcemap --no-compile-autoload-dotenv --no-compile-autoload-bunfig --compile --outfile dist/kb",
+    "dev": "bun apps/kb/src/index.ts",
     "dev:watch": "bun run dev -- --watch --hot",
     "generate:typia": "typia generate --input tools/typia/templates --output tools/typia/generated --project tsconfig.json",
     "test": "bun test --pass-with-no-tests",
@@ -22,8 +22,8 @@
     "lint:biome:fix": "bun run lint:biome -- --write",
     "lint:biome:format": "bunx biome format",
     "lint:biome:ci": "mkdir -p tmp/reports/linters && bash -o pipefail -c 'bun run lint:biome -- --reporter=github --colors=off'",
-    "lint:knip": "bunx knip",
-    "lint:knip:fix": "bunx knip --fix",
+    "lint:knip": "bunx knip-bun",
+    "lint:knip:fix": "bunx knip-bun --fix",
     "lint:knip:ci": "mkdir -p tmp/reports/linters && bash -o pipefail -c 'bun run lint:knip 2>&1 | tee tmp/reports/linters/knip.txt'",
     "lint:jscpd": "bunx jscpd .",
     "lint:jscpd:ci": "mkdir -p tmp/reports/linters && bash -o pipefail -c 'bun run lint:jscpd -- --reporters json --output tmp/reports/linters/jscpd'",
@@ -37,9 +37,7 @@
     "release:ci": "bunx release-it --ci"
   },
   "workspaces": {
-    "packages": [
-      "packages/*"
-    ],
+    "packages": ["packages/*", "apps/*"],
     "catalogs": {
       "runtime": {
         "@types/bun": "^1.3.11",
@@ -89,8 +87,6 @@
     "typescript": "catalog:runtime"
   },
   "dependencies": {
-    "@kb/kli": "workspace:*",
-    "@opentui/core": "catalog:tui",
     "@opentui/solid": "catalog:tui",
     "solid-js": "catalog:tui",
     "typia": "catalog:validation"

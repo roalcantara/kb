@@ -20,7 +20,12 @@ commandTests:
     args: ['--help']
     exitCode: 0
     expectedOutput:
-      - 'KodexB - Personal Knowledge Base'
+      - 'KodexB CLI application'
       - 'Usage:'
       - 'kb <command>'
-      - 'greet'
+      - 'config'
+      - 'import'
+      - 'ls'
+      - 'view'
+      - 'db'
+      - 'cache'
