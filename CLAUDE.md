@@ -1,134 +1,124 @@
-claude
-```
-
-**Prompt 1:**
-```
-what does this project do?
-```
-
-Read the answer. If it mentions Boune, Zod, or anything not in the stack above — correct it now before writing a single line of code:
-```
-That's not quite right. Read assets/docs/specs/kb/design.md
-and summarise the architecture in your own words.
-```
-
-**Prompt 2:**
-```
-Read assets/docs/specs/kb/tasks.md. What does REQUIREMENT 0 ask
-us to build, and what's already done?
-```
-
-This forces Claude Code to read the actual tasks, not hallucinate them. You'll see it check the `[x]` boxes and understand what's already wired.
-
+---
+description: Use Bun instead of Node.js, npm, pnpm, or vite.
+globs:
+  - "**/*.ts"
+  - "**/*.tsx"
+  - "**/*.html"
+  - "**/*.css"
+  - "**/*.js"
+  - "**/*.jsx"
+  - package.json
+alwaysApply: false
 ---
 
-## Session 2 — Build the emitter (step 1 of REQUIREMENT 0)
+Long-form doc index: `.cursor/rules/bun-runtime.mdc`. In-repo API notes: `assets/docs/guides/BUN_RUNTIME.md`.
 
-One task per prompt. Never give Claude Code two things at once.
+Default to using Bun instead of Node.js.
 
-**Prompt 3:**
-```
-Implement step 1 of REQUIREMENT 0 from tasks.md exactly as specified.
-That's the emitter module at apps/kb/src/shell/cli/emitter/.
-Create formats.ts and emitter.ts. Follow the design in design.md —
-the emitter is the ONLY place in shell that calls console.log for data output.
-Do not modify any other files yet.
-```
+- Use `bun <file>` instead of `node <file>` or `ts-node <file>`
+- Use `bun test` instead of `jest` or `vitest`
+- Use `bun build <file.html|file.ts|file.css>` instead of `webpack` or `esbuild`
+- Use `bun install` instead of `npm install` or `yarn install` or `pnpm install`
+- Use `bun run <script>` instead of `npm run <script>` or `yarn run <script>` or `pnpm run <script>`
+- Use `bunx <package> <command>` instead of `npx <package> <command>`
+- Bun automatically loads .env, so don't use dotenv.
 
-Claude Code will:
-1. Read tasks.md to understand the spec
-2. Read design.md for the emitter contract
-3. Create the two files
-4. Ask for your confirmation before writing
+## APIs
 
-**Review before you say yes.** Check:
-- Does `formats.ts` export `type Format = 'pretty' | 'json' | 'raw'`?
-- Does `emitter.ts` have `formatAndWrite(payload: unknown, format: Format): void`?
-- Is `json` doing `JSON.stringify(payload, null, 2)`?
-- Is there any `console.log` in command files that shouldn't be there?
+- `Bun.serve()` supports WebSockets, HTTPS, and routes. Don't use `express`.
+- `bun:sqlite` for SQLite. Don't use `better-sqlite3`.
+- `Bun.redis` for Redis. Don't use `ioredis`.
+- `Bun.sql` for Postgres. Don't use `pg` or `postgres.js`.
+- `WebSocket` is built-in. Don't use `ws`.
+- Prefer `Bun.file` over `node:fs`'s readFile/writeFile
+- Bun.$`ls` instead of execa.
 
-If something's wrong:
-```
-The pretty formatter is wrong. It should produce aligned columns,
-not just JSON.stringify. Try again.
-```
+## Testing
 
----
+Use `bun test` to run tests.
 
-## Session 2 continued — Wire the format flag (step 2)
+```ts#index.test.ts
+import { test, expect } from "bun:test";
 
-**Prompt 4:**
-```
-Now implement step 2 of REQUIREMENT 0 from tasks.md: wire the --format
-global in the KLI definition at
-apps/kb/src/shell/cli/entry/definition.kli.ts.
-
-Format uses KLI's either group: -p/--pretty, -j/--json, -r/--raw,
-default pretty. Also pass ctx.opts.format into the emitter in each
-existing command stub. Do not implement command logic yet — just
-wire the format flag through.
+test("hello world", () => {
+ expect(1).toBe(1);
+});
 ```
 
----
+## Frontend
 
-## Session 2 continued — Timing middleware (step 3)
+Use HTML imports with `Bun.serve()`. Don't use `vite`. HTML imports fully support React, CSS, Tailwind.
 
-**Prompt 5:**
-```
-Implement step 3 of REQUIREMENT 0: the timing middleware at
-apps/kb/src/shell/cli/middleware/timing.ts.
+Server:
 
-When ctx.opts.debug is true, emit a structured line to stderr
-after next() with the total wall time. The format is defined in
-design.md under Observability: ts=<ISO> phase=command label=<name> dur_ms=<n>.
-Register it in definition.kli.ts.
-```
+```ts#index.ts
+import index from "./index.html"
 
----
-
-## Session 2 — Checkpoint
-
-**Prompt 6:**
-```
-Run the checkpoint from tasks.md REQUIREMENT 0:
-1. kb --help should list config, import, ls, view, db, cache
-2. kb ls --format=json should produce [] on empty DB
-3. kb ls --debug should show a debug line on stderr
-
-Run these commands and show me the output.
-```
-
-This is the most important prompt of the session. Claude Code will actually run the commands via its shell tool and show you real output. If something fails it will iterate until the checkpoint passes.
-
----
-
-## The pattern — use it for every requirement
-```
-1. "Read tasks.md. What does step N of REQUIREMENT X ask us to build?"
-2. "Implement step N exactly as specified. Do not touch other files."
-3. Review the diff before confirming
-4. "Run the checkpoint for this step and show me the output."
-5. If it drifts: "That's not what design.md says. Revert and try again."
+Bun.serve({
+ routes: {
+ "/": index,
+ "/api/users/:id": {
+ GET: (req) => {
+ return new Response(JSON.stringify({ id: req.params.id }));
+ },
+ },
+ },
+ // optional websocket support
+ websocket: {
+ open: (ws) => {
+ ws.send("Hello, world!");
+ },
+ message: (ws, message) => {
+ ws.send(message);
+ },
+ close: (ws) => {
+ // handle close
+ }
+ },
+ development: {
+ hmr: true,
+ console: true,
+ }
+})
 ```
 
----
+HTML files can import .tsx, .jsx or .js files directly and Bun's bundler will transpile & bundle automatically. `<link>` tags can point to stylesheets and Bun's CSS bundler will bundle.
 
-## Practical rules you'll thank yourself for
-
-**Use `/compact` when the conversation gets long.** At around 70% context Claude Code starts losing precision. Type `/compact` — it summarises the conversation and continues. Use it between requirements, not in the middle of a task.
-
-**One task per prompt.** "Implement the emitter AND wire the format flag AND add middleware" will produce a mess. Each step in tasks.md is one prompt.
-
-**Let it run tests.** When Claude Code says "should I run the tests?" — say yes. Always. It finds its own mistakes faster than you do.
-
-**Git after each checkpoint.** When a checkpoint passes, commit. If Claude Code breaks something later you have a clean rollback point.
-
-**When it hallucinates a dependency:**
-```
-We are not using [whatever it invented]. Check design.md for the approved stack.
+```html#index.html
+<html>
+ <body>
+ <h1>Hello, world!</h1>
+ <script type="module" src="./frontend.tsx"></script>
+ </body>
+</html>
 ```
 
-**When it puts I/O in core:**
+With the following `frontend.tsx`:
+
+```tsx#frontend.tsx
+import React from "react";
+import { createRoot } from "react-dom/client";
+
+// import .css files directly and it works
+import './index.css';
+
+const root = createRoot(document.body);
+
+export default function Frontend() {
+ return <h1>Hello, world!</h1>;
+}
+
+root.render(<Frontend />);
 ```
-That file is under apps/kb/src/core/ which is the pure layer.
-No I/O allowed there. Move the file read to shell/.
+
+Then, run index.ts
+
+```sh
+bun --hot ./index.ts
+```
+
+For more information, read the Bun API docs in `node_modules/bun-types/docs/**.mdx`.
+
+## KodexB (this repo)
+
+Authoritative app architecture and task checkpoints: `assets/docs/specs/kb/design.md`, `assets/docs/specs/kb/tasks.md`, `assets/docs/specs/kb/requirements.md`. Prefer those over ad-hoc prompts when implementing KodexB features.

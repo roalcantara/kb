@@ -126,10 +126,16 @@ jobs:
           # Explicitly only support CPUs from 2013 and later; modern and faster
           - target: linux-x64
             bun_target: bun-linux-x64-modern
+            os: linux
+            cpu: x64
           - target: linux-arm64
             bun_target: bun-linux-arm64
+            os: linux
+            cpu: arm64
           - target: darwin-arm64
             bun_target: bun-darwin-arm64
+            os: darwin
+            cpu: arm64
     permissions:
       id-token: write
       contents: read
@@ -140,6 +146,9 @@ jobs:
 
       - name: Setup Bun project
         uses: ./.github/actions/setup-bun-project
+
+      - name: Install optional deps for ${{ matrix.target }}
+        run: bun install --frozen-lockfile --os=${{ matrix.os }} --cpu=${{ matrix.cpu }}
 
       # https://bun.com/docs/bundler/bytecode#production-deployment
       - name: Build binary (${{ matrix.target }})
