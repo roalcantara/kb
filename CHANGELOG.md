@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.6.1](https://github.com/roalcantara/kb/compare/v0.6.0...v0.6.1) (2026-04-01)
+
+### Bug Fixes
+
+* **ci:** Install optional deps per binary target ([#8](https://github.com/roalcantara/kb/issues/8)) ([6cff445](https://github.com/roalcantara/kb/commit/6cff4451c4ba7023577bfc5545250f4ff907af3f))
+
 ## [0.6.0](https://github.com/roalcantara/kb/compare/v0.5.3...v0.6.0) (2026-04-01)
 
 ### Features
