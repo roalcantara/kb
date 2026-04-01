@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.6.0](https://github.com/roalcantara/kb/compare/v0.5.3...v0.6.0) (2026-04-01)
+
+### Features
+
+* **kb:** Consolidate app into apps/kb ([#7](https://github.com/roalcantara/kb/issues/7)) ([0469d81](https://github.com/roalcantara/kb/commit/0469d816013e6699a29bb0e5fd74f231bd13e891))
+
 ## [0.5.3](https://github.com/roalcantara/kb/compare/v0.5.2...v0.5.3) (2026-03-30)
 
 ### Bug Fixes
