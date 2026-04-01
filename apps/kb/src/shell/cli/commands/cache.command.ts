@@ -1,5 +1,6 @@
-import { debugLog, lsQueryCache } from '@kb/core'
 import type { KliHandle, OptsDef } from '@kb/kli/headless'
+import { debugLog } from '../../logging/debug_log.ts'
+import { lsQueryCache } from '../../state/ls_query_cache.ts'
 
 export const defineCacheCommand = <DepsT extends Record<string, unknown>, GlobalsT extends OptsDef>(
   shell: KliHandle<DepsT, GlobalsT>

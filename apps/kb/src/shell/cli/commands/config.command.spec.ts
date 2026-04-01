@@ -2,9 +2,10 @@ import { describe, expect, it } from 'bun:test'
 import { testCommand } from '@kb/kli/testing'
 import { factory_for, mock_for } from '@tests'
 import { shell } from '../main.ts'
-import { runCli } from '../../../index.ts'
+import { createRunCli } from '../../../index.ts'
 import { defineConfigCommand } from './config.command.ts'
 
+const runCli = await createRunCli({ isEntry: false })
 const configCommand = defineConfigCommand(shell)
 
 describe('configCommand', () => {

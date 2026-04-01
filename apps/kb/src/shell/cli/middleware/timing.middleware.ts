@@ -7,9 +7,10 @@ export const timingMiddleware: Middleware<CliMiddlewareContext<unknown, OptsDef>
   const startedAt = process.hrtime.bigint()
   await next()
 
-  if (!ctx.globals.verbose) return
-
   const elapsedNs = process.hrtime.bigint() - startedAt
   const elapsedMs = Number(elapsedNs) / NANOSECONDS_PER_MILLISECOND
-  console.error(`Execution time: ${elapsedMs.toFixed(2)}ms`)
+  const commandName = (ctx.raw as { commandName?: string } | undefined)?.commandName
+  if (commandName && ctx.globals.debug === true) {
+    console.error(`ts=${new Date().toISOString()} phase=command label=${commandName} dur_ms=${Math.round(elapsedMs)}`)
+  }
 }

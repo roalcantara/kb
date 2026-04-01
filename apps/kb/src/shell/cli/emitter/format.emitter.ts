@@ -14,6 +14,7 @@ export const defineFormatEmitter = <DepsT extends Record<string, unknown>, Globa
     globals: {
       format: {
         type: 'string',
+        short: 'f',
         either: { p: 'pretty', j: 'json', r: 'raw' },
         default: 'pretty',
         desc: 'Output format'

@@ -1,5 +1,5 @@
-import { debugLog } from '@kb/core'
 import type { KliHandle, OptsDef } from '@kb/kli/headless'
+import { debugLog } from '../../logging/debug_log.ts'
 
 export const defineConfigCommand = <DepsT extends Record<string, unknown>, GlobalsT extends OptsDef>(
   shell: KliHandle<DepsT, GlobalsT>

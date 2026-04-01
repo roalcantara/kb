@@ -14,7 +14,7 @@ export const shell = createKli({
       default: '~/.config/kodexb/config.yaml'
     },
     source: {
-      type: 'string' as const,
+      type: 'file' as const,
       short: 's',
       desc: 'Sources directory',
       default: '~/.config/kodexb/sources'

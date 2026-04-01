@@ -1,5 +1,6 @@
-import { debugLog, lsQueryCache } from '@kb/core'
 import type { KliHandle, OptsDef } from '@kb/kli/headless'
+import { debugLog } from '../../logging/debug_log.ts'
+import { lsQueryCache } from '../../state/ls_query_cache.ts'
 
 const DEFAULT_LIMIT = 50
 const DEFAULT_OFFSET = 0
@@ -50,12 +51,11 @@ export const defineListCommand = <DepsT extends Record<string, unknown>, Globals
       },
       types: { type: 'string', desc: 'Comma-separated entry types (e.g. command,cheat)' },
       limit: { type: 'number', default: DEFAULT_LIMIT, desc: 'Max rows' },
-      offset: { type: 'number', default: DEFAULT_OFFSET, desc: 'Skip rows' },
-      debug: { type: 'boolean' as const, desc: 'Log cache_hit | cache_miss | sqlite per query' }
+      offset: { type: 'number', default: DEFAULT_OFFSET, desc: 'Skip rows' }
     },
     run: ({ args, globals, opts }) => {
       const queryJoined = (Array.isArray(args.query) ? args.query : []).join(' ')
-      const dbg = globals.debug === true || opts.debug === true
+      const dbg = globals.debug === true
       const parts = queryParts(args, opts.tags, opts.types, opts.limit, opts.offset)
       const key = cacheKey(parts)
       const t0 = performance.now()

@@ -4,4 +4,9 @@ import { shell } from './shell/cli/main.ts'
 
 export * from './shell/cli/emitter'
 
-export const runCli = await runCliMainWithOptionalTui({ shell, commands, isEntry: import.meta.main })
+export const createRunCli = (options?: { isEntry?: boolean }) =>
+  runCliMainWithOptionalTui({ shell, commands, isEntry: options?.isEntry ?? import.meta.main })
+
+if (import.meta.main) {
+  await createRunCli({ isEntry: true })
+}
