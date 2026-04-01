@@ -1,7 +1,7 @@
 import type { GreeterInput } from '@core'
 import { Factory } from 'fishery'
 import { type FactoryBuildOpts, isFactoryOpts, type WrappedFactoryOpts } from './factories.types'
-import { type InfoCommandTestCtx, makeCtx } from './factories/ctx.factory.ts'
+import { type ConfigCommandTestCtx, makeCtx } from './factories/ctx.factory.ts'
 import { params_for } from './param.parser'
 
 // FACTORIES
@@ -11,10 +11,10 @@ const greeterFactory = Factory.define<GreeterInput>(() => ({
   times: 1
 }))
 
-const infoCommandCtxFactory = Factory.define<InfoCommandTestCtx>(() => makeCtx())
+const configCommandCtxFactory = Factory.define<ConfigCommandTestCtx>(() => makeCtx())
 const factories = {
   greeter: greeterFactory,
-  ctx: infoCommandCtxFactory
+  ctx: configCommandCtxFactory
 } as const
 
 // FACTORIES' DERIVED TYPES

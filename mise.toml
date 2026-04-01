@@ -115,7 +115,7 @@ devcontainer-cli = "latest"
           echo "=== build:prod --target=$t ==="
           slug="${t#bun-}"
           out="/tmp/kb.$slug"
-          bun build src/shell/cli/main.cli.headless.ts --define KB_HEADLESS_BUILD=true --minify --sourcemap --no-compile-autoload-dotenv --no-compile-autoload-bunfig --compile --outfile "$out" --target="$t"
+          bun build apps/kb/src/index.ts --minify --sourcemap --no-compile-autoload-dotenv --no-compile-autoload-bunfig --compile --outfile "$out" --target="$t"
           cp "$out" "/repo/dist/kb-$slug"
           rm -f "$out"
         done'

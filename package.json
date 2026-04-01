@@ -9,9 +9,9 @@
     "clean": "rm -rf dist tmp",
     "cleanup": "bun run clean && rm -rf node_modules bun.lock*",
     "reinstall": "bun run cleanup && bun install",
-    "build": "bun build src/shell/index.ts --compile --outfile dist/kb",
-    "build:prod": "bun build src/shell/cli/main.cli.headless.ts --define KB_HEADLESS_BUILD=true --minify --sourcemap --no-compile-autoload-dotenv --no-compile-autoload-bunfig --compile --outfile dist/kb",
-    "dev": "bun src/shell/index.ts",
+    "build": "bun build apps/kb/src/index.ts --compile --outfile dist/kb",
+    "build:prod": "bun build apps/kb/src/index.ts --minify --sourcemap --no-compile-autoload-dotenv --no-compile-autoload-bunfig --compile --outfile dist/kb",
+    "dev": "bun apps/kb/src/index.ts",
     "dev:watch": "bun run dev -- --watch --hot",
     "generate:typia": "typia generate --input tools/typia/templates --output tools/typia/generated --project tsconfig.json",
     "test": "bun test --pass-with-no-tests",
@@ -87,8 +87,6 @@
     "typescript": "catalog:runtime"
   },
   "dependencies": {
-    "@kb/kli": "workspace:*",
-    "@opentui/core": "catalog:tui",
     "@opentui/solid": "catalog:tui",
     "solid-js": "catalog:tui",
     "typia": "catalog:validation"

@@ -1,1 +1,1 @@
-export { runCli } from './src/shell/index.ts'
+export * from './apps/kb/src/index.ts'

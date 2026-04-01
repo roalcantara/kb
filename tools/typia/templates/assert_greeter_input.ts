@@ -1,5 +1,5 @@
 import typia from 'typia'
 
-import type { GreeterInput } from '../../../src/core/greeter/greeter.input'
+import type { GreeterInput } from '../../../apps/kb/src/core/greeter/greeter.input'
 
 export const assertGreeterInput = typia.createAssert<GreeterInput>()

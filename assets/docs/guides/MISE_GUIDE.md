@@ -26,7 +26,7 @@ Always prefer `mise run <task>` over direct shell commands for complex tasks.
 
 ```bash
 # Avoid
-bun build src/shell/index.ts --compile --outfile dist/kb
+bun build apps/kb/src/index.ts --compile --outfile dist/kb
 bun test
 biome check --write .
 bun tsc --noEmit

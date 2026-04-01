@@ -12,14 +12,14 @@ const argvForShell = (entrypoint: string, tokens: readonly string[]): string[] =
 
 type RunAndCaptureStdoutOptions = {
   runCli: (argv: string[]) => Promise<number>
-  /** Defaults to `src/shell/index.ts`. */
+  /** Defaults to `apps/kb/src/index.ts`. */
   entrypoint?: string
   tokens: readonly string[]
 }
 
 const runAndCaptureStdout = async ({
   runCli,
-  entrypoint = 'src/shell/index.ts',
+  entrypoint = 'apps/kb/src/index.ts',
   tokens
 }: RunAndCaptureStdoutOptions): Promise<{ code: number; text: string }> => {
   const log = spyOn(console, 'log').mockImplementation(() => undefined)
