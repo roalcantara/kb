@@ -4,8 +4,15 @@
     "baseUrl": ".",
     "paths": {
       "@kb/core": ["./src/core/index.ts"],
-      "@kb/shell": ["./src/shell/index.ts"],
-      "@kb/tests": ["./src/__tests__/index.ts"]
+      "@kb/kli": ["../../packages/kli/src/main.app.ts"],
+      "@kb/kli/headless": ["../../packages/kli/src/headless.app.ts"],
+      "@kb/kli/testing": ["../../packages/kli/src/__tests__/testing.ts"],
+      "@kb/shell": ["./src/index.ts"],
+      "@tools": ["../../tools/index.ts"],
+      "@kli/core/cli": ["../../packages/kli/src/core/cli/index.ts"],
+      "@kli/shell/cli": ["../../packages/kli/src/shell/cli/index.ts"],
+      "@kli/shell/tui": ["../../packages/kli/src/shell/tui/index.ts"],
+      "@tests": ["../../__tests__/index.ts"]
     }
   },
   "include": ["src/**/*.ts", "src/**/*.tsx"],
