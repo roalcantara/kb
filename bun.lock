@@ -25,6 +25,20 @@
         "typescript": "catalog:runtime",
       },
     },
+    "apps/kb": {
+      "name": "@kb/cli",
+      "version": "0.1.0",
+      "dependencies": {
+        "@kb/kli": "workspace:*",
+        "neverthrow": "catalog:validation",
+        "radash": "catalog:utilities",
+      },
+      "devDependencies": {
+        "@types/bun": "catalog:runtime",
+        "bun-types": "catalog:runtime",
+        "typescript": "catalog:runtime",
+      },
+    },
     "packages/kli": {
       "name": "@kb/kli",
       "version": "0.1.0",
@@ -274,6 +288,8 @@
     "@jscpd/html-reporter": ["@jscpd/html-reporter@4.0.4", "", { "dependencies": { "colors": "1.4.0", "fs-extra": "^11.2.0", "pug": "^3.0.3" } }, "sha512-YiepyeYkeH74Kx59PJRdUdonznct0wHPFkf6FLQN+mCBoy6leAWCcOfHtcexnp+UsBFDlItG5nRdKrDSxSH+Kg=="],
 
     "@jscpd/tokenizer": ["@jscpd/tokenizer@4.0.4", "", { "dependencies": { "@jscpd/core": "4.0.4", "reprism": "^0.0.11", "spark-md5": "^3.0.2" } }, "sha512-xxYYY/qaLah/FlwogEbGIxx9CjDO+G9E6qawcy26WwrflzJb6wsnhjwdneN6Wb0RNCDsqvzY+bzG453jsin4UQ=="],
+
+    "@kb/cli": ["@kb/cli@workspace:apps/kb"],
 
     "@kb/kli": ["@kb/kli@workspace:packages/kli"],
 
