@@ -152,7 +152,7 @@ jobs:
 
       # https://bun.com/docs/bundler/bytecode#production-deployment
       - name: Build binary (${{ matrix.target }})
-        run: bun run build:prod --target=${{ matrix.bun_target }}
+        run: bun run build:compile --target=${{ matrix.bun_target }}
 
       - name: Package binary
         id: package
