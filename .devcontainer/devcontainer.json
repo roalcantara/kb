@@ -1,0 +1,8 @@
+// For format details, see https://aka.ms/devcontainer.json.
+// To open in Cursor: Command Palette → "Dev Containers: Reopen in Container"
+{
+  "$schema": "https://raw.githubusercontent.com/devcontainers/spec/refs/heads/main/schemas/devContainer.schema.json",
+  "name": "kb",
+  "image": "mcr.microsoft.com/devcontainers/base:bookworm",
+  "features": {}
+}

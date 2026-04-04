@@ -37,6 +37,7 @@ bun run build:prod        # Build the app for production
     - [Knip][14] - **Dependency analysis:** Detect unused imports, dead code, and dependencies
     - [jscpd][15] - **Copy/paste detector:** Detect duplicate code
     - [dependency-cruiser][16] - **Dependency analysis:** Validate and visualise dependencies
+    - [DevContainers][23] - **Container development platform:** Build, ship, and run containers
   - [Pre-commit][12] - **Pre-commit hooks:** Checks before committing code
   - [Hadolint][18] - **Dockerfile linter:** Enforce Dockerfile best practices
   - [Container Structure Test][19] - **Container validation:** Validate Docker image structure and behavior
@@ -59,8 +60,29 @@ This workspace uses Bun named [catalogs][8] (`catalogs`, plural) instead of a si
 docker pull roalcantara/kb:latest           # Pull the Docker image tagged as latest from Docker Hub
 docker run --rm roalcantara/kb --help       # Run the Docker image tagged as latest as a container
 docker build -t roalcantara/kb:latest .     # Build a Docker image tagged as latest for the current platform
-docker push roalcantara/kb:latest           # Push the Docker image tagged as latest to [Docker Hub][19]
-docker push roalcantara/kb:v1.0.0           # Push the Docker image tagged as v1.0.0 to [Docker Hub][19]
+docker push roalcantara/kb:latest           # Push the Docker image tagged as latest to Docker Hub
+docker push roalcantara/kb:v1.0.0           # Push the Docker image tagged as v1.0.0 to Docker Hub
+```
+
+### DEVCONTAINERS
+
+```bash
+devcontainer up                                   # ==> Create and run dev container
+devcontainer set-up                               # ==> Set up an existing container as a dev container
+devcontainer run-user-commands                    # ==> Run user commands
+devcontainer read-configuration                   # ==> Read configuration
+devcontainer outdated                             # ==> Show current and available versions
+devcontainer upgrade                              # ==> Upgrade lockfile
+devcontainer features                             # ==> Features commands
+devcontainer templates                            # ==> Templates commands
+devcontainer exec <cmd> [args..]                  # ==> Execute a command on a running dev container
+devcontainer build [path]                         # ==> Build a dev container image
+
+# ==> Build a dev container image with a specific image name and platform and push it to the registry
+devcontainer build --image-name roalcantara/kb:latest --platform "linux/arm64" --workspace-folder .
+
+# ==> Build a dev container image with a specific image name and platforms and push it to the registry
+devcontainer build --image-name roalcantara/kb:latest --platform "linux/arm64,linux/amd64" --push true --workspace-folder .
 ```
 
 ### [CST][18] - Container Structure Tests
@@ -140,3 +162,4 @@ The project is available as open source under the terms of the [MIT][1] [License
 [20]: https://bun.com/docs/test/writing-tests#parametrized-tests
 [21]: https://github.com/oven-sh/bun/issues/14020
 [22]: https://docs.docker.com/reference/dockerfile/#copy---parents
+[23]: http://containers.dev 'Containers.dev - Container development platform'
