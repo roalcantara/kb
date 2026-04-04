@@ -1,7 +1,7 @@
 {
   "private": true,
   "name": "@kb/root",
-  "version": "0.6.1",
+  "version": "0.7.0",
   "description": "KodexB - Workspace",
   "module": "index.ts",
   "type": "module",
@@ -37,7 +37,9 @@
     "release:ci": "bunx release-it --ci"
   },
   "workspaces": {
-    "packages": ["apps/*"],
+    "packages": [
+      "apps/*"
+    ],
     "catalogs": {
       "runtime": {
         "@types/node": "^25.4.0"
