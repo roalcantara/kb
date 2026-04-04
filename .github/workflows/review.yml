@@ -1,0 +1,378 @@
+# Triggered on every non-draft PR targeting main.
+# 1. lint    — hadolint + bun lint
+# 2. test    — bun test
+# 3. cst     — build amd64 image (load only), run Container Structure Tests
+# 4. preview — push to DockerHub, set "review" env, post PR comment (only if CST passes)
+name: Review
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+    branches: [main]
+
+concurrency:
+  cancel-in-progress: true
+  group: 'kb-${{ github.ref }}'
+
+defaults:
+  run:
+    shell: bash
+
+env:
+  CI: true
+  FORCE_COLOR: true
+  REGISTRY_IMAGE: ${{ github.repository }}
+  # https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-24.04
+    if: github.event.pull_request.draft == false
+    permissions:
+      contents: read
+      checks: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Bun project
+        uses: ./.github/actions/setup-bun-project
+        with:
+          setup_mode: mise
+
+      - name: Run lint (Hadolint → Biome → Knip → JSCPD → Dependency Cruiser)
+        run: |
+          set +e
+          echo "::group::Hadolint"
+          bun run lint:hadolint:ci
+          e0=$?
+          echo "::endgroup::"
+          echo "::group::Biome (GitHub annotations)"
+          mkdir -p tmp/reports/linters
+          bun run lint:biome:ci 2>&1 | tee tmp/reports/linters/biome.txt
+          e1=${PIPESTATUS[0]}
+          echo "::endgroup::"
+          echo "::group::Knip"
+          bun run lint:knip:ci
+          e2=$?
+          echo "::endgroup::"
+          echo "::group::JSCPD"
+          bun run lint:jscpd:ci
+          e3=$?
+          echo "::endgroup::"
+          echo "::group::Dependency Cruiser"
+          bun run lint:depcruise:ci
+          e4=$?
+          echo "::endgroup::"
+          echo "LINT_E0=$e0" >> $GITHUB_ENV
+          echo "LINT_E1=$e1" >> $GITHUB_ENV
+          echo "LINT_E2=$e2" >> $GITHUB_ENV
+          echo "LINT_E3=$e3" >> $GITHUB_ENV
+          echo "LINT_E4=$e4" >> $GITHUB_ENV
+          exit $((e0 | e1 | e2 | e3 | e4))
+
+      - name: Linter summary
+        if: always()
+        run: |
+          set +e
+          status() { [ "${1:-1}" = "0" ] && echo "✅ Pass" || echo "❌ Fail"; }
+          strip_ansi() { sed 's/\x1b\[[0-9;]*m//g' | tr -d '\r'; }
+
+          hadolint_line=""
+          if [ -f tmp/reports/linters/hadolint.txt ]; then
+            hadolint_content=$(strip_ansi < tmp/reports/linters/hadolint.txt | tr -d '\r' | sed '/^[[:space:]]*$/d')
+            if [ -z "$hadolint_content" ]; then
+              hadolint_line="Dockerfile passed."
+            else
+              count=$(echo "$hadolint_content" | wc -l | tr -d ' ')
+              hadolint_line="${count} finding(s) in Dockerfile."
+            fi
+          fi
+          [ -n "$hadolint_line" ] && d0="$hadolint_line" || d0="—"
+
+          biome_line=""
+          if [ -f tmp/reports/linters/biome.txt ]; then
+            # Use Biome's summary line (e.g. "Checked N files"); skip npm/bun command echo.
+            biome_line=$(grep -E "Checked .* files|No (lint )?issues|Linted .* files" tmp/reports/linters/biome.txt | tail -1 | strip_ansi | tr -d '\r' | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+            [ -z "$biome_line" ] && biome_line=$(grep -v -E "bun run|bunx |mkdir |bash -o|pipefail" tmp/reports/linters/biome.txt | tail -1 | strip_ansi | tr -d '\r' | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+          fi
+          [ -n "$biome_line" ] && d1="$biome_line" || d1="—"
+
+          knip_line=""
+          if [ -f tmp/reports/linters/knip.txt ]; then
+            knip_line=$(grep -E "(Excellent|found no issues|Configuration hints)" tmp/reports/linters/knip.txt | tail -1 | strip_ansi)
+            [ -z "$knip_line" ] && knip_line=$(grep -v '^[[:space:]]*$' tmp/reports/linters/knip.txt | tail -1 | strip_ansi)
+          fi
+
+          jscpd_line=""
+          if [ -f tmp/reports/linters/jscpd/jscpd-report.json ]; then
+            clones=$(jq -r '.statistics.total.clones // 0' tmp/reports/linters/jscpd/jscpd-report.json)
+            files=$(jq -r '.statistics.total.sources // 0' tmp/reports/linters/jscpd/jscpd-report.json)
+            lines=$(jq -r '.statistics.total.lines // 0' tmp/reports/linters/jscpd/jscpd-report.json)
+            jscpd_line="Found ${clones} clones. ${files} files, ${lines} lines analyzed."
+          fi
+
+          depcruise_line=""
+          if [ -f tmp/reports/linters/depcruise.json ]; then
+            mods=$(jq -r '.summary.totalCruised // 0' tmp/reports/linters/depcruise.json)
+            deps=$(jq -r '.summary.totalDependenciesCruised // 0' tmp/reports/linters/depcruise.json)
+            violations=$(jq -r '.summary.violations | length // 0' tmp/reports/linters/depcruise.json)
+            if [ "$violations" = "0" ]; then
+              depcruise_line="${mods} modules, ${deps} dependencies cruised. No violations."
+            else
+              depcruise_line="${mods} modules, ${deps} dependencies. ${violations} violation(s)."
+            fi
+          fi
+
+          summary_file="tmp/reports/linters/summary.md"
+          [ -n "$knip_line" ] && d2="$knip_line" || d2="—"
+          [ -n "$jscpd_line" ] && d3="$jscpd_line" || d3="—"
+          [ -n "$depcruise_line" ] && d4="$depcruise_line" || d4="—"
+          {
+            echo "| Linter | Status | Details |"
+            echo "|--------|--------|---------|"
+            echo "| Hadolint | $(status "$LINT_E0") | $d0 |"
+            echo "| Biome | $(status "$LINT_E1") | $d1 |"
+            echo "| Knip | $(status "$LINT_E2") | $d2 |"
+            echo "| JSCPD | $(status "$LINT_E3") | $d3 |"
+            echo "| Dependency Cruiser | $(status "$LINT_E4") | $d4 |"
+          } | tee "$summary_file" >> $GITHUB_STEP_SUMMARY
+
+      - name: Upload lint results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: report-linters
+          path: tmp/reports/linters/
+          retention-days: 7
+
+  test:
+    name: Test
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      checks: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Bun project
+        uses: ./.github/actions/setup-bun-project
+
+      - name: Run tests
+        run: bun run test:ci
+
+      - name: Test summary
+        if: always()
+        uses: ./.github/actions/junit-summary
+        with:
+          xml_path: tmp/reports/tests/junit.xml
+          output_path: tmp/reports/tests/summary.md
+          title: '## Test summary'
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: report-tests
+          path: tmp/reports/tests/
+          retention-days: 7
+
+      - name: Publish test report
+        uses: mikepenz/action-junit-report@v5
+        if: always()
+        with:
+          report_paths: tmp/reports/tests/junit.xml
+          require_tests: false
+          fail_on_failure: true
+
+  cst:
+    name: Container Structure Test
+    # Ensure these jobs run only for PRs from branches in the main repo, not forks
+    if: ${{ github.event.pull_request.head.repo.full_name == github.repository }}
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      checks: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup outputs
+        id: setup
+        uses: ./.github/actions/setup-preview-image
+        with:
+          sha: ${{ github.sha }}
+          pr_number: ${{ github.event.pull_request.number }}
+          registry_image: ${{ env.REGISTRY_IMAGE }}
+          repository: ${{ github.repository }}
+
+      - name: Build image (load only, for CST)
+        uses: ./.github/actions/build-docker-image
+        with:
+          platforms: linux/amd64
+          tags: ${{ steps.setup.outputs.registry_image_name }}
+          load: 'true'
+          push: 'false'
+          docker_username: ${{ vars.DOCKERHUB_USERNAME }}
+          docker_password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Prepare CST output dir
+        run: mkdir -p tmp/reports/cst
+
+      - name: Run Container Structure Test
+        uses: docker://gcr.io/gcp-runtimes/container-structure-test:latest
+        with:
+          args: >
+            test -v debug --force
+            --output junit
+            --test-report tmp/reports/cst/cst_junit_report.xml
+            --config tools/container-structure-test.yml
+            --image ${{ steps.setup.outputs.registry_image_name }}
+
+      - name: CST summary (for PR comment)
+        if: always()
+        uses: ./.github/actions/junit-summary
+        with:
+          xml_path: tmp/reports/cst/cst_junit_report.xml
+          output_path: tmp/reports/cst/summary.md
+          title: '## Container Structure Test summary'
+
+      - name: Upload CST results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: report-cst
+          path: tmp/reports/cst/
+          retention-days: 7
+
+      - name: Publish CST report
+        uses: mikepenz/action-junit-report@v5
+        if: always()
+        with:
+          report_paths: tmp/reports/cst/cst_junit_report.xml
+          require_tests: false
+          fail_on_failure: true
+          check_name: Container Structure Tests
+
+  preview:
+    name: Preview
+    if: ${{ github.event.pull_request.head.repo.full_name == github.repository }}
+    runs-on: ubuntu-24.04
+    needs: [lint, test, cst]
+    permissions:
+      contents: read
+      issues: write
+      pull-requests: write
+      deployments: write
+    outputs:
+      short_sha: ${{ steps.setup.outputs.short_sha }}
+      image_url: ${{ steps.setup.outputs.image_url }}
+      registry_image_name: ${{ steps.setup.outputs.registry_image_name }}
+      image_name: ${{ steps.setup.outputs.image_name }}
+    environment:
+      name: review
+      url: ${{ steps.setup.outputs.image_url }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup outputs
+        id: setup
+        uses: ./.github/actions/setup-preview-image
+        with:
+          sha: ${{ github.sha }}
+          pr_number: ${{ github.event.pull_request.number }}
+          registry_image: ${{ env.REGISTRY_IMAGE }}
+          repository: ${{ github.repository }}
+
+      - name: Build and push preview image
+        uses: ./.github/actions/build-docker-image
+        with:
+          platforms: linux/amd64,linux/arm64
+          tags: ${{ steps.setup.outputs.registry_image_name }}
+          docker_username: roalcantara
+          docker_password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Download results
+        uses: actions/download-artifact@v4
+        with:
+          pattern: 'report-*'
+          path: tmp/reports
+          merge-multiple: false
+
+      - name: Comment on PR
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const path = require('path');
+            const workspace = process.env.GITHUB_WORKSPACE || process.cwd();
+            const repo   = context.repo;
+            const pr     = context.payload.pull_request.number;
+            const sha    = `${{ steps.setup.outputs.short_sha }}`;
+            const image  = `${{ steps.setup.outputs.registry_image_name }}`;
+            const url    = `${{ steps.setup.outputs.image_url }}`;
+            const cmdOneOff      = `docker run --rm ${image} greet World`;
+
+            const lintSummaryPath = path.join(workspace, 'tmp/reports/report-linters', 'summary.md');
+            const testSummaryPath = path.join(workspace, 'tmp/reports/report-tests', 'summary.md');
+            const cstSummaryPath = path.join(workspace, 'tmp/reports/report-cst', 'summary.md');
+            const linterSummary = fs.existsSync(lintSummaryPath)
+              ? fs.readFileSync(lintSummaryPath, 'utf8')
+              : '';
+            const testSummary = fs.existsSync(testSummaryPath)
+              ? fs.readFileSync(testSummaryPath, 'utf8')
+              : '';
+            const cstSummary = fs.existsSync(cstSummaryPath)
+              ? fs.readFileSync(cstSummaryPath, 'utf8')
+              : '';
+
+            const runUrl = `${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}/actions/runs/${process.env.GITHUB_RUN_ID}`;
+            const runNum = process.env.GITHUB_RUN_NUMBER || '';
+
+            const body = [
+              `### Preview ready — \`#${pr}\`-\`${sha}\``,
+              '',
+              `**Workflow run:** [\`#${runNum}\`](${runUrl})`,
+              '',
+              'The Docker image for this PR has been pushed to DockerHub.',
+              '',
+              '**Run it now:**',
+              '```sh',
+              '# One-off: run kb and exit',
+              cmdOneOff,
+              '```',
+              '',
+              `**DockerHub:** [${image}](${url})`,
+              '',
+              ...(linterSummary ? [linterSummary, ''] : []),
+              ...(testSummary ? [testSummary, ''] : []),
+              ...(cstSummary ? [cstSummary] : []),
+            ].join('\n');
+
+            const { data: comments } = await github.rest.issues.listComments({
+              ...repo,
+              issue_number: pr,
+            });
+
+            const previous = comments.find(c =>
+              c.user.login === 'github-actions[bot]' &&
+              c.body.startsWith('### Preview ready')
+            );
+
+            if (previous) {
+              await github.rest.issues.updateComment({
+                ...repo,
+                comment_id: previous.id,
+                body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                ...repo,
+                issue_number: pr,
+                body,
+              });
+            }

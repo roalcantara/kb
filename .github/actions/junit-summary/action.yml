@@ -1,0 +1,38 @@
+name: JUnit summary
+description: Generate a markdown summary from a JUnit XML report
+
+inputs:
+  xml_path:
+    description: Path to the JUnit XML file
+    required: true
+  output_path:
+    description: Path for the output summary.md file
+    required: true
+  title:
+    description: Markdown heading for the summary (e.g. "## Test summary")
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - shell: bash
+      run: |
+        mkdir -p "$(dirname '${{ inputs.output_path }}')"
+        if [ -f '${{ inputs.xml_path }}' ]; then
+          get_attr() { grep -oE "$1=\"[^\"]*\"" "$2" 2>/dev/null | head -1 | sed "s/.*=\"//;s/\"$//"; }
+          xml='${{ inputs.xml_path }}'
+          tests=$(get_attr tests "$xml") || true
+          failures=$(get_attr failures "$xml") || true
+          skipped=$(get_attr skipped "$xml") || true
+          time_attr=$(get_attr time "$xml") || true
+          tests=${tests:-0}; failures=${failures:-0}; skipped=${skipped:-0}; time_attr=${time_attr:-0}
+          passed=$((${tests} - ${failures} - ${skipped}))
+          [ "${failures:-0}" != "0" ] && status="❌ Fail" || status="✅ Pass"
+          {
+            echo '${{ inputs.title }}'
+            echo ""
+            echo "| Status | Tests | Passed | Skipped | Failed | Time |"
+            echo "|--------|-------|--------|---------|--------|------|"
+            echo "| $status | $tests | $passed | $skipped | $failures | ${time_attr}s |"
+          } > '${{ inputs.output_path }}'
+        fi
