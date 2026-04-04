@@ -1,7 +1,7 @@
 {
   "private": true,
   "name": "@kb/root",
-  "version": "0.1.0",
+  "version": "0.6.1",
   "description": "KodexB - Workspace",
   "module": "index.ts",
   "type": "module",
@@ -16,17 +16,25 @@
     "dev:watch": "bun run dev -- --watch --hot",
     "test": "bun test --pass-with-no-tests",
     "test:watch": "bun run test -- --watch",
+    "test:ci": "mkdir -p tmp/reports/tests && bash -o pipefail -c 'bun run test -- --reporter=junit --reporter-outfile=tmp/reports/tests/junit.xml'",
     "typecheck": "tsc --noEmit && tsc --noEmit -p tsconfig.spec.json",
     "lint:biome": "bunx biome check",
     "lint:biome:fix": "bun run lint:biome -- --write",
     "lint:biome:format": "bunx biome format",
-    "lint:knip": "bunx knip",
-    "lint:knip:fix": "bunx knip --fix",
+    "lint:biome:ci": "mkdir -p tmp/reports/linters && bash -o pipefail -c 'bun run lint:biome -- --reporter=github --colors=off'",
+    "lint:knip": "bunx knip-bun",
+    "lint:knip:fix": "bunx knip-bun --fix",
+    "lint:knip:ci": "mkdir -p tmp/reports/linters && bash -o pipefail -c 'bun run lint:knip 2>&1 | tee tmp/reports/linters/knip.txt'",
     "lint:jscpd": "bunx jscpd .",
+    "lint:jscpd:ci": "mkdir -p tmp/reports/linters && bash -o pipefail -c 'bun run lint:jscpd -- --reporters json --output tmp/reports/linters/jscpd'",
     "lint:depcruise": "depcruise . --config .dependency-cruiser.cjs",
     "lint:depcruise:graph": "depcruise . --config .dependency-cruiser.cjs --include-only '^.' --output-type dot | dot -T svg > report/dependency-graph.svg",
-    "lint": "e=0; bun run typecheck || e=1; bun run lint:biome || e=1; bun run lint:knip || e=1; bun run lint:jscpd || e=1; bun run lint:depcruise || e=1; exit $e",
-    "lint:fix": "e=0; bun run lint:biome:fix || e=1; bun run lint:knip:fix || e=1; exit $e"
+    "lint:depcruise:ci": "mkdir -p tmp/reports/linters && bash -o pipefail -c 'bun run lint:depcruise -- --output-type json | tee tmp/reports/linters/depcruise.json'",
+    "lint:hadolint": "mise exec -- hadolint --config .hadolint.yaml Dockerfile",
+    "lint:hadolint:ci": "mkdir -p tmp/reports/linters && bash -o pipefail -c 'mise exec -- hadolint --config .hadolint.yaml Dockerfile 2>&1 | tee tmp/reports/linters/hadolint.txt'",
+    "lint": "e=0; bun run typecheck || e=1; bun run lint:biome || e=1; bun run lint:knip || e=1; bun run lint:jscpd || e=1; bun run lint:depcruise || e=1; bun run lint:hadolint || e=1; exit $e",
+    "lint:fix": "e=0; bun run lint:biome:fix || e=1; bun run lint:knip:fix || e=1; exit $e",
+    "release:ci": "bunx release-it --ci"
   },
   "workspaces": {
     "packages": ["apps/*"],
@@ -42,11 +50,13 @@
   },
   "devDependencies": {
     "@biomejs/biome": "^2.4.10",
+    "@release-it/conventional-changelog": "^10.0.6",
     "@types/bun": "^1.3.11",
     "bun-types": "latest",
     "dependency-cruiser": "^17.3.9",
     "jscpd": "^4.0.8",
     "knip": "^6.3.0",
+    "release-it": "^19.2.4",
     "typescript": "^5"
   }
 }

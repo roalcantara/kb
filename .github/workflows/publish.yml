@@ -1,0 +1,405 @@
+# Triggered when the Release workflow completes (i.e. after release-it has
+# pushed the version-bump commit, the tag, and created the draft GitHub Release).
+#
+# Using workflow_run instead of push: tags ensures this workflow runs only when
+# the Release workflow itself is responsible for creating the release or tag —
+# not on arbitrary manual tag pushes — and gives us a reliable, explicit
+# dependency chain between the two workflows.
+#
+# The Release workflow verifies that the draft release is visible in the GitHub
+# API before it completes, so this workflow can safely pick it up with a simple
+# `gh release list --jq 'select(.isDraft)'` — no date-based filter needed.
+#
+# Job order:
+#
+#   resolve_tag      — guards against failed/skipped Release runs and resolves
+#                      the release tag from the latest draft release.
+#
+#   binaries         — cross-compiles a self-contained binary for each target
+#                      platform, packages it as *.tar.gz, generates a signed
+#                      build-provenance attestation for each tarball, then
+#                      uploads it as a workflow artifact.
+#
+#   checksums        — downloads binary workflow artifacts, generates
+#                      sha256 checksums.txt, attests it, then uploads it as a
+#                      workflow artifact.
+#
+#   attach_release   — single-writer job: downloads all workflow artifacts,
+#                      uploads *.tar.gz + checksums.txt to the GitHub Release,
+#                      and cryptographically verifies each asset's attestation.
+#
+#   docker           — builds a multi-platform Docker image (amd64 + arm64),
+#                      pushes to DockerHub, and attests the container image.
+#
+#   publish_release  — waits for both attach_release and docker to succeed,
+#                      verifies all attestations (binaries + container image),
+#                      writes installation + Docker notes to the job summary,
+#                      and publishes the draft release.
+name: Publish
+
+on:
+  # Triggered automatically when the Release workflow finishes, ensuring Publish
+  # only runs after release-it has created the tag and draft GitHub Release.
+  workflow_run:
+    workflows: [Release]
+    types: [completed]
+
+  # Allows manual triggering of the workflow with a tag input. Which allows for:
+  #  * Re-running a failed publish job
+  #  * Testing the workflow itself
+  #  * Recovery from edge cases (e.g. manual triggering with a wrong tag)
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag to publish (e.g. v1.2.3)'
+        required: true
+        type: string
+
+concurrency:
+  cancel-in-progress: true
+  group: kb-${{ github.ref_name || inputs.tag }}
+
+defaults:
+  run:
+    shell: bash
+
+env:
+  CI: true
+  FORCE_COLOR: true
+
+jobs:
+  # ── Job 0: resolve_tag ───────────────────────────────────────────────────────
+  # Guards against failed/skipped Release runs and resolves the release tag from
+  # the latest draft release. The Release workflow verifies the draft exists
+  # before completing, so a simple isDraft filter is sufficient
+  resolve_tag:
+    name: Resolve release tag
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    outputs:
+      tag: ${{ steps.resolve.outputs.tag }}
+    steps:
+      - name: Skip if Release workflow did not succeed
+        if: github.event_name == 'workflow_run' && github.event.workflow_run.conclusion != 'success'
+        run: |
+          echo "Upstream Release workflow concluded with '${{ github.event.workflow_run.conclusion }}' — skipping publish."
+          exit 1
+
+      - name: Resolve release tag
+        id: resolve
+        run: |
+          if [ -n "${{ inputs.tag }}" ]; then
+            TAG="${{ inputs.tag }}"
+          else
+            # The Release workflow verifies the draft release is visible in the
+            # GitHub API before it completes. Fetch only the most recent release
+            # (--limit 1, includes drafts) and check isDraft. Note: `gh release
+            # view` (no tag) calls /releases/latest which excludes drafts.
+            TAG=$(gh release list --repo "$GITHUB_REPOSITORY" --limit 1 \
+              --json tagName,isDraft \
+              --jq 'if .[0].isDraft then .[0].tagName else "" end')
+          fi
+          if [ -z "$TAG" ]; then
+            echo "ERROR: Could not resolve a release tag." >&2
+            exit 1
+          fi
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+
+  # ── Job 1: binaries ───────────────────────────────────────────────────────────
+  # Bun's --target flag cross-compiles from a single ubuntu-latest runner —
+  # no native ARM runners or QEMU needed.
+  # Each platform leg builds, packages *.tar.gz, uploads it as a workflow
+  # artifact, and generates a signed build-provenance attestation.
+  binaries:
+    name: Binary (${{ matrix.target }})
+    runs-on: ubuntu-24.04
+    needs: resolve_tag
+    env:
+      RELEASE_TAG: ${{ needs.resolve_tag.outputs.tag }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # Explicitly only support CPUs from 2013 and later; modern and faster
+          - target: linux-x64
+            bun_target: bun-linux-x64-modern
+            os: linux
+            cpu: x64
+          - target: linux-arm64
+            bun_target: bun-linux-arm64
+            os: linux
+            cpu: arm64
+          - target: darwin-arm64
+            bun_target: bun-darwin-arm64
+            os: darwin
+            cpu: arm64
+    permissions:
+      id-token: write
+      contents: read
+      attestations: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Bun project
+        uses: ./.github/actions/setup-bun-project
+
+      - name: Install optional deps for ${{ matrix.target }}
+        run: bun install --frozen-lockfile --os=${{ matrix.os }} --cpu=${{ matrix.cpu }}
+
+      # https://bun.com/docs/bundler/bytecode#production-deployment
+      - name: Build binary (${{ matrix.target }})
+        run: bun run build:prod --target=${{ matrix.bun_target }}
+
+      - name: Package binary
+        id: package
+        run: |
+          VERSION="${RELEASE_TAG/v/}"
+          ARCHIVE="kb-${VERSION}-${{ matrix.target }}.tar.gz"
+          cd dist && tar czf "../${ARCHIVE}" kb
+          echo "ARCHIVE=${ARCHIVE}" >> $GITHUB_ENV
+          echo "ARCHIVE=${ARCHIVE}" >> $GITHUB_OUTPUT
+
+      - name: Attest build provenance
+        uses: actions/attest-build-provenance@v2
+        with:
+          subject-path: ${{ steps.package.outputs.ARCHIVE }}
+
+      - name: Upload tarball as workflow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: binary-${{ matrix.target }}
+          path: ${{ steps.package.outputs.ARCHIVE }}
+          if-no-files-found: error
+          retention-days: 1
+
+  # ── Checksums ─────────────────────────────────────────────────────────────────
+  # Runs after all binary legs complete, downloads the binary workflow artifacts,
+  # generates a single checksums.txt (sha256), uploads it as a workflow artifact,
+  # and attests it.
+  checksums:
+    name: Checksums
+    runs-on: ubuntu-24.04
+    needs: binaries
+    permissions:
+      contents: read
+      id-token: write
+      attestations: write
+    steps:
+      - name: Download binary workflow artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: binary-*
+          path: assets
+          merge-multiple: true
+
+      - name: Generate checksums.txt
+        run: |
+          cd assets
+          sha256sum *.tar.gz > checksums.txt
+          cat checksums.txt
+
+      - name: Attest checksums
+        uses: actions/attest-build-provenance@v2
+        with:
+          subject-path: assets/checksums.txt
+
+      - name: Upload checksums as workflow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: checksums
+          path: assets/checksums.txt
+          if-no-files-found: error
+          retention-days: 1
+
+  # ── attach_release ────────────────────────────────────────────────────────────
+  # Single-writer job: downloads all workflow artifacts, uploads them to the
+  # GitHub Release, and cryptographically verifies each asset's attestation.
+  # No draft-existence poll needed — resolve_tag already confirmed the draft
+  # is visible in the API (the Release workflow waits for it before completing).
+  # Release notes and publishing are handled by the publish_release job, which
+  # runs after both this job and docker complete.
+  attach_release:
+    name: Attach release assets
+    runs-on: ubuntu-24.04
+    needs: [checksums, resolve_tag]
+    env:
+      RELEASE_TAG: ${{ needs.resolve_tag.outputs.tag }}
+    permissions:
+      contents: write
+    steps:
+      - name: Download all workflow artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: release-assets
+          merge-multiple: true
+
+      - name: Upload assets to GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            release-assets/*.tar.gz
+            release-assets/checksums.txt
+          tag_name: ${{ env.RELEASE_TAG }}
+          token: ${{ secrets.GH_TOKEN }}
+
+      - name: Verify release asset attestations
+        run: |
+          gh release download "$RELEASE_TAG" \
+            --repo "$GITHUB_REPOSITORY" \
+            --pattern '*.tar.gz' \
+            --pattern 'checksums.txt' \
+            --dir /tmp/verify-assets
+          for f in /tmp/verify-assets/*.tar.gz /tmp/verify-assets/checksums.txt; do
+            [ -f "$f" ] || { echo "ERROR: expected asset not found: $f"; exit 1; }
+            echo "Verifying asset: $(basename "$f")"
+            gh release verify-asset "$RELEASE_TAG" "$f" --repo "$GITHUB_REPOSITORY"
+          done
+          echo "All asset attestations verified."
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+
+  # ── Job 2: docker ─────────────────────────────────────────────────────────────
+  # Builds a multi-platform Docker image (amd64 + arm64) based on alpine
+  # and pushes it to DockerHub. GHA cache is used for layer caching.
+  # After a successful push the image digest is attested with a signed
+  # build-provenance attestation that is pushed to the registry.
+  # Depends on resolve_tag to avoid racing the draft release creation.
+  docker:
+    name: Docker
+    runs-on: ubuntu-24.04
+    needs: resolve_tag
+    env:
+      RELEASE_TAG: ${{ needs.resolve_tag.outputs.tag }}
+    permissions:
+      contents: write
+      packages: write
+      id-token: write
+      attestations: write
+    outputs:
+      registry_image: ${{ steps.setup.outputs.registry_image }}
+      registry_name: ${{ steps.setup.outputs.registry_name }}
+      registry_url: ${{ steps.setup.outputs.registry_url }}
+      registry_digest: ${{ steps.push.outputs.digest }}
+    steps:
+      - name: Setup outputs
+        id: setup
+        run: |
+          # Tag from resolve_tag job (same as needs.resolve_tag.outputs.tag / env.RELEASE_TAG)
+          TAG="${{ needs.resolve_tag.outputs.tag }}"
+          VERSION="${TAG#v}"
+          REPO=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
+          echo "registry_image=${REPO}:${VERSION}" >> $GITHUB_OUTPUT
+          echo "registry_name=docker.io/${REPO}" >> $GITHUB_OUTPUT
+          echo "registry_url=https://hub.docker.com/r/${REPO}/tags?name=${VERSION}" >> $GITHUB_OUTPUT
+
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          # Tag from resolve_tag (matches env.RELEASE_TAG). needs.resolve_tag.outputs.tag keeps checkout wired to the resolver job explicitly.
+          ref: ${{ needs.resolve_tag.outputs.tag }}
+
+      - name: Build and push (amd64 + arm64)
+        id: push
+        uses: ./.github/actions/build-docker-image
+        with:
+          platforms: linux/amd64,linux/arm64
+          metadata_images: ${{ github.repository }}
+          docker_metadata_context: git
+          metadata_tags: |
+            type=raw,value=latest
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=semver,pattern={{major}}
+          cache_from: |
+            type=gha,scope=build-amd64
+            type=gha,scope=build-arm64
+          cache_to: |
+            type=gha,scope=build-amd64,mode=max
+            type=gha,scope=build-arm64,mode=max
+          docker_username: ${{ vars.DOCKERHUB_USERNAME }}
+          docker_password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Attest container image
+        uses: actions/attest-build-provenance@v2
+        with:
+          subject-name: ${{ steps.setup.outputs.registry_name }}
+          subject-digest: ${{ steps.push.outputs.digest }}
+          push-to-registry: true
+
+  # ── publish_release ───────────────────────────────────────────────────────────
+  # Waits for both attach_release (all binary assets uploaded + attested) and
+  # docker (container image pushed + attested) to succeed before touching the
+  # release. First verifies all attestations (binaries + container image), then
+  # builds the full release notes, and publishes the draft release
+  # — ensuring the gate happens before the release goes public.
+  publish_release:
+    name: Publish release
+    runs-on: ubuntu-24.04
+    needs: [attach_release, docker, resolve_tag]
+    env:
+      RELEASE_TAG: ${{ needs.resolve_tag.outputs.tag }}
+      GH_TOKEN: ${{ secrets.GH_TOKEN }}
+    permissions:
+      contents: write
+    environment:
+      name: production
+      url: ${{ needs.docker.outputs.registry_url }}
+    steps:
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ vars.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Verify the integrity and provenance of an artifact using its associated cryptographically signed attestations
+        run: gh attestation verify oci://${{ needs.docker.outputs.registry_name }}@${{ needs.docker.outputs.registry_digest }} --repo "$GITHUB_REPOSITORY"
+
+      - name: Verify that the release is accompanied by a valid cryptographically signed attestation
+        run: gh release verify "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY"
+
+      - name: Build and publish release notes
+        run: |
+          REGISTRY_IMAGE="${{ needs.docker.outputs.registry_image }}"
+          REGISTRY_URL="${{ needs.docker.outputs.registry_url }}"
+          EXISTING=$(gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" \
+            --json body -q '.body // ""' 2>/dev/null || true)
+
+          sed 's/^[[:space:]]*//' << 'INSTALL_END' > /tmp/install-docker.md
+            ---
+            ## Installation
+
+            **Linux / macOS:** Download the binary for your platform, unzip `*.tar.gz`, and move it to your `PATH`.
+
+            **macOS note:** The binary is not codesigned. If Gatekeeper blocks it, run:
+            ```sh
+            xattr -d com.apple.quarantine ./kb
+            ```
+
+            ## Docker
+
+            A Docker image for this RELEASE_TAG_PLACEHOLDER release has been pushed to [DockerHub](REGISTRY_URL_PLACEHOLDER).
+
+            ```sh
+            # Pull the image
+            docker pull REGISTRY_IMAGE_PLACEHOLDER
+
+            # One-off run and exit
+            docker run --rm REGISTRY_IMAGE_PLACEHOLDER greet World
+            ```
+          INSTALL_END
+
+          sed -e "s|RELEASE_TAG_PLACEHOLDER|${RELEASE_TAG}|g" \
+              -e "s|REGISTRY_URL_PLACEHOLDER|${REGISTRY_URL}|g" \
+              -e "s|REGISTRY_IMAGE_PLACEHOLDER|${REGISTRY_IMAGE}|g" \
+              /tmp/install-docker.md > /tmp/install-docker-resolved.md
+
+          {
+            [ -n "$EXISTING" ] && printf '%s\n\n' "$EXISTING"
+            cat /tmp/install-docker-resolved.md
+          } > /tmp/release-notes.md
+
+          gh release edit "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --draft=false --latest --notes-file /tmp/release-notes.md

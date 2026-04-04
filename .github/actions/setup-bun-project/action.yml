@@ -1,0 +1,46 @@
+name: Setup Bun project
+description: Setup Bun (or mise toolchain), cache dependencies, and install with frozen lockfile
+
+inputs:
+  setup_mode:
+    description: 'bun = oven-sh/setup-bun, mise = jdx/mise-action (installs tools from mise.toml)'
+    required: false
+    default: bun
+  bun_version:
+    description: Bun version (used when setup_mode=bun)
+    required: false
+    default: latest
+  mise_version:
+    description: Mise version (used when setup_mode=mise)
+    required: false
+    default: '2026.3.9'
+
+runs:
+  using: composite
+  steps:
+    - name: Setup Bun
+      if: inputs.setup_mode == 'bun'
+      id: bun
+      uses: oven-sh/setup-bun@v2
+      with:
+        bun-version: ${{ inputs.bun_version }}
+
+    - name: Setup mise
+      if: inputs.setup_mode == 'mise'
+      uses: jdx/mise-action@v4
+      with:
+        version: ${{ inputs.mise_version }}
+        install: true
+        cache: true
+        experimental: true
+
+    - name: Cache Bun dependencies
+      uses: actions/cache@v4
+      with:
+        path: ~/.bun/install/cache
+        key: bun-xcompile-${{ runner.os }}-${{ hashFiles('bun.lock') }}
+        restore-keys: bun-xcompile-${{ runner.os }}-
+
+    - name: Install dependencies
+      run: bun install --frozen-lockfile
+      shell: bash
