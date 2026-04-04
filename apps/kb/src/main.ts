@@ -1,7 +1,60 @@
 import { greet } from './commands/greet.command'
 
-export const setup = () => ({
-  run: (name = 'World', times = 1) => {
-    console.log(greet(name, times))
+type PackageJsonLike = {
+  name: string
+  version: string
+  description: string
+}
+
+const PATH_SEP = /[/\\]/
+
+function cliArgs(): string[] {
+  const args = Bun.argv.slice(2)
+  const scriptName = Bun.argv[1]?.split(PATH_SEP).pop()
+  let i = 0
+  while (scriptName && args[i] === scriptName) i += 1
+  return args.slice(i)
+}
+
+export const setup = (pkg: PackageJsonLike) => {
+  const help = `
+${pkg.description}
+
+Usage:
+  kb <command> [options]
+
+Options:
+  -h, --help     Show help (default: false)
+
+Commands:
+  greet [name]   Greet someone (default name: World)
+
+v${pkg.version}
+` as const
+
+  function run() {
+    const args = cliArgs()
+    const first = args[0]
+
+    if (first === '-h' || first === '--help') {
+      console.log(help.trim())
+      return
+    }
+
+    if (first === 'greet') {
+      console.log(greet(args[1] ?? 'World'))
+      return
+    }
+
+    if (first === undefined) {
+      console.log(greet('World'))
+      return
+    }
+
+    console.error(`Unknown command: ${first}`)
+    console.log(help.trim())
+    process.exitCode = 1
   }
-})
+
+  return { run }
+}

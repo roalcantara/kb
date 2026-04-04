@@ -1,0 +1,24 @@
+# Ignore everything by default
+*
+
+# Allow only what the build actually needs
+!bun.lock
+!package.json
+!tsconfig.json
+!index.ts
+!packages/
+!packages/kli/
+!packages/kli/package.json
+!packages/kli/src/
+!packages/kli/src/**
+!packages/kli/tsconfig.json
+!tools/
+!tools/typia/
+!tools/typia/generated/
+!tools/typia/generated/**
+!apps/
+!apps/*/package.json
+!apps/*/tsconfig.json
+!apps/*/tsconfig.*.json
+!apps/*/src/
+!apps/*/src/**

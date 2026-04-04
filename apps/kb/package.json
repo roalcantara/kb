@@ -2,7 +2,7 @@
   "name": "@kb/kb",
   "version": "0.1.0",
   "private": true,
-  "description": "KodexB Knowledge Base application",
+  "description": "KodexB - Personal Knowledge Base",
   "type": "module",
   "module": "index.ts",
   "scripts": {
