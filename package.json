@@ -11,7 +11,8 @@
     "cleanup": "bun run clean && rm -rf node_modules bun.lock*",
     "reinstall": "bun run cleanup && bun install",
     "build": "bun run clean && bun build index.ts --compile --outfile dist/kb && bun run clean:build",
-    "build:prod": "bun run clean && bun build index.ts --minify --sourcemap --no-compile-autoload-dotenv --no-compile-autoload-bunfig --compile --outfile dist/kb && bun run clean:build",
+    "build:compile": "bun run clean && bun build index.ts --minify --sourcemap --no-compile-autoload-dotenv --no-compile-autoload-bunfig --compile --outfile dist/kb",
+    "build:prod": "bun run build:compile && bun run clean:build",
     "dev": "bun run index.ts",
     "dev:watch": "bun run dev -- --watch --hot",
     "test": "bun test --pass-with-no-tests",
@@ -37,9 +38,7 @@
     "release:ci": "bunx release-it --ci"
   },
   "workspaces": {
-    "packages": [
-      "apps/*"
-    ],
+    "packages": ["apps/*"],
     "catalogs": {
       "runtime": {
         "@types/node": "^25.4.0"
