@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.7.1](https://github.com/roalcantara/kb/compare/v0.7.0...v0.7.1) (2026-04-04)
+
+### Bug Fixes
+
+* **ci:** Adjust publish workflow ([#10](https://github.com/roalcantara/kb/issues/10)) ([be48422](https://github.com/roalcantara/kb/commit/be48422f111186cd1cff4afaa4445481ced80b0f))
+
 ## 0.7.0 (2026-04-04)
 
 ### Features
