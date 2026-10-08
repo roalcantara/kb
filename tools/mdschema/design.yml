@@ -1,0 +1,11 @@
+# Patterns are full matches, so each ends in `.*`. Extra sections are allowed: a design names
+# what it needs beyond these.
+structure:
+  - heading:
+      pattern: "# .* — design"
+      regex: true
+    allow_additional: true
+    children:
+      - heading: "## Goal"
+      - heading: "## Decisions"
+      - heading: "## Scope"

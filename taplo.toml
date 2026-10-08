@@ -1,0 +1,8 @@
+exclude = ["target/**", "fixtures/**"]
+
+[formatting]
+align_entries = false
+indent_string = "  "
+reorder_keys = false
+array_auto_collapse = true
+column_width = 120

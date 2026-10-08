@@ -1,0 +1,6 @@
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Build output and local-only corpora"
+paths = ['''^target/''', '''^fixtures/private''', '''^bench/ts/kb''']

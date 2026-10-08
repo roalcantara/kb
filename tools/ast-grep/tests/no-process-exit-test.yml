@@ -1,0 +1,5 @@
+id: no-process-exit
+valid:
+  - "fn main() { std::process::exit(1) }"
+invalid:
+  - "fn helper() { std::process::exit(1) }"

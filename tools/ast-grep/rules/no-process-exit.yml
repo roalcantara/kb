@@ -1,0 +1,16 @@
+id: no-process-exit
+language: rust
+severity: error
+message: Only a binary's `main` may end the process; return an error instead.
+note: |
+  `std::process::exit` skips destructors, so an open SQLite transaction or a GPUI window never
+  gets to clean up. Libraries and handlers return `Result` and let `main` decide.
+rule:
+  pattern: std::process::exit($CODE)
+  not:
+    inside:
+      kind: function_item
+      has:
+        field: name
+        regex: ^main$
+      stopBy: end

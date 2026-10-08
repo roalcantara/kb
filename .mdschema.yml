@@ -1,0 +1,16 @@
+structure:
+  - heading:
+      pattern: '# .*'
+    children:
+      - heading: '## Project Name and Description'
+      - heading: '## Technology Stack'
+      - heading: '## Project Architecture'
+      - heading: '## Getting Started'
+      - heading: '## Project Structure'
+      - heading: '## Key Features'
+      - heading: '## Development Workflow'
+      - heading: '## Coding Standards'
+      - heading: '## Testing'
+      - heading: '## Contributing'
+      - heading: '## License'
+        optional: true
