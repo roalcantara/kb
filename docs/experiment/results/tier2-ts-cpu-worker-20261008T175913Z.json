@@ -1,0 +1,11 @@
+{
+  "schema": 1,
+  "tier": 2,
+  "metric": "cold-start-cpu",
+  "unit": "seconds",
+  "implementation": "ts",
+  "scope": "worker",
+  "date": "2026-10-08T17:59:25Z",
+  "processes": 1,
+  "seconds": 0
+}

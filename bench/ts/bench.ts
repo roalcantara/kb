@@ -37,22 +37,25 @@ async function main(): Promise<void> {
   }
   const cases: CaseResult[] = []
 
+  const report = (c: CaseResult): void => {
+    cases.push(c)
+    process.stderr.write(`[${cases.length}/64] ${c.name} (p50: ${Math.round(c.stats.p50 / 1e6)}ms)\n`)
+  }
+
   try {
     const scanned = scanKnowledgeBase(corpus.root)
-    cases.push(measure('scan', { warmup: 3, samples: 20 }, () => scanKnowledgeBase(corpus.root)))
-    cases.push(measure('markdown', { warmup: 3, samples: 20 }, () => {
+    report(measure('scan', { warmup: 3, samples: 20 }, () => scanKnowledgeBase(corpus.root)))
+    report(measure('markdown', { warmup: 3, samples: 20 }, () => {
       for (const entry of scanned.entries) buildEntryMarkdown(entry)
     }))
-    cases.push(
+    report(
       await measureAsync(
         'sync-cold',
         { warmup: 2, samples: 10, setup: removeDatabase },
         () => syncKnowledgeBase(corpus.root, database)
       )
     )
-    cases.push(
-      await measureAsync('sync-warm', { warmup: 2, samples: 10 }, () => syncKnowledgeBase(corpus.root, database))
-    )
+    report(await measureAsync('sync-warm', { warmup: 2, samples: 10 }, () => syncKnowledgeBase(corpus.root, database)))
 
     const connection = openReadOnly(database)
     const versionRow = connection.prepare('SELECT sqlite_version() AS v').get()
@@ -63,7 +66,7 @@ async function main(): Promise<void> {
       for (const query of queries) {
         const statement = buildSearchSql(toSearchQuery(query))
         const rendered = renderSearchSql(statement)
-        cases.push(measure(`search-app/${query.id}`, { warmup: 20, samples: 200 }, () => {
+        report(measure(`search-app/${query.id}`, { warmup: 20, samples: 200 }, () => {
           const db = openReadOnly(database)
           try {
             const rows = db.prepare(rendered).all() as unknown as IndexRow[]
@@ -73,7 +76,7 @@ async function main(): Promise<void> {
           }
         }))
         const prepared = connection.prepare(statement.sql)
-        cases.push(
+        report(
           measure(`search-engine/${query.id}`, { warmup: 50, samples: 500 }, () => prepared.all(...statement.params))
         )
       }
