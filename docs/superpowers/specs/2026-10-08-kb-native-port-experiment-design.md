@@ -65,7 +65,7 @@ Raycast repo.
 ├── docs/
 │   ├── adr/
 │   ├── superpowers/{specs,plans}/
-│   └── experiment/{methodology.md,results/,report.md}
+│   └── experiment/{methodology.md,parity.md,results/,report.md}
 ├── README.md  AGENTS.md  CLAUDE.md  CONTEXT.md
 ├── mise.toml  hk.pkl  .ls-lint.yml  sgconfig.yml  dprint.jsonc  taplo.toml  typos.toml
 ├── deny.toml  clippy.toml  rustfmt.toml  .gitleaks.toml  .quick-commitlint.json  cchk.toml
@@ -176,7 +176,7 @@ cargo-llvm-cov, cargo-bloat, taplo, typos, hyperfine, and kb's language-agnostic
   Index row, Notes, Query, Filter, Sync, Sync report — each with its Rust location; plus Panel and Hotkey.
 - `docs/adr/`: 0001 GPUI Kit; 0002 SQLite schema parity; 0003 native mermaid; 0004 resident panel and hotkey.
 - `docs/superpowers/`: this spec and its plan.
-- `docs/experiment/`: `methodology.md`, `results/*.json`, generated `report.md`.
+- `docs/experiment/`: `methodology.md`, `parity.md`, `results/*.json`, generated `report.md`.
 - rustdoc on every public item of `kb-domain`; `cargo doc` runs in the gate.
 
 ## Measurement
@@ -215,6 +215,29 @@ with the debounce included and, for `kb-app`, also from debounce settle to paint
 - **Visual check.** Side-by-side screenshots of ten representative entries: code-heavy, tables, mermaid,
   bookmarks, tasks.
 
+### UI/UX parity
+
+`docs/experiment/parity.md` is the UI/UX parity matrix. It is written before the UI is built, from the Raycast
+command's code (`search.screen.tsx`, `features/kb/*`, `features/kb/sync/*`), and holds one row per user-visible
+behavior: surfaces (list row, accessories, split pane, metadata, detail screen, empty states, sync progress and
+report), every action and its shortcut, the filter, navigation (←/→, Esc, ⌘K, push and pop), and copy.
+
+Each row records a status, the evidence for it, and, unless the status is **Same**, a justification:
+
+| Status      | Meaning                                                                        | Justification required |
+| ----------- | ------------------------------------------------------------------------------ | ---------------------- |
+| **Same**    | Behaves and reads as in Raycast                                                | no                     |
+| **Adapted** | Works differently because GPUI Kit, the Design Guides or the platform differ  | yes                    |
+| **Better**  | Goes beyond Raycast (for example a resizable split, offline mermaid)           | yes                    |
+| **Missing** | Not delivered                                                                  | yes, with a follow-up  |
+
+Evidence for each row is a `TestAppContext` test, a screenshot pair, or both. Two measures come from the
+matrix:
+
+- **Coverage:** the share of rows that are Same, Adapted or Better.
+- **Task cost:** for five scripted tasks — find and open a bookmark, copy a command, filter by a type and a tag,
+  read a code-heavy note, rebuild the index — the keystrokes needed and the tier-3 time to finish, on both apps.
+
 ## Report
 
 `xtask report` turns the results JSON into `docs/experiment/report.md`:
@@ -225,12 +248,19 @@ with the debounce included and, for `kb-app`, also from debounce settle to paint
    incremental build time; test count and coverage; clippy, jscpd and complexity findings vs fallow's health.
 4. Best-practice adherence: checklists from the rust-best-practices chapters and the GPUI Kit Coding and Design
    Guides, each item scored with file references.
-5. Parity gaps.
+5. Parity: golden results, and the UI/UX parity matrix with coverage, task cost, and every Adapted, Better and
+   Missing row with its justification.
 6. Verdict.
 
-**Success criteria.** The port is worth pursuing if it is at least 2× faster on search p95 or on perceived latency,
-uses at most 50% of the RSS, reaches full golden parity, and passes every gate. Otherwise the report says which
-criterion failed and why.
+**Success criteria.** The port is worth pursuing only if it meets every one of these; otherwise the report says
+which criterion failed and why:
+
+- **Performance:** at least 2× faster on search p95 or on perceived latency.
+- **Footprint:** at most 50% of the RSS.
+- **Output parity:** full golden parity for rows, notes Markdown and query order.
+- **UI/UX parity:** no Missing rows in the matrix; every Adapted or Better row justified; no scripted task needs
+  more keystrokes than in Raycast.
+- **Quality:** every gate passes.
 
 ## Risks
 
