@@ -1,0 +1,10 @@
+{
+  "name": "kb-bench-ts",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "typecheck": "tsc --noEmit -p .",
+    "build": "bun build bench.ts goldens.ts --target=node --outdir dist --entry-naming [name].mjs"
+  },
+  "devDependencies": { "@types/bun": "^1.4.2", "@types/node": "^26.6.4", "typescript": "^7.0.2" }
+}

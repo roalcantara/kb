@@ -98,3 +98,14 @@ run = '''
   done
   echo "private corpus verified; private-10x rebuilt"
 '''
+
+[tasks."bench:link"]
+description = "Point bench/ts/kb at the Raycast repo's packages/domain/kb (read only)"
+run = '''
+  #!/usr/bin/env bash
+  set -euo pipefail
+  target="$KB_TS_REPO/packages/domain/kb"
+  [ -d "$target/src" ] || { echo "no TS engine at $target; set KB_TS_REPO"; exit 1; }
+  ln -sfn "$target" bench/ts/kb
+  echo "bench/ts/kb -> $target @ $(git -C "$KB_TS_REPO" rev-parse --short HEAD)"
+'''
