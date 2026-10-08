@@ -21,14 +21,14 @@ The port follows three skills as normative guides: `~/.agents/skills/gpui-kit` (
 
 ## Decisions
 
-| #   | Question                 | Decision                                                                                                                                                     |
-| --- | ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| D1  | MVP scope                | Core loop: list, FTS search, split pane with rendered notes, detail screen, type and tag filter, primary and copy actions, manual sync with its report.      |
-| D2  | Measurement depth        | All three tiers: engine benchmarks, process footprint, perceived end-to-end latency.                                                                         |
-| D3  | Launch model             | Resident launcher: background app, global hotkey, floating panel, hidden on Esc or blur.                                                                     |
-| D4  | Notes rendering          | GPUI Kit `TextView` (Markdown) with a tree-sitter `code_block_highlighter`; mermaid rendered natively and offline with `merman`.                              |
-| D5  | Project shape            | Cargo workspace mirroring kb's layering: a pure domain crate, an app crate, a bench crate, an `xtask`.                                                       |
-| D6  | Location and tooling     | New repo `~/Work/rust/kb`, bootstrapped like kb: mise for tools and tasks, hk for hooks, `kb/hk.pkl` ported step by step, kb-shaped documentation.          |
+| #  | Question             | Decision                                                                                                                                                |
+| -- | -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| D1 | MVP scope            | Core loop: list, FTS search, split pane with rendered notes, detail screen, type and tag filter, primary and copy actions, manual sync with its report. |
+| D2 | Measurement depth    | All three tiers: engine benchmarks, process footprint, perceived end-to-end latency.                                                                    |
+| D3 | Launch model         | Resident launcher: background app, global hotkey, floating panel, hidden on Esc or blur.                                                                |
+| D4 | Notes rendering      | GPUI Kit `TextView` (Markdown) with a tree-sitter `code_block_highlighter`; mermaid rendered natively and offline with `merman`.                        |
+| D5 | Project shape        | Cargo workspace mirroring kb's layering: a pure domain crate, an app crate, a bench crate, an `xtask`.                                                  |
+| D6 | Location and tooling | New repo `~/Work/rust/kb`, bootstrapped like kb: mise for tools and tasks, hk for hooks, `kb/hk.pkl` ported step by step, kb-shaped documentation.      |
 
 ## Scope
 
@@ -87,17 +87,17 @@ used. Committed tests and CI use `fixtures/sample/` alone. The TS runner finds t
 
 A synchronous library with no UI dependency, one module per TS file in `packages/domain/kb/src`:
 
-| Module     | TS counterpart | Responsibility                                                                                 |
-| ---------- | -------------- | ---------------------------------------------------------------------------------------------- |
-| `entry`    | `entry.ts`     | `Entry`, `EntryLink`, id derivation, primary content, link and tag normalization               |
-| `type`     | `type.ts`      | known entry types, labels, type extraction                                                     |
-| `source`   | `source.ts`    | recursive `.yml`/`.yaml` discovery, parsing, skipped entries                                   |
-| `markdown` | `markdown.ts`  | `build_entry_markdown`, byte-compatible with the json2md output                                |
-| `row`      | `row.ts`       | `IndexRow`, searchable notes text, entry ↔ row                                                  |
-| `sync`     | `sync.ts`      | the same `SCHEMA_DDL`; transactional, cancellable (`AtomicBool`), progress callback             |
-| `query`    | `query.ts`     | sanitize, tokenize, FTS5 prefix query                                                          |
-| `search`   | `search.ts`    | `FilterState`, `SearchQuery`, `build_search_sql`, `PAGE_SIZE = 50`                              |
-| `report`   | `report.ts`    | per-file sync report and source excerpts                                                       |
+| Module     | TS counterpart | Responsibility                                                                      |
+| ---------- | -------------- | ----------------------------------------------------------------------------------- |
+| `entry`    | `entry.ts`     | `Entry`, `EntryLink`, id derivation, primary content, link and tag normalization    |
+| `type`     | `type.ts`      | known entry types, labels, type extraction                                          |
+| `source`   | `source.ts`    | recursive `.yml`/`.yaml` discovery, parsing, skipped entries                        |
+| `markdown` | `markdown.ts`  | `build_entry_markdown`, byte-compatible with the json2md output                     |
+| `row`      | `row.ts`       | `IndexRow`, searchable notes text, entry ↔ row                                      |
+| `sync`     | `sync.ts`      | the same `SCHEMA_DDL`; transactional, cancellable (`AtomicBool`), progress callback |
+| `query`    | `query.ts`     | sanitize, tokenize, FTS5 prefix query                                               |
+| `search`   | `search.ts`    | `FilterState`, `SearchQuery`, `build_search_sql`, `PAGE_SIZE = 50`                  |
+| `report`   | `report.ts`    | per-file sync report and source excerpts                                            |
 
 Dependencies: `serde`, a YAML parser that keeps key order (`serde_yaml_ng` or `saphyr`, chosen in the plan by the
 golden tests), `rusqlite` (`bundled`, FTS5), `walkdir`, `thiserror`. Errors are typed enums; the library does not
@@ -109,17 +109,17 @@ The index keeps the Raycast schema — `entries`, `entries_fts` (FTS5 over title
 
 ### `kb-app`
 
-| Unit       | Built from                                                                    | Owns                                                                          |
-| ---------- | ----------------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
-| `main`     | GPUI app, `global-hotkey`, a pop-up window kind, no Dock icon                  | lifecycle; hotkey → show/reuse panel; hide on Esc/blur                        |
-| `search/`  | `List` + `ListDelegate`, `Input`, `ListItem`, `Icon`, `Label`, `Tag`, `img()` | `SearchView` entity: query, results page, selection, detail toggle            |
-| `filter`   | `Popover` + `Command` (grouped, searchable, checkmarks)                        | type and tag multi-select                                                     |
-| `detail/`  | `Resizable` split, `TextView::markdown`, `DescriptionList`, `Tag`, `Link`      | notes rendering, highlighter, mermaid plugin, one shared metadata view        |
-| `nav`      | `NavStack`                                                                    | detail and sync screens pushed over search; Esc pops                          |
-| `actions`  | `Command` in a `Popover`, typed GPUI `Action`s, `KeyBinding`, `Kbd`            | ⌘K palette; shortcut hints from bindings, never hand-written strings          |
-| `sync/`    | `List` with sections, `Progress`, `Spinner`, `Notification`, `DescriptionList` | sync run, cancellation, report                                                |
-| `empty`    | `Empty`                                                                       | no index / no results states                                                  |
-| `config`   | TOML file `~/.config/kb/config.toml`                                          | `sources_path`, default `~/.config/kodexb/sources`; hotkey                     |
+| Unit      | Built from                                                                     | Owns                                                                   |
+| --------- | ------------------------------------------------------------------------------ | ---------------------------------------------------------------------- |
+| `main`    | GPUI app, `global-hotkey`, a pop-up window kind, no Dock icon                  | lifecycle; hotkey → show/reuse panel; hide on Esc/blur                 |
+| `search/` | `List` + `ListDelegate`, `Input`, `ListItem`, `Icon`, `Label`, `Tag`, `img()`  | `SearchView` entity: query, results page, selection, detail toggle     |
+| `filter`  | `Popover` + `Command` (grouped, searchable, checkmarks)                        | type and tag multi-select                                              |
+| `detail/` | `Resizable` split, `TextView::markdown`, `DescriptionList`, `Tag`, `Link`      | notes rendering, highlighter, mermaid plugin, one shared metadata view |
+| `nav`     | `NavStack`                                                                     | detail and sync screens pushed over search; Esc pops                   |
+| `actions` | `Command` in a `Popover`, typed GPUI `Action`s, `KeyBinding`, `Kbd`            | ⌘K palette; shortcut hints from bindings, never hand-written strings   |
+| `sync/`   | `List` with sections, `Progress`, `Spinner`, `Notification`, `DescriptionList` | sync run, cancellation, report                                         |
+| `empty`   | `Empty`                                                                        | no index / no results states                                           |
+| `config`  | TOML file `~/.config/kb/config.toml`                                           | `sources_path`, default `~/.config/kodexb/sources`; hotkey             |
 
 Highlighting: `TextView::code_block_highlighter` backed by the GPUI Kit tree-sitter highlighter, with the grammar
 features the notes actually use: bash (also `sh`, `zsh`), python, ruby, yaml, javascript (`js`, `jsx`),
@@ -147,28 +147,28 @@ State ownership follows the GPUI Kit Coding Guides: retained state in `Entity<T>
 `stash = "git"`; a `commit-msg` hook; `pre-push`; `fix`; and `check` writing `HK_REPORT_JSON` to `tmp/`.
 Thresholds are not copied from kb; they start at vendor defaults and are measured once code exists.
 
-| kb step                                  | Port                                                                                                         |
-| ---------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
-| `raycast-manifest-parity` (with tests)   | `domain-purity` (with hk `tests {}`): `cargo metadata` must show no path from `kb-domain` to `gpui*` or `kb-app` |
-| `ears-sdd`, `docs` (mdschema)            | mdschema on `README.md` and `docs/superpowers/specs/*`                                                        |
-| newlines, trailing-whitespace, merge-conflict, mixed-line-ending, large-files, private-key | kept |
-| gitleaks (`dir`; `git --pre-commit --staged` in pre-commit) | kept                                                                                      |
-| pkl, mise, shellcheck, actionlint, pinact, `cchk --branch`, ls-lint | kept; ls-lint enforces snake_case `.rs` and kebab-case crate directories          |
-| biome                                    | `cargo fmt --check` (`rustfmt.toml`)                                                                          |
-| dprint                                   | kept for Markdown, JSON, YAML; `taplo` for TOML                                                               |
-| typecheck (`tsc -b`)                     | `cargo check --workspace --all-targets --locked`                                                              |
-| react-doctor (staged, blocking)          | `cargo clippy --workspace --all-targets -- -D warnings`; `[workspace.lints]`: `clippy::pedantic` warn; `unwrap_used`, `expect_used` (outside tests), `dbg_macro`, `print_stdout` (libraries) |
-| ast-grep                                 | kept, with Rust rules (no `std::process::exit` outside `main`, no blocking calls inside GPUI callbacks)       |
-| fallow-dead-code                         | `unused` and `dead_code` denied; `cargo machete` for unused dependencies                                      |
-| fallow-dupes                             | `jscpd` (Rust support)                                                                                        |
-| fallow-health                            | clippy `cognitive_complexity`, `too_many_lines` at default thresholds                                        |
-| fallow-flags                             | dropped: no feature flags                                                                                     |
-| —                                        | new: `typos` in baseline                                                                                      |
-| pre-push / candidate `test`, `build`     | `cargo nextest run`, `cargo build --release`                                                                  |
-| candidate `fallow-pr-gate`               | `cargo doc --no-deps` with `RUSTDOCFLAGS=-D warnings`; `cargo llvm-cov` report for `kb-domain`               |
-| release gitleaks-release, zizmor         | kept                                                                                                          |
-| release fallow-security, react-doctor-release | `cargo deny check` (advisories, licenses, bans, sources); binary-size budget via `cargo bloat`, failing above the recorded baseline |
-| commit-msg quick-commitlint              | kept                                                                                                          |
+| kb step                                                                                    | Port                                                                                                                                                                                         |
+| ------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `raycast-manifest-parity` (with tests)                                                     | `domain-purity` (with hk `tests {}`): `cargo metadata` must show no path from `kb-domain` to `gpui*` or `kb-app`                                                                             |
+| `ears-sdd`, `docs` (mdschema)                                                              | mdschema on `README.md` and `docs/superpowers/specs/*`                                                                                                                                       |
+| newlines, trailing-whitespace, merge-conflict, mixed-line-ending, large-files, private-key | kept                                                                                                                                                                                         |
+| gitleaks (`dir`; `git --pre-commit --staged` in pre-commit)                                | kept                                                                                                                                                                                         |
+| pkl, mise, shellcheck, actionlint, pinact, `cchk --branch`, ls-lint                        | kept; ls-lint enforces snake_case `.rs` and kebab-case crate directories                                                                                                                     |
+| biome                                                                                      | `cargo fmt --check` (`rustfmt.toml`)                                                                                                                                                         |
+| dprint                                                                                     | kept for Markdown, JSON, YAML; `taplo` for TOML                                                                                                                                              |
+| typecheck (`tsc -b`)                                                                       | `cargo check --workspace --all-targets --locked`                                                                                                                                             |
+| react-doctor (staged, blocking)                                                            | `cargo clippy --workspace --all-targets -- -D warnings`; `[workspace.lints]`: `clippy::pedantic` warn; `unwrap_used`, `expect_used` (outside tests), `dbg_macro`, `print_stdout` (libraries) |
+| ast-grep                                                                                   | kept, with Rust rules (no `std::process::exit` outside `main`, no blocking calls inside GPUI callbacks)                                                                                      |
+| fallow-dead-code                                                                           | `unused` and `dead_code` denied; `cargo machete` for unused dependencies                                                                                                                     |
+| fallow-dupes                                                                               | `jscpd` (Rust support)                                                                                                                                                                       |
+| fallow-health                                                                              | clippy `cognitive_complexity`, `too_many_lines` at default thresholds                                                                                                                        |
+| fallow-flags                                                                               | dropped: no feature flags                                                                                                                                                                    |
+| —                                                                                          | new: `typos` in baseline                                                                                                                                                                     |
+| pre-push / candidate `test`, `build`                                                       | `cargo nextest run`, `cargo build --release`                                                                                                                                                 |
+| candidate `fallow-pr-gate`                                                                 | `cargo doc --no-deps` with `RUSTDOCFLAGS=-D warnings`; `cargo llvm-cov` report for `kb-domain`                                                                                               |
+| release gitleaks-release, zizmor                                                           | kept                                                                                                                                                                                         |
+| release fallow-security, react-doctor-release                                              | `cargo deny check` (advisories, licenses, bans, sources); binary-size budget via `cargo bloat`, failing above the recorded baseline                                                          |
+| commit-msg quick-commitlint                                                                | kept                                                                                                                                                                                         |
 
 `mise.toml` pins every tool (Rust via `rust-toolchain.toml`; cargo-nextest, cargo-deny, cargo-machete,
 cargo-llvm-cov, cargo-bloat, taplo, typos, hyperfine, and kb's language-agnostic tools) and defines `setup`,
@@ -233,12 +233,12 @@ report), every action and its shortcut, the filter, navigation (←/→, Esc, �
 
 Each row records a status, the evidence for it, and, unless the status is **Same**, a justification:
 
-| Status      | Meaning                                                                        | Justification required |
-| ----------- | ------------------------------------------------------------------------------ | ---------------------- |
-| **Same**    | Behaves and reads as in Raycast                                                | no                     |
-| **Adapted** | Works differently because GPUI Kit, the Design Guides or the platform differ  | yes                    |
-| **Better**  | Goes beyond Raycast (for example a resizable split, offline mermaid)           | yes                    |
-| **Missing** | Not delivered                                                                  | yes, with a follow-up  |
+| Status      | Meaning                                                                      | Justification required |
+| ----------- | ---------------------------------------------------------------------------- | ---------------------- |
+| **Same**    | Behaves and reads as in Raycast                                              | no                     |
+| **Adapted** | Works differently because GPUI Kit, the Design Guides or the platform differ | yes                    |
+| **Better**  | Goes beyond Raycast (for example a resizable split, offline mermaid)         | yes                    |
+| **Missing** | Not delivered                                                                | yes, with a follow-up  |
 
 Evidence for each row is a `TestAppContext` test, a screenshot pair, or both. Two measures come from the
 matrix:
@@ -273,11 +273,11 @@ which criterion failed and why:
 
 ## Risks
 
-| Risk                                                         | Mitigation                                                                                          |
-| ------------------------------------------------------------ | --------------------------------------------------------------------------------------------------- |
-| json2md quirks are hard to match byte for byte               | goldens first; port `markdown.ts` test by test against them                                         |
-| YAML key order or scalar typing differs between parsers      | parser chosen by golden results; recorded in an ADR                                                 |
-| GPUI has no global hotkey or launcher-panel primitive        | `global-hotkey` crate plus a pop-up window kind; isolated in `main`, recorded in ADR 0004           |
-| Raycast's process is opaque, so tier 3 is noisy              | same external harness for both apps; medians, IQR and caveats in the report                        |
-| `merman` and tree-sitter grammars inflate the binary         | sizes broken out per feature; grammars limited to languages present in the notes                    |
-| GPUI Kit API churn                                           | exact version pinned; upgrade only deliberately                                                      |
+| Risk                                                    | Mitigation                                                                                |
+| ------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
+| json2md quirks are hard to match byte for byte          | goldens first; port `markdown.ts` test by test against them                               |
+| YAML key order or scalar typing differs between parsers | parser chosen by golden results; recorded in an ADR                                       |
+| GPUI has no global hotkey or launcher-panel primitive   | `global-hotkey` crate plus a pop-up window kind; isolated in `main`, recorded in ADR 0004 |
+| Raycast's process is opaque, so tier 3 is noisy         | same external harness for both apps; medians, IQR and caveats in the report               |
+| `merman` and tree-sitter grammars inflate the binary    | sizes broken out per feature; grammars limited to languages present in the notes          |
+| GPUI Kit API churn                                      | exact version pinned; upgrade only deliberately                                           |

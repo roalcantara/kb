@@ -25,12 +25,12 @@ gitleaks, cargo-nextest, cargo-deny, cargo-machete, cargo-llvm-cov, jscpd, mdsch
 The spec is delivered by four plans, each ending in working, tested software. Only this one is written in full;
 each later plan is written when its predecessor is merged, against the code that then exists.
 
-| Plan | Delivers                                                                                                                                  |
-| ---- | ----------------------------------------------------------------------------------------------------------------------------------------- |
-| 1    | This plan: repository, tooling, docs, corpora, TS baseline (tiers 1–2), goldens, UI/UX parity matrix                                      |
-| 2    | `kb-domain` at full golden parity, module by module, plus `kb-bench` writing the same results schema                                      |
-| 3    | `kb-app`: panel, hotkey, list, filter, split pane, `TextView` notes with highlighting and mermaid, detail, ⌘K actions, sync, size budget   |
-| 4    | Tier 2–3 harness on both apps, task cost, `xtask report`, the verdict                                                                     |
+| Plan | Delivers                                                                                                                                 |
+| ---- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| 1    | This plan: repository, tooling, docs, corpora, TS baseline (tiers 1–2), goldens, UI/UX parity matrix                                     |
+| 2    | `kb-domain` at full golden parity, module by module, plus `kb-bench` writing the same results schema                                     |
+| 3    | `kb-app`: panel, hotkey, list, filter, split pane, `TextView` notes with highlighting and mermaid, detail, ⌘K actions, sync, size budget |
+| 4    | Tier 2–3 harness on both apps, task cost, `xtask report`, the verdict                                                                    |
 
 ## Conventions for every task
 
@@ -45,36 +45,37 @@ each later plan is written when its predecessor is merged, against the code that
 
 ## File map
 
-| Path                                        | Responsibility                                                              | Task |
-| ------------------------------------------- | --------------------------------------------------------------------------- | ---- |
-| `Cargo.toml`, `rust-toolchain.toml`         | workspace, lints, release profile; toolchain pin                            | 1    |
-| `crates/kb-domain/{Cargo.toml,src/lib.rs}`  | the engine crate, empty until Plan 2                                         | 1    |
-| `.gitignore`                                | build output, private corpora, symlinks, tmp                                | 1    |
-| `mise.toml`                                 | tool pins, env, tasks                                                       | 2, 7, 9, 11–14 |
-| `rustfmt.toml`, `clippy.toml`               | Rust formatting and lint configuration                                      | 3    |
-| `dprint.json`, `taplo.toml`, `_typos.toml`  | formatting for Markdown/JSON/TS/shell, TOML; spelling                       | 4    |
-| `.ls-lint.yml`, `sgconfig.yml`, `tools/ast-grep/rules/*.yml` | file names; structural code rules                         | 4    |
-| `cchk.toml`, `.quick-commitlint.json`, `.gitleaks.toml`, `deny.toml`, `.jscpd.json` | branch/commit hygiene, secrets, supply chain, duplication | 4 |
-| `.mdschema.yml`, `tools/mdschema/design.yml`| README and design-spec shapes                                               | 4    |
-| `hk.pkl`                                    | hooks and step sets, including `domain-purity` with tests                   | 5    |
-| `README.md`, `AGENTS.md`, `CLAUDE.md`, `CONTEXT.md`, `docs/adr/*` | project documentation                                 | 6    |
-| `fixtures/sample/**`                        | committed hand-written corpus covering every notes shape                    | 8    |
-| `fixtures/private.sha256`                   | committed manifest of the private corpus                                    | 9    |
-| `fixtures/queries.json`                     | the 30 benchmark and golden queries                                         | 10   |
-| `bench/ts/{package.json,tsconfig.json}`     | TS bench workspace                                                          | 10   |
-| `bench/ts/stats.ts`, `stats.spec.ts`        | nearest-rank statistics                                                     | 10   |
-| `bench/ts/corpus.ts`, `corpus.spec.ts`      | corpus resolution and manifest verification                                 | 11   |
-| `bench/ts/env.ts`, `measure.ts`, `bench.ts` | environment capture, timing, the tier 1 runner                             | 12   |
-| `bench/ts/goldens.ts`                       | golden writer                                                               | 13   |
-| `fixtures/sample-goldens/*`                 | committed goldens for the sample corpus                                     | 13   |
-| `bench/probes/{rss.sh,drive-queries.sh}`    | tier 2 RSS sampling and scripted typing                                     | 14   |
-| `docs/experiment/{methodology.md,parity.md,results/*.json}` | methodology, UI/UX parity matrix, baseline results     | 14, 15 |
+| Path                                                                                | Responsibility                                            | Task           |
+| ----------------------------------------------------------------------------------- | --------------------------------------------------------- | -------------- |
+| `Cargo.toml`, `rust-toolchain.toml`                                                 | workspace, lints, release profile; toolchain pin          | 1              |
+| `crates/kb-domain/{Cargo.toml,src/lib.rs}`                                          | the engine crate, empty until Plan 2                      | 1              |
+| `.gitignore`                                                                        | build output, private corpora, symlinks, tmp              | 1              |
+| `mise.toml`                                                                         | tool pins, env, tasks                                     | 2, 7, 9, 11–14 |
+| `rustfmt.toml`, `clippy.toml`                                                       | Rust formatting and lint configuration                    | 3              |
+| `dprint.json`, `taplo.toml`, `_typos.toml`                                          | formatting for Markdown/JSON/TS/shell, TOML; spelling     | 4              |
+| `.ls-lint.yml`, `sgconfig.yml`, `tools/ast-grep/rules/*.yml`                        | file names; structural code rules                         | 4              |
+| `cchk.toml`, `.quick-commitlint.json`, `.gitleaks.toml`, `deny.toml`, `.jscpd.json` | branch/commit hygiene, secrets, supply chain, duplication | 4              |
+| `.mdschema.yml`, `tools/mdschema/design.yml`                                        | README and design-spec shapes                             | 4              |
+| `hk.pkl`                                                                            | hooks and step sets, including `domain-purity` with tests | 5              |
+| `README.md`, `AGENTS.md`, `CLAUDE.md`, `CONTEXT.md`, `docs/adr/*`                   | project documentation                                     | 6              |
+| `fixtures/sample/**`                                                                | committed hand-written corpus covering every notes shape  | 8              |
+| `fixtures/private.sha256`                                                           | committed manifest of the private corpus                  | 9              |
+| `fixtures/queries.json`                                                             | the 30 benchmark and golden queries                       | 10             |
+| `bench/ts/{package.json,tsconfig.json}`                                             | TS bench workspace                                        | 10             |
+| `bench/ts/stats.ts`, `stats.spec.ts`                                                | nearest-rank statistics                                   | 10             |
+| `bench/ts/corpus.ts`, `corpus.spec.ts`                                              | corpus resolution and manifest verification               | 11             |
+| `bench/ts/env.ts`, `measure.ts`, `bench.ts`                                         | environment capture, timing, the tier 1 runner            | 12             |
+| `bench/ts/goldens.ts`                                                               | golden writer                                             | 13             |
+| `fixtures/sample-goldens/*`                                                         | committed goldens for the sample corpus                   | 13             |
+| `bench/probes/{rss.sh,drive-queries.sh}`                                            | tier 2 RSS sampling and scripted typing                   | 14             |
+| `docs/experiment/{methodology.md,parity.md,results/*.json}`                         | methodology, UI/UX parity matrix, baseline results        | 14, 15         |
 
 ---
 
 ### Task 1: Cargo workspace skeleton
 
 **Files:**
+
 - Create: `Cargo.toml`, `rust-toolchain.toml`, `crates/kb-domain/Cargo.toml`, `crates/kb-domain/src/lib.rs`,
   `.gitignore`
 
@@ -211,6 +212,7 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 ### Task 2: Pin the tools with mise
 
 **Files:**
+
 - Create: `mise.toml`
 
 - [ ] **Step 1: Start the configuration**
@@ -300,6 +302,7 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 ### Task 3: Rust formatting and lint configuration
 
 **Files:**
+
 - Create: `rustfmt.toml`, `clippy.toml`
 
 - [ ] **Step 1: Configure rustfmt**
@@ -349,6 +352,7 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 ### Task 4: Hygiene configuration
 
 **Files:**
+
 - Create: `dprint.json`, `taplo.toml`, `_typos.toml`, `.ls-lint.yml`, `sgconfig.yml`,
   `tools/ast-grep/rules/no-process-exit.yml`, `tools/ast-grep/tests/no-process-exit-test.yml`, `cchk.toml`, `.quick-commitlint.json`, `.gitleaks.toml`, `deny.toml`, `.jscpd.json`,
   `.mdschema.yml`, `tools/mdschema/design.yml`
@@ -374,14 +378,8 @@ wrote; it holds the resolved versions and checksums):
   "indentWidth": 2,
   "markdown": { "lineWidth": 120 },
   "json": { "preferSingleLine": true },
-  "typescript": {
-    "semiColons": "asi",
-    "quoteStyle": "preferSingle",
-    "trailingCommas": "never"
-  },
-  "exec": {
-    "commands": [{ "command": "shfmt -i {{indent_width}} --apply-ignore", "exts": ["sh", "bash"] }]
-  },
+  "typescript": { "semiColons": "asi", "quoteStyle": "preferSingle", "trailingCommas": "never" },
+  "exec": { "commands": [{ "command": "shfmt -i {{indent_width}} --apply-ignore", "exts": ["sh", "bash"] }] },
   "excludes": [
     "target/**",
     "tmp/**",
@@ -679,6 +677,7 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 ### Task 5: hk — kb's step set, ported
 
 **Files:**
+
 - Create: `hk.pkl`
 
 The structure is kb's `hk.pkl`: baseline steps run in every hook; candidate and release steps are profile-gated in
@@ -1081,6 +1080,7 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 ### Task 6: Documentation
 
 **Files:**
+
 - Create: `README.md`, `AGENTS.md`, `CLAUDE.md`, `CONTEXT.md`, `docs/adr/0001-gpui-kit.md`,
   `docs/adr/0002-sqlite-schema-parity.md`, `docs/adr/0003-native-mermaid.md`,
   `docs/adr/0004-resident-panel-and-hotkey.md`
@@ -1109,13 +1109,13 @@ size and runtime limits are out of the way.
 
 ## Project Architecture
 
-| Crate / folder        | Role                                                                                           |
-| --------------------- | ---------------------------------------------------------------------------------------------- |
-| `crates/kb-domain`    | The engine: entries, source files, notes Markdown, the SQLite index and its queries. No UI.   |
-| `crates/kb-app`       | The GPUI Kit application: a resident panel opened by a global hotkey. (Plan 3)                 |
-| `crates/kb-bench`     | Engine benchmarks writing the shared results schema. (Plan 2)                                 |
-| `bench/ts`            | The same benchmarks over the Raycast extension's TypeScript engine.                            |
-| `fixtures`            | Benchmark corpora, queries and golden outputs.                                                 |
+| Crate / folder     | Role                                                                                        |
+| ------------------ | ------------------------------------------------------------------------------------------- |
+| `crates/kb-domain` | The engine: entries, source files, notes Markdown, the SQLite index and its queries. No UI. |
+| `crates/kb-app`    | The GPUI Kit application: a resident panel opened by a global hotkey. (Plan 3)              |
+| `crates/kb-bench`  | Engine benchmarks writing the shared results schema. (Plan 2)                               |
+| `bench/ts`         | The same benchmarks over the Raycast extension's TypeScript engine.                         |
+| `fixtures`         | Benchmark corpora, queries and golden outputs.                                              |
 
 `kb-domain` never depends on a UI crate; the `domain-purity` hk step enforces it. See [CONTEXT.md](CONTEXT.md)
 for the domain vocabulary and [docs/adr](docs/adr) for the decisions.
@@ -1151,14 +1151,14 @@ tools/           ast-grep rules, mdschema schemas
 
 ## Development Workflow
 
-| Command                  | Does                                                              |
-| ------------------------ | ----------------------------------------------------------------- |
-| `mise run setup`         | install everything                                                |
-| `mise run gate`          | all gates in order; `--fast` runs tests and clippy only           |
-| `mise run fixtures`      | copy the private corpus, verify its manifest, build the 10× copy  |
-| `mise run goldens`       | write goldens from the TS engine                                  |
-| `mise run bench:ts`      | tier 1 benchmarks of the TS engine                                |
-| `hk check --all`         | every baseline step over the whole repository                     |
+| Command             | Does                                                             |
+| ------------------- | ---------------------------------------------------------------- |
+| `mise run setup`    | install everything                                               |
+| `mise run gate`     | all gates in order; `--fast` runs tests and clippy only          |
+| `mise run fixtures` | copy the private corpus, verify its manifest, build the 10× copy |
+| `mise run goldens`  | write goldens from the TS engine                                 |
+| `mise run bench:ts` | tier 1 benchmarks of the TS engine                               |
+| `hk check --all`    | every baseline step over the whole repository                    |
 
 Commits follow Conventional Commits with a sentence-case subject; hk checks the message.
 
@@ -1276,35 +1276,35 @@ Conventional Commits with a sentence-case subject, at most 72 characters.
 # Context
 
 The domain words of this repository, each with where it lives. They are kb's words; code, specs and prompts use
-them and no synonyms. Locations marked *(Plan N)* do not exist yet.
+them and no synonyms. Locations marked _(Plan N)_ do not exist yet.
 
-| Term              | Meaning                                                                                                                       | Lives in                                         |
-| ----------------- | ----------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------ |
-| Entry             | One knowledge node users can search and open: a YAML key under an entry type. Its id is `<rel path>#<type>#<key>`.            | `crates/kb-domain/src/entry.rs` *(Plan 2)*       |
-| Entry type        | The top-level YAML key an entry sits under (`commands`, `bookmarks`, `tasks`…). Unknown keys are kept, not rejected.          | `crates/kb-domain/src/entry_type.rs` *(Plan 2)*  |
-| Sources directory | Where source files are found, recursively: `sources_path` in `~/.config/kb/config.toml`, else `~/.config/kodexb/sources`.     | `crates/kb-app/src/config.rs` *(Plan 3)*         |
-| Source file       | A `.yml` or `.yaml` file under the sources directory; the only source of truth, never written.                                | `crates/kb-domain/src/source.rs` *(Plan 2)*      |
-| Primary content   | What an entry's main action opens or copies: its `url`, `cmd`, `cheat` or `task` field, else its key.                          | `crates/kb-domain/src/entry.rs` *(Plan 2)*       |
-| Tags              | An entry's `tags` (or `tag`) labels, lowercased. Filterable; not in the full-text index.                                      | `crates/kb-domain/src/entry.rs` *(Plan 2)*       |
-| Index             | `kb.db`: `entries`, the `entries_fts` FTS5 table, `entry_tags` — the Raycast schema, in the app's own support directory.       | `crates/kb-domain/src/sync.rs` *(Plan 2)*        |
-| Index row         | The SQLite projection of one entry, including the pre-compiled notes Markdown.                                                | `crates/kb-domain/src/row.rs` *(Plan 2)*         |
-| Notes             | An entry's documentation in whatever shape its source file used; compiled to Markdown at sync time.                           | `crates/kb-domain/src/markdown.rs` *(Plan 2)*    |
-| Query             | The search text plus the filter and page window. Each word becomes an FTS5 prefix term; results are ordered by rank.         | `crates/kb-domain/src/query.rs` *(Plan 2)*       |
-| Filter            | The entry types and tags a query is narrowed to: any selected type, and every selected tag.                                   | `crates/kb-domain/src/search.rs` *(Plan 2)*      |
-| Sync              | The manual rebuild of the index from the source files; cancellable, transactional.                                            | `crates/kb-domain/src/sync.rs` *(Plan 2)*        |
-| Sync report       | What a sync says about each source file: entries indexed, entries skipped, or why the file failed to parse.                   | `crates/kb-domain/src/report.rs` *(Plan 2)*      |
-| Panel             | The floating window the hotkey opens; hidden on Esc or when it loses focus.                                                   | `crates/kb-app/src/panel.rs` *(Plan 3)*          |
-| Hotkey            | The global key combination that shows the panel.                                                                              | `crates/kb-app/src/hotkey.rs` *(Plan 3)*         |
+| Term              | Meaning                                                                                                                   | Lives in                                        |
+| ----------------- | ------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------- |
+| Entry             | One knowledge node users can search and open: a YAML key under an entry type. Its id is `<rel path>#<type>#<key>`.        | `crates/kb-domain/src/entry.rs` _(Plan 2)_      |
+| Entry type        | The top-level YAML key an entry sits under (`commands`, `bookmarks`, `tasks`…). Unknown keys are kept, not rejected.      | `crates/kb-domain/src/entry_type.rs` _(Plan 2)_ |
+| Sources directory | Where source files are found, recursively: `sources_path` in `~/.config/kb/config.toml`, else `~/.config/kodexb/sources`. | `crates/kb-app/src/config.rs` _(Plan 3)_        |
+| Source file       | A `.yml` or `.yaml` file under the sources directory; the only source of truth, never written.                            | `crates/kb-domain/src/source.rs` _(Plan 2)_     |
+| Primary content   | What an entry's main action opens or copies: its `url`, `cmd`, `cheat` or `task` field, else its key.                     | `crates/kb-domain/src/entry.rs` _(Plan 2)_      |
+| Tags              | An entry's `tags` (or `tag`) labels, lowercased. Filterable; not in the full-text index.                                  | `crates/kb-domain/src/entry.rs` _(Plan 2)_      |
+| Index             | `kb.db`: `entries`, the `entries_fts` FTS5 table, `entry_tags` — the Raycast schema, in the app's own support directory.  | `crates/kb-domain/src/sync.rs` _(Plan 2)_       |
+| Index row         | The SQLite projection of one entry, including the pre-compiled notes Markdown.                                            | `crates/kb-domain/src/row.rs` _(Plan 2)_        |
+| Notes             | An entry's documentation in whatever shape its source file used; compiled to Markdown at sync time.                       | `crates/kb-domain/src/markdown.rs` _(Plan 2)_   |
+| Query             | The search text plus the filter and page window. Each word becomes an FTS5 prefix term; results are ordered by rank.      | `crates/kb-domain/src/query.rs` _(Plan 2)_      |
+| Filter            | The entry types and tags a query is narrowed to: any selected type, and every selected tag.                               | `crates/kb-domain/src/search.rs` _(Plan 2)_     |
+| Sync              | The manual rebuild of the index from the source files; cancellable, transactional.                                        | `crates/kb-domain/src/sync.rs` _(Plan 2)_       |
+| Sync report       | What a sync says about each source file: entries indexed, entries skipped, or why the file failed to parse.               | `crates/kb-domain/src/report.rs` _(Plan 2)_     |
+| Panel             | The floating window the hotkey opens; hidden on Esc or when it loses focus.                                               | `crates/kb-app/src/panel.rs` _(Plan 3)_         |
+| Hotkey            | The global key combination that shows the panel.                                                                          | `crates/kb-app/src/hotkey.rs` _(Plan 3)_        |
 
 ## Experiment
 
-| Term        | Meaning                                                                                                    | Lives in                          |
-| ----------- | ---------------------------------------------------------------------------------------------------------- | --------------------------------- |
-| Corpus      | A set of source files a run measures: `sample` (committed), `private` and `private-10x` (local only).     | `fixtures/`, `bench/ts/corpus.ts` |
-| Golden      | An output of the TypeScript engine the Rust engine must reproduce.                                         | `fixtures/*-goldens/`             |
-| Tier        | A measurement depth: 1 engine, 2 footprint, 3 perceived latency.                                           | `docs/experiment/methodology.md`  |
-| Result      | One run's JSON, in the shared schema, under `docs/experiment/results/`.                                   | `bench/ts/bench.ts`               |
-| Parity row  | One user-visible behaviour of the Raycast command and its status in the port.                              | `docs/experiment/parity.md`       |
+| Term       | Meaning                                                                                               | Lives in                          |
+| ---------- | ----------------------------------------------------------------------------------------------------- | --------------------------------- |
+| Corpus     | A set of source files a run measures: `sample` (committed), `private` and `private-10x` (local only). | `fixtures/`, `bench/ts/corpus.ts` |
+| Golden     | An output of the TypeScript engine the Rust engine must reproduce.                                    | `fixtures/*-goldens/`             |
+| Tier       | A measurement depth: 1 engine, 2 footprint, 3 perceived latency.                                      | `docs/experiment/methodology.md`  |
+| Result     | One run's JSON, in the shared schema, under `docs/experiment/results/`.                               | `bench/ts/bench.ts`               |
+| Parity row | One user-visible behaviour of the Raycast command and its status in the port.                         | `docs/experiment/parity.md`       |
 ```
 
 `entry_type.rs` rather than `type.rs`: `type` is a Rust keyword.
@@ -1426,6 +1426,7 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 ### Task 7: The gate
 
 **Files:**
+
 - Modify: `mise.toml` (append)
 
 - [ ] **Step 1: Add the gate task**
@@ -1473,6 +1474,7 @@ Expected: the pre-commit and commit-msg hooks run and pass.
 ### Task 8: The sample corpus
 
 **Files:**
+
 - Create: `fixtures/sample/bookmarks.yml`, `fixtures/sample/commands.yml`, `fixtures/sample/cheats.yml`,
   `fixtures/sample/notes.yml`, `fixtures/sample/tasks.yml`, `fixtures/sample/misc/snippets.yaml`,
   `fixtures/sample/errors/broken.yml`, `fixtures/sample/errors/list-type.yml`
@@ -1651,6 +1653,7 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 ### Task 9: The private corpus
 
 **Files:**
+
 - Create: `fixtures/private.sha256`
 - Modify: `mise.toml` (append)
 
@@ -1727,6 +1730,7 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 ### Task 10: TS bench workspace and statistics
 
 **Files:**
+
 - Create: `bench/ts/package.json`, `bench/ts/tsconfig.json`, `bench/ts/stats.ts`, `bench/ts/stats.spec.ts`,
   `fixtures/queries.json`
 - Modify: `mise.toml` (append)
@@ -1947,6 +1951,7 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 ### Task 11: Corpus resolution and verification
 
 **Files:**
+
 - Create: `bench/ts/corpus.ts`, `bench/ts/corpus.spec.ts`
 
 - [ ] **Step 1: Write the failing tests**
@@ -2118,6 +2123,7 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 ### Task 12: The tier 1 runner
 
 **Files:**
+
 - Create: `bench/ts/env.ts`, `bench/ts/measure.ts`, `bench/ts/measure.spec.ts`, `bench/ts/query.ts`,
   `bench/ts/bench.ts`
 - Modify: `mise.toml` (append)
@@ -2331,9 +2337,9 @@ export function toSearchQuery(query: BenchQuery): SearchQuery {
 
 ```ts
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
-import type { DatabaseSync } from 'node:sqlite'
 import { tmpdir } from 'node:os'
 import { dirname, join, resolve } from 'node:path'
+import type { DatabaseSync } from 'node:sqlite'
 import { resolveCorpus } from './corpus'
 import { captureEnv } from './env'
 import { buildEntryMarkdown } from './kb/src/markdown'
@@ -2380,10 +2386,16 @@ async function main(): Promise<void> {
     cases.push(measure('markdown', { warmup: 3, samples: 20 }, () => {
       for (const entry of scanned.entries) buildEntryMarkdown(entry)
     }))
-    cases.push(await measureAsync('sync-cold', { warmup: 2, samples: 10, setup: removeDatabase }, () =>
-      syncKnowledgeBase(corpus.root, database)))
-    cases.push(await measureAsync('sync-warm', { warmup: 2, samples: 10 }, () =>
-      syncKnowledgeBase(corpus.root, database)))
+    cases.push(
+      await measureAsync(
+        'sync-cold',
+        { warmup: 2, samples: 10, setup: removeDatabase },
+        () => syncKnowledgeBase(corpus.root, database)
+      )
+    )
+    cases.push(
+      await measureAsync('sync-warm', { warmup: 2, samples: 10 }, () => syncKnowledgeBase(corpus.root, database))
+    )
 
     const connection = openReadOnly(database)
     const sqliteVersion = (connection.prepare('SELECT sqlite_version() AS v').get() as { v: string }).v
@@ -2401,8 +2413,9 @@ async function main(): Promise<void> {
           }
         }))
         const prepared = connection.prepare(statement.sql)
-        cases.push(measure(`search-engine/${query.id}`, { warmup: 50, samples: 500 }, () =>
-          prepared.all(...statement.params)))
+        cases.push(
+          measure(`search-engine/${query.id}`, { warmup: 50, samples: 500 }, () => prepared.all(...statement.params))
+        )
       }
     } finally {
       connection.close()
@@ -2480,6 +2493,7 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 ### Task 13: Goldens
 
 **Files:**
+
 - Create: `bench/ts/goldens.ts`, `fixtures/sample-goldens/rows.jsonl`, `fixtures/sample-goldens/summary.json`,
   `fixtures/sample-goldens/queries.json`
 - Modify: `mise.toml` (append)
@@ -2496,8 +2510,8 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
 import { resolveCorpus } from './corpus'
-import type { IndexRow } from './kb/src/row'
 import { buildFtsPrefixQuery } from './kb/src/query'
+import type { IndexRow } from './kb/src/row'
 import { buildSearchSql } from './kb/src/search'
 import { syncKnowledgeBase } from './kb/src/sync'
 import { loadQueries, toSearchQuery } from './query'
@@ -2538,7 +2552,9 @@ async function main(): Promise<void> {
         const ranks = new Map<string, number>()
         if (fts !== '') {
           const ranked = db
-            .prepare('SELECT e.id AS id, fts.rank AS rank FROM entries_fts(?) fts JOIN entries e ON e.rowid = fts.rowid')
+            .prepare(
+              'SELECT e.id AS id, fts.rank AS rank FROM entries_fts(?) fts JOIN entries e ON e.rowid = fts.rowid'
+            )
             .all(fts) as { id: string; rank: number }[]
           for (const { id, rank } of ranked) ranks.set(id, rank)
         }
@@ -2549,7 +2565,10 @@ async function main(): Promise<void> {
       })
 
       mkdirSync(out, { recursive: true })
-      writeFileSync(join(out, 'rows.jsonl'), rows.map(row => JSON.stringify(portable(row, corpus.root))).join('\n') + '\n')
+      writeFileSync(
+        join(out, 'rows.jsonl'),
+        rows.map(row => JSON.stringify(portable(row, corpus.root))).join('\n') + '\n'
+      )
       writeFileSync(join(out, 'summary.json'), `${JSON.stringify(portable(summary, corpus.root), null, 2)}\n`)
       writeFileSync(join(out, 'queries.json'), `${JSON.stringify(queries, null, 2)}\n`)
       console.log(`${rows.length} rows, ${queries.length} queries -> ${out}`)
@@ -2630,6 +2649,7 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 ### Task 14: The Raycast baseline — tier 1 and tier 2
 
 **Files:**
+
 - Create: `bench/probes/rss.sh`, `bench/probes/drive-queries.sh`, `docs/experiment/methodology.md`,
   `docs/experiment/results/*.json`
 
@@ -2801,11 +2821,11 @@ How every number in the report is produced. A result that was not produced this 
 
 ## Corpora
 
-| Name          | What                                                     | In git                       |
-| ------------- | -------------------------------------------------------- | ---------------------------- |
-| `sample`      | hand-written, every notes shape (`fixtures/sample`)      | yes, with its goldens        |
-| `private`     | snapshot of the real sources, verified by manifest       | manifest only                |
-| `private-10x` | ten copies of `private` in `copy-0` … `copy-9`           | no                           |
+| Name          | What                                                | In git                |
+| ------------- | --------------------------------------------------- | --------------------- |
+| `sample`      | hand-written, every notes shape (`fixtures/sample`) | yes, with its goldens |
+| `private`     | snapshot of the real sources, verified by manifest  | manifest only         |
+| `private-10x` | ten copies of `private` in `copy-0` … `copy-9`      | no                    |
 
 Every run verifies `fixtures/private.sha256` first and records the corpus digest in its result.
 
@@ -2816,14 +2836,14 @@ actually observed. `bench/ts/stats.ts` and `kb-bench` implement the same definit
 
 ## Tier 1 — engine
 
-| Case                 | Warm-up | Samples | What one sample is                                                                 |
-| -------------------- | ------- | ------- | ---------------------------------------------------------------------------------- |
-| `scan`               | 3       | 20      | find and parse every source file into entries                                      |
-| `markdown`           | 3       | 20      | build the notes Markdown of every entry                                             |
-| `sync-cold`          | 2       | 10      | full sync into a database that does not exist                                       |
-| `sync-warm`          | 2       | 10      | full sync into an existing database                                                 |
-| `search-app/<q>`     | 20      | 200     | the app's path: open read-only, run the rendered SQL, close, map rows to entries   |
-| `search-engine/<q>`  | 50      | 500     | the prepared statement on one open connection                                       |
+| Case                | Warm-up | Samples | What one sample is                                                               |
+| ------------------- | ------- | ------- | -------------------------------------------------------------------------------- |
+| `scan`              | 3       | 20      | find and parse every source file into entries                                    |
+| `markdown`          | 3       | 20      | build the notes Markdown of every entry                                          |
+| `sync-cold`         | 2       | 10      | full sync into a database that does not exist                                    |
+| `sync-warm`         | 2       | 10      | full sync into an existing database                                              |
+| `search-app/<q>`    | 20      | 200     | the app's path: open read-only, run the rendered SQL, close, map rows to entries |
+| `search-engine/<q>` | 50      | 500     | the prepared statement on one open connection                                    |
 
 The TS engine runs under Node 22 — what Raycast runs extensions on — and under Bun for reference. The machine is
 on AC power with other heavy apps closed; results record the power source.
@@ -2868,6 +2888,7 @@ Results hold timings, sizes, query texts and corpus digests only — no corpus c
 ### Task 15: The UI/UX parity matrix
 
 **Files:**
+
 - Create: `docs/experiment/parity.md`
 
 Written now, from the Raycast code, before any UI exists — so the port is measured against what Raycast does,
@@ -2886,71 +2907,71 @@ Plan 3 fills in Status and Evidence (a `TestAppContext` test, a screenshot pair,
 
 ## Surfaces
 
-| #   | Behaviour in Raycast                                                                                                       | Source                              | Status | Evidence | Justification |
-| --- | -------------------------------------------------------------------------------------------------------------------------- | ----------------------------------- | ------ | -------- | ------------- |
-| S01 | Search field with placeholder "Search knowledge base..."; typing searches after 150 ms                                      | `search.screen.tsx`, `use-search.ts` |        |          |               |
-| S02 | Results ordered by FTS rank; by title when the query is empty                                                              | `search.ts` (domain)                |        |          |               |
-| S03 | Pages of 50; the next page loads at the end of the list                                                                    | `pagination.ts`                     |        |          |               |
-| S04 | Previous results stay on screen while the next query runs; a loading indicator shows                                       | `use-search.ts`                     |        |          |               |
-| S05 | Row icon: type icon tinted by type colour; bookmarks show the site favicon, globe fallback; tooltip names the type         | `icons.ts`, `accessories.ts`        |        |          |               |
-| S06 | Row title, and the description as subtitle                                                                                 | `search.screen.tsx`                 |        |          |               |
-| S07 | Row accessories: up to 3 tags (`#tag`, colour hashed from the tag, or the tag's icon from assets), `+N` for the rest, link count with a link icon | `accessories.ts`, `assets.ts` |        |          |               |
-| S08 | Empty states: Loading…; No entries indexed yet (with Rebuild); No matching entries                                         | `empty.tsx`                         |        |          |               |
-| S09 | Split pane toggled with → and ←: the notes Markdown, or "*No additional notes available for this entry.*", above the metadata | `detail.tsx`, `actions.tsx`      |        |          |               |
-| S10 | Metadata, in order: URL link (bookmarks) or Command (commands); Type tag; Status; Priority; Description; Tags; Links; Source | `metadata.tsx`                     |        |          |               |
-| S11 | Detail screen pushed with Return: the entry title as navigation title, the notes, metadata toggled with → and ←           | `detail.tsx`                        |        |          |               |
-| S12 | Notes rendering: headings, lists, tables, blockquote description, highlighted code blocks, YouTube thumbnail, SVG and image blocks, mermaid diagram, LINKS list, source footer | `markdown.ts` (domain) |   |          |               |
+| #   | Behaviour in Raycast                                                                                                                                                           | Source                               | Status | Evidence | Justification |
+| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------ | ------ | -------- | ------------- |
+| S01 | Search field with placeholder "Search knowledge base..."; typing searches after 150 ms                                                                                         | `search.screen.tsx`, `use-search.ts` |        |          |               |
+| S02 | Results ordered by FTS rank; by title when the query is empty                                                                                                                  | `search.ts` (domain)                 |        |          |               |
+| S03 | Pages of 50; the next page loads at the end of the list                                                                                                                        | `pagination.ts`                      |        |          |               |
+| S04 | Previous results stay on screen while the next query runs; a loading indicator shows                                                                                           | `use-search.ts`                      |        |          |               |
+| S05 | Row icon: type icon tinted by type colour; bookmarks show the site favicon, globe fallback; tooltip names the type                                                             | `icons.ts`, `accessories.ts`         |        |          |               |
+| S06 | Row title, and the description as subtitle                                                                                                                                     | `search.screen.tsx`                  |        |          |               |
+| S07 | Row accessories: up to 3 tags (`#tag`, colour hashed from the tag, or the tag's icon from assets), `+N` for the rest, link count with a link icon                              | `accessories.ts`, `assets.ts`        |        |          |               |
+| S08 | Empty states: Loading…; No entries indexed yet (with Rebuild); No matching entries                                                                                             | `empty.tsx`                          |        |          |               |
+| S09 | Split pane toggled with → and ←: the notes Markdown, or "_No additional notes available for this entry._", above the metadata                                                  | `detail.tsx`, `actions.tsx`          |        |          |               |
+| S10 | Metadata, in order: URL link (bookmarks) or Command (commands); Type tag; Status; Priority; Description; Tags; Links; Source                                                   | `metadata.tsx`                       |        |          |               |
+| S11 | Detail screen pushed with Return: the entry title as navigation title, the notes, metadata toggled with → and ←                                                                | `detail.tsx`                         |        |          |               |
+| S12 | Notes rendering: headings, lists, tables, blockquote description, highlighted code blocks, YouTube thumbnail, SVG and image blocks, mermaid diagram, LINKS list, source footer | `markdown.ts` (domain)               |        |          |               |
 
 ## Filter
 
-| #   | Behaviour in Raycast                                                                                                  | Source       | Status | Evidence | Justification |
-| --- | --------------------------------------------------------------------------------------------------------------------- | ------------ | ------ | -------- | ------------- |
-| F01 | A dropdown beside the search field: a summary item and Clear All Filters; a Types section; a Tags section            | `filter.tsx` |        |          |               |
-| F02 | Choosing a type or tag toggles it; several can be active; any selected type and every selected tag must match        | `filter.tsx`, `search.ts` |  |    |               |
-| F03 | Filters reset on every launch                                                                                         | `filter.tsx` |        |          |               |
+| #   | Behaviour in Raycast                                                                                          | Source                    | Status | Evidence | Justification |
+| --- | ------------------------------------------------------------------------------------------------------------- | ------------------------- | ------ | -------- | ------------- |
+| F01 | A dropdown beside the search field: a summary item and Clear All Filters; a Types section; a Tags section     | `filter.tsx`              |        |          |               |
+| F02 | Choosing a type or tag toggles it; several can be active; any selected type and every selected tag must match | `filter.tsx`, `search.ts` |        |          |               |
+| F03 | Filters reset on every launch                                                                                 | `filter.tsx`              |        |          |               |
 
 ## Actions
 
-| #   | Behaviour in Raycast                                                                                                                     | Source        | Status | Evidence | Justification |
-| --- | ---------------------------------------------------------------------------------------------------------------------------------------- | ------------- | ------ | -------- | ------------- |
-| A01 | ⌘K opens the action panel; actions are grouped in sections with their shortcuts shown                                                    | `actions.tsx` |        |          |               |
-| A02 | List: Return shows details (push)                                                                                                        | `actions.tsx` |        |          |               |
-| A03 | List: ⌘Return runs the type's primary action — Open in Browser (bookmarks); Copy Command Snippet; Copy Cheat Sheet; Copy Notes; Copy Task; Copy Primary Content | `actions.tsx` | | |   |
-| A04 | Detail: Return runs the type's primary action                                                                                            | `actions.tsx` |        |          |               |
-| A05 | ⌘C copies a bookmark's URL                                                                                                               | `actions.tsx` |        |          |               |
-| A06 | → / ← show and hide Details (list) or Metadata (detail)                                                                                  | `actions.tsx` |        |          |               |
-| A07 | ⌘O opens the source file                                                                                                                 | `actions.tsx` |        |          |               |
-| A08 | Links submenu: per link, Open and Copy URL                                                                                               | `actions.tsx` |        |          |               |
-| A09 | Copy… submenu: Title, Description, Notes, Raw YAML (Description and Notes only when present)                                            | `actions.tsx` |        |          |               |
-| A10 | ⌘R Rebuild Index…; ⌘⇧, Open Extension Preferences                                                                                       | `actions.tsx` |        |          |               |
+| #   | Behaviour in Raycast                                                                                                                                            | Source        | Status | Evidence | Justification |
+| --- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------- | ------ | -------- | ------------- |
+| A01 | ⌘K opens the action panel; actions are grouped in sections with their shortcuts shown                                                                           | `actions.tsx` |        |          |               |
+| A02 | List: Return shows details (push)                                                                                                                               | `actions.tsx` |        |          |               |
+| A03 | List: ⌘Return runs the type's primary action — Open in Browser (bookmarks); Copy Command Snippet; Copy Cheat Sheet; Copy Notes; Copy Task; Copy Primary Content | `actions.tsx` |        |          |               |
+| A04 | Detail: Return runs the type's primary action                                                                                                                   | `actions.tsx` |        |          |               |
+| A05 | ⌘C copies a bookmark's URL                                                                                                                                      | `actions.tsx` |        |          |               |
+| A06 | → / ← show and hide Details (list) or Metadata (detail)                                                                                                         | `actions.tsx` |        |          |               |
+| A07 | ⌘O opens the source file                                                                                                                                        | `actions.tsx` |        |          |               |
+| A08 | Links submenu: per link, Open and Copy URL                                                                                                                      | `actions.tsx` |        |          |               |
+| A09 | Copy… submenu: Title, Description, Notes, Raw YAML (Description and Notes only when present)                                                                    | `actions.tsx` |        |          |               |
+| A10 | ⌘R Rebuild Index…; ⌘⇧, Open Extension Preferences                                                                                                               | `actions.tsx` |        |          |               |
 
 ## Sync
 
-| #   | Behaviour in Raycast                                                                                                  | Source                         | Status | Evidence | Justification |
-| --- | --------------------------------------------------------------------------------------------------------------------- | ------------------------------ | ------ | -------- | ------------- |
-| Y01 | Rebuild screen with progress: files scanned of total, entries, current file; can be stopped                          | `sync/screen.tsx`, `sync/progress.ts` |  |      |               |
-| Y02 | A toast on completion; on failure, a toast with Open Extension Preferences                                            | `sync/use-sync.ts`             |        |          |               |
-| Y03 | Report: files in sections by status; a file's detail shows an excerpt and File, Status, Location, Entries, Types       | `sync/report.ts`, `sync/file.tsx` |     |          |               |
-| Y04 | Stopped and Failed states, with Retry and Open Extension Preferences                                                  | `sync/screen.tsx`              |        |          |               |
+| #   | Behaviour in Raycast                                                                                             | Source                                | Status | Evidence | Justification |
+| --- | ---------------------------------------------------------------------------------------------------------------- | ------------------------------------- | ------ | -------- | ------------- |
+| Y01 | Rebuild screen with progress: files scanned of total, entries, current file; can be stopped                      | `sync/screen.tsx`, `sync/progress.ts` |        |          |               |
+| Y02 | A toast on completion; on failure, a toast with Open Extension Preferences                                       | `sync/use-sync.ts`                    |        |          |               |
+| Y03 | Report: files in sections by status; a file's detail shows an excerpt and File, Status, Location, Entries, Types | `sync/report.ts`, `sync/file.tsx`     |        |          |               |
+| Y04 | Stopped and Failed states, with Retry and Open Extension Preferences                                             | `sync/screen.tsx`                     |        |          |               |
 
 ## Launch and preferences
 
-| #   | Behaviour in Raycast                                                                     | Source         | Status | Evidence | Justification |
-| --- | ---------------------------------------------------------------------------------------- | -------------- | ------ | -------- | ------------- |
-| L01 | Opened from Raycast's root search or a user-assigned hotkey; Esc pops, then closes      | Raycast        |        |          |               |
-| P01 | The Sources Directory preference, defaulting to `~/.config/kodexb/sources`              | `paths.ts`     |        |          |               |
+| #   | Behaviour in Raycast                                                               | Source     | Status | Evidence | Justification |
+| --- | ---------------------------------------------------------------------------------- | ---------- | ------ | -------- | ------------- |
+| L01 | Opened from Raycast's root search or a user-assigned hotkey; Esc pops, then closes | Raycast    |        |          |               |
+| P01 | The Sources Directory preference, defaulting to `~/.config/kodexb/sources`         | `paths.ts` |        |          |               |
 
 ## Tasks
 
 The five tasks measured for task cost (keystrokes and tier 3 time) in Plan 4, on both apps.
 
-| #   | Task                                                    |
-| --- | ------------------------------------------------------- |
-| T1  | Find a bookmark by a word in its title and open it      |
-| T2  | Find a command and copy it                              |
-| T3  | Filter by one type and one tag                          |
-| T4  | Read a code-heavy note in the detail screen             |
-| T5  | Rebuild the index                                       |
+| #  | Task                                               |
+| -- | -------------------------------------------------- |
+| T1 | Find a bookmark by a word in its title and open it |
+| T2 | Find a command and copy it                         |
+| T3 | Filter by one type and one tag                     |
+| T4 | Read a code-heavy note in the detail screen        |
+| T5 | Rebuild the index                                  |
 ```
 
 - [ ] **Step 2: Check it against the code**
@@ -2999,4 +3020,6 @@ done
 
 Expected: one line of engine timings and one search line for the private corpus. Report these numbers to the
 owner; they are the baseline Plans 2–4 are measured against.
+
+```
 ```
