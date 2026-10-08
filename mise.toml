@@ -109,3 +109,20 @@ run = '''
   ln -sfn "$target" bench/ts/kb
   echo "bench/ts/kb -> $target @ $(git -C "$KB_TS_REPO" rev-parse --short HEAD)"
 '''
+
+[tasks."bench:ts"]
+description = "Tier 1: benchmark the TS engine on a corpus under Node 22 (Raycast's runtime) and Bun"
+depends = ["bench:link"]
+usage = 'arg "<corpus>" help="sample, private or private-10x"'
+run = '''
+  #!/usr/bin/env bash
+  set -euo pipefail
+  corpus="${usage_corpus}"
+  stamp=$(date -u +%Y%m%dT%H%M%SZ)
+  bun run --cwd bench/ts build
+  node22=$(mise where node@22.22.2)/bin/node
+  "$node22" bench/ts/dist/bench.mjs --fixtures fixtures --corpus "$corpus" \
+    --out "docs/experiment/results/tier1-ts-node22-$corpus-$stamp.json"
+  bun bench/ts/bench.ts --fixtures fixtures --corpus "$corpus" \
+    --out "docs/experiment/results/tier1-ts-bun-$corpus-$stamp.json"
+'''
