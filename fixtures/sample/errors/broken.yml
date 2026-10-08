@@ -1,0 +1,3 @@
+commands:
+  echo hi:
+    desc: [this flow sequence is never closed

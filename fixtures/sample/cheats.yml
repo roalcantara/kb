@@ -1,0 +1,27 @@
+cheats:
+  git-rebase:
+    title: Interactive rebase
+    cheat: git rebase -i HEAD~3
+    tags: [git]
+    notes:
+      md: |
+        ## Steps
+
+        1. Pick the first commit
+        2. Squash the rest
+
+        | Key | Meaning |
+        | --- | ------- |
+        | p   | pick    |
+        | s   | squash  |
+      ts: "const answer: number = 42"
+      json:
+        retries: 3
+        hosts: [a, b]
+      mermaid: |
+        graph TD
+          A[Start] --> B[Rebase]
+      svg: <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10"><rect width="10" height="10"/></svg>
+      img: https://example.com/diagram.png
+      haskell: main = putStrLn "unknown language, kept as written"
+      py: print("alias for python")

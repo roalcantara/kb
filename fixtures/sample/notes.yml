@@ -1,0 +1,12 @@
+notes:
+  plain-note:
+    title: Café ☕ notes
+    notes: Plain string notes with **bold** text and naïve Unicode.
+  without-notes:
+    title: A note without notes
+  list-notes:
+    title: List notes
+    notes:
+      - First paragraph.
+      - python: print("hello")
+      - 42

@@ -1,0 +1,15 @@
+bookmarks:
+  https://www.youtube.com/watch?v=aqz-KE-bpKQ:
+    title: A conference talk
+    desc: A YouTube bookmark, so its notes open with the video thumbnail.
+    tags: [video, Talks]
+  https://example.com/docs:
+    title: Example docs
+    description: Uses the long spelling of the description field.
+    tag: docs
+    status: archived
+    links:
+      - https://example.com/changelog
+      - Guide: https://example.com/guide
+        API: https://example.com/api
+  not-a-map: a bookmark whose value is a string, so it is skipped

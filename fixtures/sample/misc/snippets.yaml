@@ -1,0 +1,5 @@
+snippets:
+  hello:
+    title: An entry of an unknown type
+    tag: Mixed-Case
+    notes: Unknown types are kept, not rejected.

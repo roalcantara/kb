@@ -1,0 +1,18 @@
+commands:
+  docker ps -a:
+    desc: List every container, stopped ones too.
+    tags: [docker, containers]
+    notes: |
+      Add `--format '{{.Names}}'` to print names only.
+  kubectl get pods -A:
+    title: All pods
+    tags: [kube]
+    notes:
+      - Lists pods in every namespace.
+      - sh: kubectl get pods -A -o wide
+      - yml: |
+          apiVersion: v1
+          kind: Pod
+  run-script:
+    cmd: ./scripts/run.sh --verbose
+    title: Run with the explicit cmd field

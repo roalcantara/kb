@@ -1,0 +1,9 @@
+tasks:
+  port-engine:
+    task: Port the kb engine to Rust
+    status: in-progress
+    priority: high
+    tags: [rust, kb]
+  write-report:
+    title: Write the report
+    status: todo
