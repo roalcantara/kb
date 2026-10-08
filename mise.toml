@@ -49,3 +49,19 @@ run = '''
     hk install --mise
   {% endif %}
 '''
+
+[tasks.gate]
+description = "Run every quality gate, stopping at the first failure. --fast runs tests and clippy only."
+usage = 'flag "--fast" help="nextest and clippy only, for inner loops"'
+run = '''
+  #!/usr/bin/env bash
+  set -euo pipefail
+
+  cargo nextest run --workspace --locked --no-tests=warn
+  cargo clippy --workspace --all-targets --locked -- -D warnings
+  if [ "${usage_fast:-false}" = "true" ]; then exit 0; fi
+  cargo build --workspace --release --locked
+  hk check --all
+  cargo deny check
+  RUSTDOCFLAGS='-D warnings' cargo doc --workspace --no-deps --locked
+'''
