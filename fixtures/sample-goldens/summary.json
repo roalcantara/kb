@@ -1,0 +1,104 @@
+{
+  "totalIndexed": 12,
+  "filesScanned": 8,
+  "filesFailed": 2,
+  "errors": [
+    {
+      "filePath": "<root>/errors/broken.yml",
+      "message": "Flow sequence in block collection must be sufficiently indented and end with a ] at line 4, column 1:\n\n    desc: [this flow sequence is never closed\n\n^\n",
+      "line": 4,
+      "column": 1
+    },
+    {
+      "filePath": "<root>/errors/list-type.yml",
+      "message": "type block \"commands\" is a list; it must be a map of keys to entries"
+    }
+  ],
+  "files": [
+    {
+      "relPath": "bookmarks.yml",
+      "filePath": "<root>/bookmarks.yml",
+      "entries": 2,
+      "types": {
+        "bookmarks": 2
+      },
+      "issues": [
+        {
+          "kind": "skipped-entry",
+          "type": "bookmarks",
+          "key": "not-a-map"
+        }
+      ]
+    },
+    {
+      "relPath": "cheats.yml",
+      "filePath": "<root>/cheats.yml",
+      "entries": 1,
+      "types": {
+        "cheats": 1
+      },
+      "issues": []
+    },
+    {
+      "relPath": "commands.yml",
+      "filePath": "<root>/commands.yml",
+      "entries": 3,
+      "types": {
+        "commands": 3
+      },
+      "issues": []
+    },
+    {
+      "relPath": "errors/broken.yml",
+      "filePath": "<root>/errors/broken.yml",
+      "entries": 0,
+      "types": {},
+      "error": {
+        "filePath": "<root>/errors/broken.yml",
+        "message": "Flow sequence in block collection must be sufficiently indented and end with a ] at line 4, column 1:\n\n    desc: [this flow sequence is never closed\n\n^\n",
+        "line": 4,
+        "column": 1
+      },
+      "excerpt": "  2 |   echo hi:\n  3 |     desc: [this flow sequence is never closed\n> 4 | ",
+      "issues": []
+    },
+    {
+      "relPath": "errors/list-type.yml",
+      "filePath": "<root>/errors/list-type.yml",
+      "entries": 0,
+      "types": {},
+      "error": {
+        "filePath": "<root>/errors/list-type.yml",
+        "message": "type block \"commands\" is a list; it must be a map of keys to entries"
+      },
+      "issues": []
+    },
+    {
+      "relPath": "misc/snippets.yaml",
+      "filePath": "<root>/misc/snippets.yaml",
+      "entries": 1,
+      "types": {
+        "snippets": 1
+      },
+      "issues": []
+    },
+    {
+      "relPath": "notes.yml",
+      "filePath": "<root>/notes.yml",
+      "entries": 3,
+      "types": {
+        "notes": 3
+      },
+      "issues": []
+    },
+    {
+      "relPath": "tasks.yml",
+      "filePath": "<root>/tasks.yml",
+      "entries": 2,
+      "types": {
+        "tasks": 2
+      },
+      "issues": []
+    }
+  ]
+}

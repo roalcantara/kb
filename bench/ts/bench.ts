@@ -11,17 +11,9 @@ import { buildSearchSql, renderSearchSql } from './kb/src/search'
 import { scanKnowledgeBase } from './kb/src/source'
 import { syncKnowledgeBase } from './kb/src/sync'
 import { type CaseResult, measure, measureAsync } from './measure'
-import { loadQueries, toSearchQuery } from './query'
+import { arg, loadQueries, toSearchQuery } from './query'
 
 const SCHEMA_VERSION = 1
-
-function arg(name: string): string {
-  const index = process.argv.indexOf(`--${name}`)
-  if (index === -1) throw new Error(`missing --${name}`)
-  const value = process.argv[index + 1]
-  if (value === undefined) throw new Error(`missing --${name}`)
-  return value
-}
 
 type SqliteModule = typeof sqliteModule
 const sqlite = process.getBuiltinModule('node:sqlite') as SqliteModule

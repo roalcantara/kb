@@ -26,3 +26,11 @@ export function toSearchQuery(query: BenchQuery): SearchQuery {
     ...(hasFilter ? { filter: { types: query.types ?? [], tags: query.tags ?? [] } } : {})
   }
 }
+
+export function arg(name: string): string {
+  const index = process.argv.indexOf(`--${name}`)
+  if (index === -1) throw new Error(`missing --${name}`)
+  const value = process.argv[index + 1]
+  if (value === undefined) throw new Error(`missing --${name}`)
+  return value
+}

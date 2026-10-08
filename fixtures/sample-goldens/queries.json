@@ -1,0 +1,299 @@
+[
+  {
+    "id": "q01-empty",
+    "text": "",
+    "results": [
+      {
+        "id": "bookmarks.yml#bookmarks#https://www.youtube.com/watch?v=aqz-KE-bpKQ",
+        "sortKey": "A conference talk"
+      },
+      {
+        "id": "notes.yml#notes#without-notes",
+        "sortKey": "A note without notes"
+      },
+      {
+        "id": "commands.yml#commands#kubectl get pods -A",
+        "sortKey": "All pods"
+      },
+      {
+        "id": "misc/snippets.yaml#snippets#hello",
+        "sortKey": "An entry of an unknown type"
+      },
+      {
+        "id": "notes.yml#notes#plain-note",
+        "sortKey": "Café ☕ notes"
+      },
+      {
+        "id": "bookmarks.yml#bookmarks#https://example.com/docs",
+        "sortKey": "Example docs"
+      },
+      {
+        "id": "cheats.yml#cheats#git-rebase",
+        "sortKey": "Interactive rebase"
+      },
+      {
+        "id": "notes.yml#notes#list-notes",
+        "sortKey": "List notes"
+      },
+      {
+        "id": "commands.yml#commands#run-script",
+        "sortKey": "Run with the explicit cmd field"
+      },
+      {
+        "id": "tasks.yml#tasks#write-report",
+        "sortKey": "Write the report"
+      },
+      {
+        "id": "commands.yml#commands#docker ps -a",
+        "sortKey": "docker ps -a"
+      },
+      {
+        "id": "tasks.yml#tasks#port-engine",
+        "sortKey": "port-engine"
+      }
+    ]
+  },
+  {
+    "id": "q02-empty-type",
+    "text": "",
+    "types": [
+      "commands"
+    ],
+    "results": [
+      {
+        "id": "commands.yml#commands#kubectl get pods -A",
+        "sortKey": "All pods"
+      },
+      {
+        "id": "commands.yml#commands#run-script",
+        "sortKey": "Run with the explicit cmd field"
+      },
+      {
+        "id": "commands.yml#commands#docker ps -a",
+        "sortKey": "docker ps -a"
+      }
+    ]
+  },
+  {
+    "id": "q03-empty-tag",
+    "text": "",
+    "tags": [
+      "git"
+    ],
+    "results": [
+      {
+        "id": "cheats.yml#cheats#git-rebase",
+        "sortKey": "Interactive rebase"
+      }
+    ]
+  },
+  {
+    "id": "q04-one-letter",
+    "text": "d",
+    "results": [
+      {
+        "id": "bookmarks.yml#bookmarks#https://example.com/docs",
+        "sortKey": -1.4830086497322437
+      },
+      {
+        "id": "commands.yml#commands#docker ps -a",
+        "sortKey": -0.9307835676575261
+      },
+      {
+        "id": "cheats.yml#cheats#git-rebase",
+        "sortKey": -0.4062080981030633
+      }
+    ]
+  },
+  {
+    "id": "q05-two-letters",
+    "text": "do",
+    "results": [
+      {
+        "id": "bookmarks.yml#bookmarks#https://example.com/docs",
+        "sortKey": -1.6086943131251994
+      },
+      {
+        "id": "commands.yml#commands#docker ps -a",
+        "sortKey": -1.337721109354695
+      }
+    ]
+  },
+  {
+    "id": "q06-prefix",
+    "text": "dock",
+    "results": [
+      {
+        "id": "commands.yml#commands#docker ps -a",
+        "sortKey": -1.8986895220062623
+      }
+    ]
+  },
+  {
+    "id": "q07-word",
+    "text": "docker",
+    "results": [
+      {
+        "id": "commands.yml#commands#docker ps -a",
+        "sortKey": -1.8986895220062623
+      }
+    ]
+  },
+  {
+    "id": "q08-word-page-2",
+    "text": "docker",
+    "offset": 50,
+    "results": []
+  },
+  {
+    "id": "q09-two-words",
+    "text": "docker run",
+    "results": []
+  },
+  {
+    "id": "q10-three-words",
+    "text": "docker container rm",
+    "results": []
+  },
+  {
+    "id": "q11-git",
+    "text": "git",
+    "results": []
+  },
+  {
+    "id": "q12-git-rebase",
+    "text": "git rebase",
+    "results": []
+  },
+  {
+    "id": "q13-kube",
+    "text": "kube",
+    "results": [
+      {
+        "id": "commands.yml#commands#kubectl get pods -A",
+        "sortKey": -1.8468416159691758
+      }
+    ]
+  },
+  {
+    "id": "q14-kubectl-pods",
+    "text": "kubectl get pods",
+    "results": [
+      {
+        "id": "commands.yml#commands#kubectl get pods -A",
+        "sortKey": -6.730796991255645
+      }
+    ]
+  },
+  {
+    "id": "q15-aws",
+    "text": "aws",
+    "results": []
+  },
+  {
+    "id": "q16-aws-s3",
+    "text": "aws s3",
+    "results": []
+  },
+  {
+    "id": "q17-react",
+    "text": "react",
+    "results": []
+  },
+  {
+    "id": "q18-vite",
+    "text": "vite",
+    "results": []
+  },
+  {
+    "id": "q19-python",
+    "text": "python",
+    "results": [
+      {
+        "id": "cheats.yml#cheats#git-rebase",
+        "sortKey": -0.8286169700689837
+      }
+    ]
+  },
+  {
+    "id": "q20-ruby",
+    "text": "ruby",
+    "results": []
+  },
+  {
+    "id": "q21-leetcode",
+    "text": "leetcode",
+    "results": []
+  },
+  {
+    "id": "q22-zsh",
+    "text": "zsh",
+    "results": []
+  },
+  {
+    "id": "q23-ssh",
+    "text": "ssh",
+    "results": []
+  },
+  {
+    "id": "q24-mise",
+    "text": "mise",
+    "results": []
+  },
+  {
+    "id": "q25-fabric",
+    "text": "fabric",
+    "results": []
+  },
+  {
+    "id": "q26-word-type",
+    "text": "git",
+    "types": [
+      "commands"
+    ],
+    "results": []
+  },
+  {
+    "id": "q27-word-two-types",
+    "text": "docker",
+    "types": [
+      "commands",
+      "cheats"
+    ],
+    "results": [
+      {
+        "id": "commands.yml#commands#docker ps -a",
+        "sortKey": -1.8986895220062623
+      }
+    ]
+  },
+  {
+    "id": "q28-word-tag",
+    "text": "aws",
+    "tags": [
+      "serverless"
+    ],
+    "results": []
+  },
+  {
+    "id": "q29-word-type-tag",
+    "text": "kube",
+    "types": [
+      "commands"
+    ],
+    "tags": [
+      "kube"
+    ],
+    "results": [
+      {
+        "id": "commands.yml#commands#kubectl get pods -A",
+        "sortKey": -1.8468416159691758
+      }
+    ]
+  },
+  {
+    "id": "q30-no-match",
+    "text": "zzqxj",
+    "results": []
+  }
+]

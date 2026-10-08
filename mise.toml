@@ -126,3 +126,15 @@ run = '''
   bun bench/ts/bench.ts --fixtures fixtures --corpus "$corpus" \
     --out "docs/experiment/results/tier1-ts-bun-$corpus-$stamp.json"
 '''
+
+[tasks.goldens]
+description = "Write goldens from the TS engine under Node 22 into fixtures/<corpus>-goldens"
+depends = ["bench:link"]
+usage = 'arg "<corpus>" help="sample or private"'
+run = '''
+  #!/usr/bin/env bash
+  set -euo pipefail
+  bun run --cwd bench/ts build
+  "$(mise where node@22.22.2)/bin/node" bench/ts/dist/goldens.mjs \
+    --fixtures fixtures --corpus "${usage_corpus}" --out "fixtures/${usage_corpus}-goldens"
+'''
