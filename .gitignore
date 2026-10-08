@@ -1,0 +1,18 @@
+/target/
+/tmp/
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+
+# Private corpora and everything derived from them; only fixtures/private.sha256 is committed.
+/fixtures/private/
+/fixtures/private-10x/
+/fixtures/private-goldens/
+
+# The TS bench links to the Raycast repo and bundles locally.
+/bench/ts/kb
+/bench/ts/node_modules/
+/bench/ts/dist/
+
+.DS_Store
