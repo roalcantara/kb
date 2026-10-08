@@ -65,3 +65,36 @@ run = '''
   cargo deny check
   RUSTDOCFLAGS='-D warnings' cargo doc --workspace --no-deps --locked
 '''
+
+[tasks.fixtures]
+description = "Copy the private corpus from $KB_SOURCES (--refresh), verify it against fixtures/private.sha256, and build the 10x copy"
+usage = 'flag "--refresh" help="recopy from $KB_SOURCES and rewrite the manifest"'
+run = '''
+  #!/usr/bin/env bash
+  set -euo pipefail
+
+  manifest() { (cd fixtures/private && find . -type f \( -name '*.yml' -o -name '*.yaml' \) | LC_ALL=C sort | xargs shasum -a 256); }
+
+  if [ "${usage_refresh:-false}" = "true" ]; then
+    rm -rf fixtures/private
+    mkdir -p fixtures/private
+    # -L: the sources directory is a symlink, and so may be its folders.
+    rsync -aL --include='*/' --include='*.yml' --include='*.yaml' --exclude='*' --prune-empty-dirs \
+      "$KB_SOURCES/" fixtures/private/
+    manifest > fixtures/private.sha256
+    echo "copied $(wc -l < fixtures/private.sha256 | tr -d ' ') files; review and commit fixtures/private.sha256"
+  fi
+
+  if ! diff -q <(manifest) fixtures/private.sha256 >/dev/null; then
+    echo "fixtures/private does not match fixtures/private.sha256"
+    echo "    -> run 'mise run fixtures --refresh' to take a new snapshot, or restore the old one"
+    exit 1
+  fi
+
+  rm -rf fixtures/private-10x
+  for i in 0 1 2 3 4 5 6 7 8 9; do
+    mkdir -p "fixtures/private-10x/copy-$i"
+    cp -R fixtures/private/. "fixtures/private-10x/copy-$i/"
+  done
+  echo "private corpus verified; private-10x rebuilt"
+'''
