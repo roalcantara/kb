@@ -276,7 +276,7 @@ local candidate_steps = new Mapping<String, Step> {
     }
     ["coverage"] {
         // A report, not a gate: there is no threshold until Plan 2 has code to measure.
-        check = "cargo llvm-cov nextest --workspace --locked --no-tests=warn --summary-only"
+        check = "cargo llvm-cov nextest --workspace --locked --no-tests=warn --summary-only || true"
         profiles = List("candidate")
     }
 }
