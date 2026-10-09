@@ -1,6 +1,7 @@
 //! What the screens show for an entry: labels, icons, the primary action and the metadata, as
 //! plain data. Kept apart from rendering so the Raycast behaviour it reproduces is tested directly.
 
+use gpui_kit::Rgba;
 use gpui_kit::assets::IconName;
 use kb_domain::entry::Entry;
 
@@ -75,6 +76,105 @@ pub fn type_icon(entry_type: &str) -> IconName {
         TypeKey::Note => IconName::BookOpen,
         TypeKey::Task => IconName::CircleCheck,
         TypeKey::Cheat | TypeKey::Other => IconName::FileText,
+    }
+}
+
+/// The visual presentation of an entry type badge.
+#[derive(Debug, Clone, PartialEq)]
+pub struct TypeBadge {
+    pub icon: IconName,
+    pub glyph: Option<&'static str>,
+    pub bg: Rgba,
+    pub border: Rgba,
+    pub fg: Rgba,
+}
+
+impl TypeBadge {
+    #[must_use]
+    pub fn is_terminal_style(&self) -> bool {
+        self.glyph == Some(">")
+    }
+}
+
+/// Returns the vibrant badge styling for an entry type.
+#[must_use]
+#[allow(clippy::unreadable_literal)]
+pub fn type_badge(entry_type: &str) -> TypeBadge {
+    match type_key(entry_type) {
+        TypeKey::Command => TypeBadge {
+            icon: IconName::ChevronRight,
+            glyph: Some(">"),
+            bg: gpui_kit::rgb(0x14532d),
+            border: gpui_kit::rgb(0x22c55e),
+            fg: gpui_kit::rgb(0x4ade80),
+        },
+        TypeKey::Cheat => TypeBadge {
+            icon: IconName::FileText,
+            glyph: None,
+            bg: gpui_kit::rgb(0x1e3a8a),
+            border: gpui_kit::rgb(0x3b82f6),
+            fg: gpui_kit::rgb(0x93c5fd),
+        },
+        TypeKey::Bookmark => TypeBadge {
+            icon: IconName::Globe,
+            glyph: None,
+            bg: gpui_kit::rgb(0x0c4a6e),
+            border: gpui_kit::rgb(0x0284c7),
+            fg: gpui_kit::rgb(0x38bdf8),
+        },
+        TypeKey::Note => TypeBadge {
+            icon: IconName::BookOpen,
+            glyph: None,
+            bg: gpui_kit::rgb(0x3b0764),
+            border: gpui_kit::rgb(0x9333ea),
+            fg: gpui_kit::rgb(0xc084fc),
+        },
+        TypeKey::Task => TypeBadge {
+            icon: IconName::CircleCheck,
+            glyph: None,
+            bg: gpui_kit::rgb(0x4c0519),
+            border: gpui_kit::rgb(0xe11d48),
+            fg: gpui_kit::rgb(0xfb7185),
+        },
+        TypeKey::Other => TypeBadge {
+            icon: IconName::File,
+            glyph: None,
+            bg: gpui_kit::rgb(0x1e293b),
+            border: gpui_kit::rgb(0x475569),
+            fg: gpui_kit::rgb(0x94a3b8),
+        },
+    }
+}
+
+/// A pastel tint for a tag badge.
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct TagTint {
+    pub bg: Rgba,
+    pub fg: Rgba,
+}
+
+/// Curated palette of 6 pastel tag colors for dark mode.
+#[allow(clippy::unreadable_literal)]
+const TAG_PALETTE: [(u32, u32); 6] = [
+    (0x3b181a, 0xf87171), // Coral
+    (0x3d270c, 0xfbbf24), // Amber
+    (0x13301f, 0x4ade80), // Emerald
+    (0x132742, 0x60a5fa), // Sky
+    (0x3b162c, 0xf472b6), // Rose
+    (0x2f1b40, 0xc084fc), // Violet
+];
+
+/// Deterministically maps a tag name to a dark-mode pastel tint.
+#[must_use]
+pub fn tag_tint(tag: &str) -> TagTint {
+    let mut hash: usize = 5381;
+    for byte in tag.bytes() {
+        hash = hash.wrapping_mul(33).wrapping_add(byte as usize);
+    }
+    let (bg_hex, fg_hex) = TAG_PALETTE[hash % TAG_PALETTE.len()];
+    TagTint {
+        bg: gpui_kit::rgb(bg_hex),
+        fg: gpui_kit::rgb(fg_hex),
     }
 }
 
@@ -243,5 +343,28 @@ mod tests {
             metadata(&entry("bookmarks", "https://b.example", "title: B\n"))[0],
             ("URL", "https://b.example".into())
         );
+    }
+
+    #[test]
+    fn matches_type_badge_colors_and_icons() {
+        let cmd = type_badge("Command");
+        assert_eq!(cmd.icon, IconName::ChevronRight);
+        assert!(cmd.is_terminal_style());
+
+        let cheat = type_badge("Cheat");
+        assert_eq!(cheat.icon, IconName::FileText);
+
+        let bookmark = type_badge("Bookmark");
+        assert_eq!(bookmark.icon, IconName::Globe);
+    }
+
+    #[test]
+    fn hashes_tags_deterministically_into_palette() {
+        let tag1 = tag_tint("nu");
+        let tag2 = tag_tint("nu");
+        assert_eq!(tag1, tag2);
+
+        let tag_schedule = tag_tint("schedule");
+        assert_ne!(tag1, tag_schedule);
     }
 }
