@@ -10,6 +10,8 @@ repository.workspace = true
 
 
 [dependencies]
+gpui-kit.workspace = true
+kb-domain.workspace = true
 serde.workspace = true
 thiserror.workspace = true
 toml.workspace = true

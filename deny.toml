@@ -4,6 +4,15 @@ all-features = true
 [advisories]
 version = 2
 yanked = "deny"
+# Unmaintained crates GPUI Kit 0.7.1 pulls in; none is reachable to fix from this workspace.
+# Each is reviewed again when gpui-kit is upgraded (docs/adr/0005-gpui-kit-pin.md).
+ignore = [
+  { id = "RUSTSEC-2024-0384", reason = "instant, via GPUI Kit's dependency tree" },
+  { id = "RUSTSEC-2024-0436", reason = "paste, via GPUI Kit's dependency tree" },
+  { id = "RUSTSEC-2025-0134", reason = "rustls-pemfile, via GPUI Kit's HTTP client" },
+  { id = "RUSTSEC-2026-0192", reason = "ttf-parser, via GPUI's text system" },
+  { id = "RUSTSEC-2026-0206", reason = "rustybuzz, via GPUI's text system" },
+]
 
 [licenses]
 version = 2
@@ -19,6 +28,9 @@ allow = [
   "Zlib",
   "MPL-2.0",
   "CC0-1.0",
+  # GPUI Kit's tree: enum-iterator (0BSD) and libbz2-rs-sys (bzip2-1.0.6), both permissive.
+  "0BSD",
+  "bzip2-1.0.6",
 ]
 
 [bans]
