@@ -6,6 +6,7 @@
 pub mod config;
 pub mod entry_list;
 pub mod filter;
+pub mod notes;
 pub mod palette;
 pub mod presentation;
 
