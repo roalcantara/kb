@@ -9,6 +9,7 @@
 pub mod entry;
 pub mod markdown;
 pub mod query;
+pub mod report;
 pub mod row;
 pub mod search;
 pub mod source;
