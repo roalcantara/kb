@@ -6,6 +6,8 @@
 
 #![warn(missing_docs)]
 
+pub use rusqlite::Connection;
+
 pub mod entry;
 pub mod markdown;
 pub mod query;

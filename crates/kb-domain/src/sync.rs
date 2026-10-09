@@ -74,6 +74,15 @@ pub fn open_database(path: &Path) -> rusqlite::Result<Connection> {
     Ok(connection)
 }
 
+/// Opens the index read-only, as the app reads it: a sync writes through its own connection.
+///
+/// # Errors
+///
+/// An SQLite error, such as a missing file.
+pub fn open_readonly(path: &Path) -> rusqlite::Result<Connection> {
+    Connection::open_with_flags(path, rusqlite::OpenFlags::SQLITE_OPEN_READ_ONLY)
+}
+
 /// Opens the index with its schema, replacing the file only when SQLite says it is corrupt: the
 /// index is derived, so a corrupt one costs nothing to discard; any other failure is returned.
 fn open_initialized(path: &Path) -> rusqlite::Result<Connection> {
@@ -234,6 +243,18 @@ mod tests {
         let result = sync_knowledge_base(root.path(), &path, &AtomicBool::new(true), |_| {});
         assert!(matches!(result, Err(SyncError::Cancelled)));
         assert_eq!(count(&path, "entries"), 1);
+    }
+
+    #[test]
+    fn lists_types_and_tags_from_a_read_only_connection() {
+        let root = sources(&[("a.yml", "notes:\n  one: {tags: [b, a]}\ncommands:\n  ls: {tags: [a]}\n")]);
+        let db = tempfile::tempdir().unwrap();
+        let path = db.path().join("kb.db");
+        sync_knowledge_base(root.path(), &path, &AtomicBool::new(false), |_| {}).unwrap();
+        let connection = open_readonly(&path).unwrap();
+        assert_eq!(crate::search::entry_types(&connection).unwrap(), ["commands", "notes"]);
+        assert_eq!(crate::search::tags(&connection).unwrap(), ["a", "b"]);
+        assert!(connection.execute("DELETE FROM entries", []).is_err());
     }
 
     #[test]

@@ -79,6 +79,31 @@ pub fn build_search_sql(query: &SearchQuery) -> SearchSql {
     SearchSql { sql, params }
 }
 
+/// The entry types in the index, sorted: the filter's type choices.
+///
+/// # Errors
+///
+/// An SQLite error.
+pub fn entry_types(connection: &Connection) -> rusqlite::Result<Vec<String>> {
+    column(connection, "SELECT DISTINCT type FROM entries ORDER BY type ASC")
+}
+
+/// The tags in the index, sorted: the filter's tag choices.
+///
+/// # Errors
+///
+/// An SQLite error.
+pub fn tags(connection: &Connection) -> rusqlite::Result<Vec<String>> {
+    column(connection, "SELECT DISTINCT tag FROM entry_tags ORDER BY tag ASC")
+}
+
+fn column(connection: &Connection, sql: &str) -> rusqlite::Result<Vec<String>> {
+    connection
+        .prepare_cached(sql)?
+        .query_map([], |row| row.get(0))?
+        .collect()
+}
+
 /// One page of rows for a query.
 ///
 /// # Errors
