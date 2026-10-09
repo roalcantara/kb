@@ -5,3 +5,5 @@
 //! `domain-purity` hk step fails any change that gives it one.
 
 #![warn(missing_docs)]
+
+pub mod yaml;
