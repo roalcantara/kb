@@ -8,6 +8,7 @@ use std::path::Path;
 use std::sync::atomic::AtomicBool;
 use std::time::Duration;
 
+use gpui_kit::component::{ActiveTheme as _, ThemeMode};
 use gpui_kit::test::TestWindowExt as _;
 use gpui_kit::{
     AnyWindowHandle, AppContext as _, Bounds, Entity, Point, TestAppContext, WindowBounds, WindowOptions, px, size,
@@ -61,6 +62,15 @@ fn titles(view: &Entity<SearchView>, cx: &mut TestAppContext) -> Vec<String> {
             .map(|e| e.title.clone())
             .collect()
     })
+}
+
+#[gpui_kit::test]
+fn initializes_with_dark_theme_mode(cx: &mut gpui_kit::TestAppContext) {
+    cx.update(|cx| {
+        gpui_kit::init(cx);
+        kb_app::init_theme(cx);
+        assert_eq!(cx.theme().mode, ThemeMode::Dark);
+    });
 }
 
 /// Renders a frame, then types `text` at the focused element.

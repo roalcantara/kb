@@ -27,3 +27,4 @@ ignore:
   - bench/ts/dist
   - .ls-lint.yml
   - .superpowers
+  - .delta

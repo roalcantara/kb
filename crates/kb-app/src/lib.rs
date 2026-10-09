@@ -15,6 +15,12 @@ pub mod presentation;
 pub mod search_view;
 pub mod sync_view;
 
+use gpui_kit::component::{Theme, ThemeMode};
+
+/// Configures the launcher theme in dark mode with refined surface tokens.
+pub fn init_theme(cx: &mut gpui_kit::App) {
+    Theme::change(ThemeMode::Dark, None, cx);
+}
 use crate::config::Config;
 
 /// Starts the app with `config` and blocks until it quits.
@@ -23,6 +29,7 @@ pub fn run(config: Config) {
         .with_assets(gpui_kit::assets::Assets)
         .run(move |cx| {
             gpui_kit::init(cx);
+            init_theme(cx);
             if let Err(error) = panel::open(config, cx) {
                 // No window to show it in: report it and quit.
                 #[allow(clippy::print_stderr)]
