@@ -4,6 +4,7 @@
 //! so the UI integration tests build the same views the app shows.
 
 pub mod config;
+pub mod entry_list;
 pub mod filter;
 pub mod palette;
 pub mod presentation;
