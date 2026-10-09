@@ -125,20 +125,25 @@ The index keeps the Raycast schema — `entries`, `entries_fts` (FTS5 over title
 
 ### `kb-app`
 
-| Unit      | Built from                                                                     | Owns                                                                   |
-| --------- | ------------------------------------------------------------------------------ | ---------------------------------------------------------------------- |
-| `main`    | GPUI app, `global-hotkey`, a pop-up window kind, no Dock icon                  | lifecycle; hotkey → show/reuse panel; hide on Esc/blur                 |
-| `search/` | `List` + `ListDelegate`, `Input`, `ListItem`, `Icon`, `Label`, `Tag`, `img()`  | `SearchView` entity: query, results page, selection, detail toggle     |
-| `filter`  | `Popover` + `Command` (grouped, searchable, checkmarks)                        | type and tag multi-select                                              |
-| `detail/` | `Resizable` split, `TextView::markdown`, `DescriptionList`, `Tag`, `Link`      | notes rendering, highlighter, mermaid plugin, one shared metadata view |
-| `nav`     | `NavStack`                                                                     | detail and sync screens pushed over search; Esc pops                   |
-| `actions` | `Command` in a `Popover`, typed GPUI `Action`s, `KeyBinding`, `Kbd`            | ⌘K palette; shortcut hints from bindings, never hand-written strings   |
-| `sync/`   | `List` with sections, `Progress`, `Spinner`, `Notification`, `DescriptionList` | sync run, cancellation, report                                         |
-| `empty`   | `Empty`                                                                        | no index / no results states                                           |
-| `config`  | TOML file `~/.config/kb/config.toml`                                           | `sources_path`, default `~/.config/kodexb/sources`; hotkey             |
+As built by Plan 3 (2026-10-09); one library with a thin `main`, so tests build the views the app shows:
 
-Highlighting: `TextView::code_block_highlighter` backed by the GPUI Kit tree-sitter highlighter, with the grammar
-features the notes actually use: bash (also `sh`, `zsh`), python, ruby, yaml, javascript (`js`, `jsx`),
+| Unit           | Built from                                                              | Owns                                                                 |
+| -------------- | ----------------------------------------------------------------------- | -------------------------------------------------------------------- |
+| `panel`        | GPUI pop-up window, `ActivationPolicy::Accessory`, `global-hotkey`      | lifecycle; ⌥K shows the panel; hide on Esc or blur (ADR 0004)        |
+| `search_view`  | `Resizable` split, `Command` in a dialog, typed `Action`s, `KeyBinding` | root view: screens (search, detail, rebuild), one handler per Action |
+| `entry_list`   | `List` + `ListDelegate`, `ListItem`, `Icon`, `Tag`, `Empty`             | query, debounce, filter, pages, rows, empty states                   |
+| `notes`        | `TextView::markdown` (tree-sitter highlighting), `DescriptionList`      | notes and the one shared metadata view                               |
+| `palette`      | `actions!`, `KeyBinding`                                                | the commands, their shortcuts, the ⌘K rows per entry                 |
+| `filter`       | — (pure)                                                                | type and tag choices, shown in the same dialog palette (⌘P)          |
+| `sync_view`    | background executor, `Progress`, notification                           | rebuild run, cancellation, report                                    |
+| `presentation` | — (pure)                                                                | labels, icons, primary action, metadata: the Raycast rules as data   |
+| `config`       | TOML file `~/.config/kb/config.toml`                                    | `sources_path`, default `~/.config/kodexb/sources`; index path       |
+
+The planned `NavStack` and popover filter were replaced by a screen enum in the root view and dialog palettes:
+dialogs already own focus trapping and dismissal, and one palette mechanism serves both ⌘K and ⌘P.
+
+Highlighting: GPUI Kit's tree-sitter highlighter, which `TextView` installs when the grammar features are enabled
+(ADR 0005) — the ones the notes actually use: bash (also `sh`, `zsh`), python, ruby, yaml, javascript (`js`, `jsx`),
 typescript (`ts`, `tsx`), sql, json, toml, markdown (`md`), kotlin. Unknown languages render unhighlighted.
 
 Mermaid: deferred (D8). The Markdown links the `mermaid.ink` image exactly as the TS engine does, and `TextView`
