@@ -41,17 +41,25 @@ on AC power with other heavy apps closed; results record the power source.
   `RAYCAST_WORKER=Raycast Backend`.
 - Caveats on the Raycast figures: `Raycast Backend` is the Node host shared by every extension, so the
   worker figure is an upper bound on kb's share; and kb runs under `ray develop`, i.e. the unminified dev bundle.
-- Artifact size: `bench/probes/size-ts.sh` measures the bundle Raycast loads,
-  `~/.config/raycast/extensions/kb`, written by `ray develop`. `ray build` cannot produce it here: its
-  type-definition step needs the TypeScript JS API, which TypeScript 7 does not ship. The bundle holds all five
-  commands; `searchCommandJsBytes` is kb search alone.
-- Cold-start CPU: the CPU time (`ps` TIME) the processes have used from a fresh launch of Raycast until kb's
-  search results first show. Read it only after results are on screen; a reading taken before the processes
-  have run is 0 and is not a result.
+- Artifact size: `bench/probes/size-ts.sh` measures the bundle Raycast loads, `~/.config/raycast/extensions/kb`,
+  which `ray build` and `ray develop` write by default. (`ray build -e dist` fails here: its type-definition step
+  needs the TypeScript JS API, which TypeScript 7 does not ship.) The bundle holds all five commands;
+  `searchCommandJsBytes` is kb search alone.
+- Cold-start CPU: `bench/probes/cpu-ts.sh`, five runs. Each run stops Raycast (`killall`: it refuses
+  AppleScript's quit), relaunches it, opens kb Search by deeplink, waits 10 s for both processes to go idle, and
+  sums the CPU time (`ps` TIME) the matching processes have used since launch.
 
 ## Tier 3 — perceived latency
 
 Written in Plan 4, when both apps exist and one harness can drive them both.
+
+## Baseline history
+
+- 2026-10-08: first tier 1 run, on the Raycast repo at `3de16d2`. Type-filtered searches took 58 ms on `private`
+  and 4 s on `private-10x`: SQLite 3.51 (Node 22) drove them from `idx_entries_type`.
+- 2026-10-09: kb fixed on branch `fix/kb-search-plan-order` (`8aa510c`, `CROSS JOIN`); tier 1 re-run. Every
+  other case is unchanged within 2 %, and the goldens are identical. Plans 2–4 compare against the 2026-10-09
+  results.
 
 ## Results
 

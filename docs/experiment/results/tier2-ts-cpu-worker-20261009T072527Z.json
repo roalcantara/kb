@@ -1,0 +1,23 @@
+{
+  "schema": 1,
+  "tier": 2,
+  "metric": "cold-start-cpu",
+  "unit": "seconds",
+  "implementation": "ts",
+  "scope": "worker",
+  "pattern": "Raycast Backend",
+  "settleSeconds": 10,
+  "date": "2026-10-09T07:26:59Z",
+  "samples": [
+    1.85,
+    2.02,
+    2.01,
+    1.95,
+    2.04
+  ],
+  "stats": {
+    "min": 1.85,
+    "max": 2.04,
+    "p50": 2.01
+  }
+}
