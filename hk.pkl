@@ -262,7 +262,7 @@ local baseline_steps = new Mapping<String, Step> {
 // so an empty test run cannot pass silently once tests exist.
 local push_steps = new Mapping<String, Step> {
     ["test"] {
-        check = "cargo nextest run --workspace --locked --no-tests=warn"
+        check = "cargo nextest run --workspace --locked"
     }
     ["bench-ts-test"] {
         check = "bun run --cwd bench/ts test"
@@ -283,9 +283,11 @@ local candidate_steps = new Mapping<String, Step> {
         check = "RUSTDOCFLAGS='-D warnings' cargo doc --workspace --no-deps --locked"
         profiles = List("candidate")
     }
-    // No coverage step yet: llvm-cov fails outright on a workspace with no tests, and
-    // `|| true` would hide every later failure too. Plan 2 adds
-    // `cargo llvm-cov nextest --workspace --locked --summary-only` with its first test.
+    ["coverage"] {
+        // A report, not a gate: thresholds come once there is a history to measure them from.
+        check = "cargo llvm-cov nextest --workspace --locked --summary-only"
+        profiles = List("candidate")
+    }
 }
 
 // Security and provenance: the concerns that matter once code ships.

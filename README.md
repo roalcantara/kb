@@ -12,6 +12,7 @@ size and runtime limits are out of the way.
 - Rust 1.99 (edition 2024), Cargo workspace
 - GPUI Kit for the UI (from Plan 3)
 - SQLite with FTS5 through `rusqlite`, the same schema as the Raycast extension (from Plan 2)
+- YAML through saphyr; JSON through serde_json
 - mise for tool versions and tasks; hk for git hooks and quality steps
 - Bun and Node 22 for the TypeScript baseline benchmarks
 
@@ -59,14 +60,16 @@ tools/           ast-grep rules, mdschema schemas
 
 ## Development Workflow
 
-| Command             | Does                                                             |
-| ------------------- | ---------------------------------------------------------------- |
-| `mise run setup`    | install everything                                               |
-| `mise run gate`     | all gates in order; `--fast` runs tests and clippy only          |
-| `mise run fixtures` | copy the private corpus, verify its manifest, build the 10× copy |
-| `mise run goldens`  | write goldens from the TS engine                                 |
-| `mise run bench:ts` | tier 1 benchmarks of the TS engine                               |
-| `hk check --all`    | every baseline step over the whole repository                    |
+| Command                      | Does                                                             |
+| ---------------------------- | ---------------------------------------------------------------- |
+| `mise run setup`             | install everything                                               |
+| `mise run gate`              | all gates in order; `--fast` runs tests and clippy only          |
+| `mise run fixtures`          | copy the private corpus, verify its manifest, build the 10× copy |
+| `mise run goldens`           | write goldens from the TS engine                                 |
+| `mise run parity`            | golden parity on the private corpus                              |
+| `mise run bench:ts`          | tier 1 benchmarks of the TS engine                               |
+| `mise run bench:rs <corpus>` | tier 1 benchmarks of kb-domain                                   |
+| `hk check --all`             | every baseline step over the whole repository                    |
 
 Commits follow Conventional Commits with a sentence-case subject; hk checks the message.
 

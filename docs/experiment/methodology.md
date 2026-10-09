@@ -31,6 +31,10 @@ actually observed. `bench/ts/stats.ts` and `kb-bench` implement the same definit
 The TS engine runs under Node 22 — what Raycast runs extensions on — and under Bun for reference. The machine is
 on AC power with other heavy apps closed; results record the power source.
 
+The Rust engine runs the same cases (`kb-bench`, release build). `search-app` is each app's real path:
+TypeScript opens a read-only connection per query, as `@raycast/utils`' `executeSQL` does; Rust reuses the
+connection its app keeps open. Both turn every row back into an entry, re-reading its YAML.
+
 ## Tier 2 — footprint
 
 - RSS, sampled once a second for 30 s by `bench/probes/rss.sh`, in three scenarios: idle with the window closed,

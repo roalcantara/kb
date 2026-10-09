@@ -58,7 +58,7 @@ run = '''
   #!/usr/bin/env bash
   set -euo pipefail
 
-  cargo nextest run --workspace --locked --no-tests=warn
+  cargo nextest run --workspace --locked
   cargo clippy --workspace --all-targets --locked -- -D warnings
   if [ "${usage_fast:-false}" = "true" ]; then exit 0; fi
   cargo build --workspace --release --locked
