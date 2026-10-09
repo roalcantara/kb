@@ -1,6 +1,6 @@
 [workspace]
 resolver = "3"
-members = ["crates/kb-domain", "crates/kb-bench"]
+members = ["crates/kb-domain", "crates/kb-bench", "crates/kb-app"]
 
 [workspace.package]
 version = "0.1.0"
@@ -12,6 +12,23 @@ repository = "https://github.com/roalcantara/kb-native"
 
 [workspace.dependencies]
 base64 = "0.22"
+dirs = "6"
+futures = "0.3"
+global-hotkey = "0.8"
+# The grammars cover every fence language in the corpus (see docs/adr/0005); json and plain text are built in.
+gpui-kit = { version = "=0.7.1", features = [
+  "tree-sitter",
+  "tree-sitter-bash",
+  "tree-sitter-javascript",
+  "tree-sitter-kotlin",
+  "tree-sitter-markdown",
+  "tree-sitter-python",
+  "tree-sitter-ruby",
+  "tree-sitter-sql",
+  "tree-sitter-toml",
+  "tree-sitter-typescript",
+  "tree-sitter-yaml",
+] }
 indexmap = "2"
 kb-domain = { path = "crates/kb-domain" }
 rusqlite = { version = "0.37", features = ["bundled"] }
@@ -20,6 +37,7 @@ serde = { version = "1", features = ["derive"] }
 serde_json = { version = "1", features = ["preserve_order"] }
 tempfile = "3"
 thiserror = "2"
+toml = "0.9"
 walkdir = "2"
 
 [workspace.lints.rust]

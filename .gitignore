@@ -7,7 +7,8 @@
 
 # Private corpora and everything derived from them; only fixtures/private.sha256 is committed.
 # Any fixtures/private* directory: private/, private-10x/, private-goldens/ and whatever comes next.
-/fixtures/private*/
+/fixtures/private*
+!/fixtures/private.sha256
 
 # The TS bench links to the Raycast repo and bundles locally.
 /bench/ts/kb
