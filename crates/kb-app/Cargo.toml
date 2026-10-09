@@ -10,6 +10,7 @@ repository.workspace = true
 
 
 [dependencies]
+futures.workspace = true
 gpui-kit.workspace = true
 kb-domain.workspace = true
 serde.workspace = true

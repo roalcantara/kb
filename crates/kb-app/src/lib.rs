@@ -9,6 +9,7 @@ pub mod filter;
 pub mod notes;
 pub mod palette;
 pub mod presentation;
+pub mod sync_view;
 
 #[cfg(test)]
 mod fixture;

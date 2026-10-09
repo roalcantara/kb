@@ -3544,6 +3544,7 @@ dependencies = [
 name = "kb-app"
 version = "0.1.0"
 dependencies = [
+ "futures",
  "gpui-kit",
  "kb-domain",
  "serde",
