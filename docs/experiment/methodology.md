@@ -39,8 +39,15 @@ on AC power with other heavy apps closed; results record the power source.
   (`RAYCAST_ALL`), because the native app replaces both for this use.
 - Process patterns used on this machine: `RAYCAST_ALL=(Raycast\.app|Raycast Backend|com\.raycast)`,
   `RAYCAST_WORKER=Raycast Backend`.
-- Artifact size: the `ray build` output, which bundles every runtime dependency.
-- Cold-start CPU: the CPU time the processes have used from a fresh launch until search results first show.
+- Caveats on the Raycast figures: `Raycast Backend` is the Node host shared by every extension, so the
+  worker figure is an upper bound on kb's share; and kb runs under `ray develop`, i.e. the unminified dev bundle.
+- Artifact size: `bench/probes/size-ts.sh` measures the bundle Raycast loads,
+  `~/.config/raycast/extensions/kb`, written by `ray develop`. `ray build` cannot produce it here: its
+  type-definition step needs the TypeScript JS API, which TypeScript 7 does not ship. The bundle holds all five
+  commands; `searchCommandJsBytes` is kb search alone.
+- Cold-start CPU: the CPU time (`ps` TIME) the processes have used from a fresh launch of Raycast until kb's
+  search results first show. Read it only after results are on screen; a reading taken before the processes
+  have run is 0 and is not a result.
 
 ## Tier 3 — perceived latency
 

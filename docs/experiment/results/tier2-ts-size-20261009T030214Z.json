@@ -1,0 +1,19 @@
+{
+  "schema": 1,
+  "tier": 2,
+  "metric": "artifact-size",
+  "unit": "bytes",
+  "implementation": "ts",
+  "date": "2026-10-09T03:02:14Z",
+  "source": "/Users/roalcantara/.config/raycast/extensions/kb",
+  "built": "2026-10-08T14:48:33",
+  "bundle": "ray develop",
+  "files": 224,
+  "bytes": 13905123,
+  "jsBytes": 2077679,
+  "mapBytes": 9820054,
+  "searchCommandJsBytes": 82337,
+  "nodeModulesBytes": 4092132,
+  "assetsBytes": 2000121,
+  "note": "The bundle holds all five commands (kb, jobx, yabai); searchCommandJsBytes is kb search alone."
+}

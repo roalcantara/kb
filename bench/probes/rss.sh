@@ -20,5 +20,5 @@ done
 printf '%s\n' "${samples[@]}" | jq -s \
   --arg pattern "$pattern" --arg scenario "$scenario" --arg date "$(date -u +%FT%TZ)" \
   '{schema: 1, tier: 2, metric: "rss", unit: "bytes", pattern: $pattern, scenario: $scenario, date: $date,
-    samples: ., stats: {min: min, max: max, p50: (sort | .[(length / 2 | floor)])}}' >"$out"
+    samples: ., stats: {min: min, max: max, p50: (sort | .[((length + 1) / 2 | floor) - 1])}}' >"$out"
 echo "$scenario: p50 $(jq '.stats.p50 / 1048576 | floor' "$out") MiB -> $out"
