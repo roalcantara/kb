@@ -65,7 +65,7 @@ Written in Plan 4, when both apps exist and one harness can drive them both.
   other case is unchanged within 2 %, and the goldens are identical.
 - 2026-10-09: the sources were normalized to the spec's source schema (D9): 44 entries render differently, none
   added or lost. The private corpus was re-snapshotted (68 files: `tv.yml` held only an empty key) and tier 1
-  re-run. **Plans 2–4 compare against these results** (`tier1-ts-*-2026100908*`).
+  re-run. **Plans 2–4 compare against these results** (`tier1-ts-*-20261009T08*`).
 
 ## Results
 

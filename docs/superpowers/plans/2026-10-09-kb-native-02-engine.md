@@ -3140,7 +3140,7 @@ Expected: two `64 cases -> docs/experiment/results/tier1-rust-…json` lines.
 ```bash
 R=docs/experiment/results
 for c in private private-10x; do
-  ts=$(ls $R/tier1-ts-node22-$c-2026100908*.json | tail -1); rs=$(ls $R/tier1-rust-$c-*.json | tail -1)
+  ts=$(ls $R/tier1-ts-node22-$c-20261009T08*.json | tail -1); rs=$(ls $R/tier1-rust-$c-*.json | tail -1)
   jq -r -n --slurpfile t "$ts" --slurpfile r "$rs" --arg c "$c" '
     ($t[0].cases | map({(.name): .stats.p50}) | add) as $T | ($r[0].cases | map({(.name): .stats.p50}) | add) as $R |
     "== \($c)", (["scan","markdown","sync-cold","sync-warm","search-app/q07-word","search-engine/q07-word"][] |
