@@ -8,4 +8,5 @@
 
 pub mod entry;
 pub mod markdown;
+pub mod row;
 pub mod yaml;
