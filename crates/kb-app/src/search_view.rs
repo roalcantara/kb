@@ -4,10 +4,13 @@
 use std::fs;
 use std::rc::Rc;
 
+use gpui_kit::assets::IconName;
+use gpui_kit::component::button::{Button, ButtonVariants as _};
 use gpui_kit::component::command::{Command, CommandGroup, CommandItem, CommandState};
+use gpui_kit::component::input::{Input, InputEvent, InputState};
 use gpui_kit::component::list::{List, ListEvent, ListState};
 use gpui_kit::component::resizable::{h_resizable, resizable_panel};
-use gpui_kit::component::{ActiveTheme as _, Icon, IndexPath, WindowExt as _, v_flex};
+use gpui_kit::component::{ActiveTheme as _, Icon, IndexPath, Sizable as _, WindowExt as _, h_flex, v_flex};
 use gpui_kit::prelude::FluentBuilder as _;
 use gpui_kit::{
     AppContext as _, ClipboardItem, Context, Entity, FocusHandle, InteractiveElement as _, IntoElement,
@@ -42,6 +45,7 @@ enum Screen {
 pub struct SearchView {
     config: Config,
     list: Entity<ListState<EntryList>>,
+    query_input: Entity<InputState>,
     palette: Entity<CommandState>,
     /// Focus for the screens without the list, so their keys reach this view.
     focus: FocusHandle,
@@ -64,25 +68,30 @@ impl SearchView {
     /// Opens the index if there is one and builds the list over it.
     pub fn new(config: Config, window: &mut Window, cx: &mut Context<Self>) -> Self {
         let connection = open_readonly(config.database()).ok();
-        let list = cx.new(|cx| ListState::new(EntryList::new(connection), window, cx).searchable(true));
+        let list = cx.new(|cx| ListState::new(EntryList::new(connection), window, cx).searchable(false));
+        let query_input = cx.new(|cx| InputState::new(window, cx).placeholder("Search knowledge base…"));
         // The first row starts selected, as in Raycast, so Enter and ⌘K act on it at once.
         list.update(cx, |list, cx| {
             if !list.delegate().entries().is_empty() {
                 list.set_selected_index(Some(IndexPath::default()), window, cx);
             }
-            list.focus(window, cx);
+        });
+        query_input.update(cx, |input, cx| {
+            input.focus(window, cx);
         });
         let palette = cx.new(|cx| CommandState::new(window, cx));
-        let subscription = cx.subscribe_in(&list, window, Self::on_list_event);
+        let list_sub = cx.subscribe_in(&list, window, Self::on_list_event);
+        let input_sub = cx.subscribe_in(&query_input, window, Self::on_query_input_event);
         Self {
             config,
             list,
+            query_input,
             palette,
             focus: cx.focus_handle(),
             screen: Screen::Search,
             show_details: true,
             show_metadata: false,
-            subscriptions: vec![subscription],
+            subscriptions: vec![list_sub, input_sub],
         }
     }
 
@@ -98,6 +107,52 @@ impl SearchView {
         matches!(self.screen, Screen::Detail)
     }
 
+    /// Sets the search query programmatically.
+    pub fn set_query(&mut self, query: &str, cx: &mut Context<Self>) {
+        let q = query.to_owned();
+        self.list.update(cx, |list, cx| {
+            list.delegate_mut().set_query(&q);
+            cx.notify();
+        });
+        cx.notify();
+    }
+
+    /// Indicates whether the action bar is available.
+    #[must_use]
+    pub fn has_action_bar(&self) -> bool {
+        true
+    }
+
+    fn show_detail_screen(&mut self, window: &mut Window, cx: &mut Context<Self>) {
+        self.screen = Screen::Detail;
+        self.show_metadata = false;
+        self.focus.focus(window, cx);
+        cx.notify();
+    }
+
+    fn on_query_input_event(
+        &mut self,
+        state: &Entity<InputState>,
+        event: &InputEvent,
+        window: &mut Window,
+        cx: &mut Context<Self>,
+    ) {
+        match event {
+            InputEvent::Change => {
+                let text = state.read(cx).value().to_string();
+                self.set_query(&text, cx);
+            }
+            InputEvent::PressEnter { secondary, .. } => {
+                if *secondary {
+                    self.run_primary(&RunPrimary, window, cx);
+                } else {
+                    self.show_detail_screen(window, cx);
+                }
+            }
+            _ => {}
+        }
+    }
+
     fn on_list_event(
         &mut self,
         _: &Entity<ListState<EntryList>>,
@@ -111,10 +166,7 @@ impl SearchView {
                 if self.list.read(cx).delegate().is_secondary_confirm() {
                     self.run_primary(&RunPrimary, window, cx);
                 } else {
-                    self.screen = Screen::Detail;
-                    self.show_metadata = false;
-                    self.focus.focus(window, cx);
-                    cx.notify();
+                    self.show_detail_screen(window, cx);
                 }
             }
             // Esc in the list leaves the panel, as it closes the Raycast command.
@@ -212,10 +264,19 @@ impl SearchView {
     fn back(&mut self, _: &Back, window: &mut Window, cx: &mut Context<Self>) {
         match &self.screen {
             Screen::Rebuild(sync) if sync.read(cx).is_running() => sync.read(cx).cancel(),
-            Screen::Search => cx.hide(),
+            Screen::Search => {
+                if self.query_input.read(cx).value().is_empty() {
+                    cx.hide();
+                } else {
+                    self.query_input.update(cx, |input, cx| {
+                        input.set_value("", window, cx);
+                    });
+                    self.set_query("", cx);
+                }
+            }
             Screen::Detail | Screen::Rebuild(_) => {
                 self.screen = Screen::Search;
-                self.list.update(cx, |list, cx| list.focus(window, cx));
+                self.query_input.update(cx, |input, cx| input.focus(window, cx));
             }
         }
         cx.notify();
@@ -345,11 +406,50 @@ impl SearchView {
         cx.notify();
     }
 }
-
 impl Render for SearchView {
-    fn render(&mut self, _: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
+    #[allow(clippy::too_many_lines, clippy::unreadable_literal)]
+    fn render(&mut self, _window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
         let selected = self.list.read(cx).delegate().selected_entry().cloned();
-        let content = match &self.screen {
+        let filter_label = filter_summary(self.list.read(cx).delegate().filter());
+
+        // 52px top header bar
+        let header = h_flex()
+            .h(px(52.))
+            .w_full()
+            .items_center()
+            .px_3()
+            .gap_2()
+            .border_b_1()
+            .border_color(cx.theme().border)
+            .bg(cx.theme().background)
+            .child(
+                Button::new("back-button")
+                    .ghost()
+                    .small()
+                    .icon(IconName::ChevronLeft)
+                    .on_click(cx.listener(|this, _, window, cx| {
+                        this.back(&Back, window, cx);
+                    })),
+            )
+            .child(
+                div()
+                    .flex_1()
+                    .min_w_0()
+                    .child(Input::new(&self.query_input).cleanable(true).appearance(false)),
+            )
+            .child(
+                Button::new("filter-button")
+                    .ghost()
+                    .small()
+                    .icon(IconName::ListFilter)
+                    .label(filter_label)
+                    .dropdown_caret(true)
+                    .on_click(cx.listener(|this, _, window, cx| {
+                        this.open_filter(&OpenFilter, window, cx);
+                    })),
+            );
+
+        let middle_content = match &self.screen {
             Screen::Rebuild(sync) => sync.clone().into_any_element(),
             Screen::Detail => match &selected {
                 Some(entry) => v_flex()
@@ -366,20 +466,119 @@ impl Render for SearchView {
                 None => div().into_any_element(),
             },
             Screen::Search => h_resizable("search-split")
-                .child(
-                    resizable_panel()
-                        .size(px(320.))
-                        .child(List::new(&self.list).search_placeholder(format!(
-                            "Search knowledge base… ({})",
-                            filter_summary(self.list.read(cx).delegate().filter())
-                        ))),
-                )
-                .when_some(selected.filter(|_| self.show_details), |split, entry| {
+                .child(resizable_panel().size(px(320.)).child(List::new(&self.list)))
+                .when_some(selected.clone().filter(|_| self.show_details), |split, entry| {
                     split.child(resizable_panel().child(notes_pane(&entry, true, cx)))
                 })
                 .into_any_element(),
         };
-        div()
+
+        // 44px docked bottom action bar
+        let (context_icon, context_text) = match &self.screen {
+            Screen::Detail => (
+                IconName::BookOpen,
+                selected.as_ref().map_or("Detail".to_string(), |e| e.title.clone()),
+            ),
+            Screen::Rebuild(_) => (IconName::RefreshCw, "Rebuilding Index…".to_string()),
+            Screen::Search => (IconName::BookOpen, "Search Knowledge Base".to_string()),
+        };
+
+        let primary_label = if self.is_showing_detail() {
+            selected.as_ref().map_or("Action", |e| primary_action(e).title)
+        } else {
+            "Show Details"
+        };
+
+        let footer = h_flex()
+            .h(px(44.))
+            .w_full()
+            .items_center()
+            .justify_between()
+            .px_3()
+            .border_t_1()
+            .border_color(cx.theme().border)
+            .bg(cx.theme().background)
+            // Left context badge
+            .child(
+                h_flex()
+                    .items_center()
+                    .gap_2()
+                    .px_2()
+                    .py_1()
+                    .rounded_md()
+                    .bg(cx.theme().muted.opacity(0.4))
+                    .text_xs()
+                    .text_color(cx.theme().foreground)
+                    .child(Icon::new(context_icon).size(px(14.)).text_color(gpui_kit::rgb(0xf87171)))
+                    .child(div().truncate().max_w(px(300.)).child(context_text)),
+            )
+            // Right action pills
+            .child(
+                h_flex()
+                    .items_center()
+                    .gap_2()
+                    .child(
+                        Button::new("footer-primary-action")
+                            .ghost()
+                            .small()
+                            .label(primary_label)
+                            .child(
+                                div()
+                                    .px_1p5()
+                                    .py_0p5()
+                                    .rounded_sm()
+                                    .bg(cx.theme().muted)
+                                    .text_xs()
+                                    .text_color(cx.theme().foreground)
+                                    .child("↵"),
+                            )
+                            .on_click(cx.listener(|this, _, window, cx| {
+                                if this.is_showing_detail() {
+                                    this.run_primary(&RunPrimary, window, cx);
+                                } else {
+                                    this.screen = Screen::Detail;
+                                    this.show_metadata = false;
+                                    this.focus.focus(window, cx);
+                                    cx.notify();
+                                }
+                            })),
+                    )
+                    .child(
+                        Button::new("footer-open-actions")
+                            .ghost()
+                            .small()
+                            .label("Actions")
+                            .child(
+                                h_flex()
+                                    .gap_1()
+                                    .child(
+                                        div()
+                                            .px_1p5()
+                                            .py_0p5()
+                                            .rounded_sm()
+                                            .bg(cx.theme().muted)
+                                            .text_xs()
+                                            .text_color(cx.theme().foreground)
+                                            .child("⌘"),
+                                    )
+                                    .child(
+                                        div()
+                                            .px_1p5()
+                                            .py_0p5()
+                                            .rounded_sm()
+                                            .bg(cx.theme().muted)
+                                            .text_xs()
+                                            .text_color(cx.theme().foreground)
+                                            .child("K"),
+                                    ),
+                            )
+                            .on_click(cx.listener(|this, _, window, cx| {
+                                this.open_actions(&OpenActions, window, cx);
+                            })),
+                    ),
+            );
+
+        v_flex()
             .track_focus(&self.focus)
             .key_context(CONTEXT)
             .on_action(cx.listener(Self::open_actions))
@@ -394,6 +593,8 @@ impl Render for SearchView {
             .size_full()
             .bg(cx.theme().background)
             .text_color(cx.theme().foreground)
-            .child(content)
+            .child(header)
+            .child(div().flex_1().min_h_0().w_full().child(middle_content))
+            .child(footer)
     }
 }

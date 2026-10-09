@@ -77,6 +77,13 @@ impl EntryList {
         self.refresh();
     }
 
+    /// Replaces the query string and runs the query again from the first page.
+    pub fn set_query(&mut self, query: &str) {
+        query.clone_into(&mut self.query);
+        self.limit = PAGE_SIZE;
+        self.refresh();
+    }
+
     /// The entries shown.
     #[must_use]
     pub fn entries(&self) -> &[Entry] {

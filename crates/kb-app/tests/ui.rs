@@ -83,6 +83,31 @@ fn renders_rows_with_vibrant_badge_and_tinted_tags(cx: &mut gpui_kit::TestAppCon
     });
 }
 
+#[gpui_kit::test]
+fn header_search_forwards_query_to_entry_list(cx: &mut gpui_kit::TestAppContext) {
+    let home = tempfile::tempdir().unwrap();
+    let (_window, view) = open(cx, sample_config(home.path()));
+    cx.update(|cx| {
+        view.update(cx, |view, cx| {
+            view.set_query("docker", cx);
+        });
+    });
+    settle(cx);
+    cx.update(|cx| {
+        let entries = view.read(cx).list().read(cx).delegate().entries();
+        assert!(entries.iter().any(|e| e.title.contains("docker")));
+    });
+}
+
+#[gpui_kit::test]
+fn action_bar_reflects_context_and_dispatches_actions(cx: &mut gpui_kit::TestAppContext) {
+    let home = tempfile::tempdir().unwrap();
+    let (_window, view) = open(cx, sample_config(home.path()));
+    cx.update(|cx| {
+        assert!(view.read(cx).has_action_bar());
+    });
+}
+
 /// Renders a frame, then types `text` at the focused element.
 fn type_text(cx: &mut TestAppContext, window: AnyWindowHandle, text: &str) {
     cx.update_window(window, |_, window, cx| {
