@@ -1,7 +1,8 @@
 //! The engine against the TypeScript engine's goldens.
 //!
-//! `KB_CORPUS` and `KB_GOLDENS` name a corpus and its goldens; they default to the committed
-//! sample. `mise run parity` points them at the private corpus.
+//! `KB_CORPUS` and `KB_GOLDENS` name a corpus and its goldens, relative to the workspace root (cargo
+//! runs tests from the crate directory) or absolute; they default to the committed sample.
+//! `mise run parity` points them at the private corpus.
 
 // A test fixture that cannot be built is a failed test: its helpers panic like the tests do.
 #![allow(clippy::expect_used, clippy::unwrap_used, clippy::cast_possible_truncation)]

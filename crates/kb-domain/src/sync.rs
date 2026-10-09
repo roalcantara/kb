@@ -22,6 +22,9 @@ pub enum SyncError {
     /// The sources directory could not be read.
     #[error("cannot read the sources directory: {0}")]
     Sources(#[from] std::io::Error),
+    /// The index's directory could not be created.
+    #[error("cannot create the index directory: {0}")]
+    IndexDirectory(std::io::Error),
     /// SQLite failed.
     #[error(transparent)]
     Database(#[from] rusqlite::Error),
@@ -105,7 +108,7 @@ pub fn sync_knowledge_base(
     let started = Instant::now();
     let files = find_source_files(sources_dir)?;
     if let Some(parent) = database_path.parent() {
-        fs::create_dir_all(parent)?;
+        fs::create_dir_all(parent).map_err(SyncError::IndexDirectory)?;
     }
     let mut connection = open_initialized(database_path)?;
     let transaction = connection.transaction()?;

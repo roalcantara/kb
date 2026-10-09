@@ -3172,3 +3172,9 @@ Recorded while validating this plan; Plan 3 decides on each:
   can read tags from `entry_tags` and keep the task columns, if the list profile says it matters.
 - `saphyr` and `rusqlite` pull two versions of `hashlink`/`hashbrown`/`foldhash` (`cargo deny` warns): harmless,
   a few kilobytes of binary.
+- Kept for parity with the TypeScript engine, to be decided in the app: two entries that resolve to the same id
+  (for example keys `1:` and `"1":`) abort the whole sync with an SQLite constraint error, and an unreadable
+  subdirectory is skipped without a report. Both engines do this; the normalized sources trigger neither.
+- `goldens.rs` resolves `KB_CORPUS`/`KB_GOLDENS` against the workspace root, not the working directory: cargo runs
+  integration tests from the crate directory, so the plan's `PathBuf::from` could not find `fixtures/private`.
+  Fixed during implementation.

@@ -146,7 +146,9 @@ run = '''
   #!/usr/bin/env bash
   set -euo pipefail
   mise run fixtures
-  [ -d fixtures/private-goldens ] || mise run goldens private
+  # Goldens take a second to write; regenerating them every run means a refreshed corpus is never
+  # compared with the goldens of the one before it.
+  mise run goldens private
   KB_CORPUS=fixtures/private KB_GOLDENS=fixtures/private-goldens cargo test -p kb-domain --test goldens
 '''
 
@@ -165,7 +167,7 @@ run = '''
     digest=$(shasum -a 256 fixtures/private.sha256 | cut -d' ' -f1)
     files=$(wc -l < fixtures/private.sha256 | tr -d ' ')
   fi
-  cargo build --release -p kb-bench
+  cargo build --release --locked -p kb-bench
   target/release/kb-bench --fixtures fixtures --corpus "$corpus" --digest "$digest" --files "$files" \
     --out "docs/experiment/results/tier1-rust-$corpus-$(date -u +%Y%m%dT%H%M%SZ).json"
 '''

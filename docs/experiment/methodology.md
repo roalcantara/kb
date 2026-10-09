@@ -19,14 +19,14 @@ actually observed. `bench/ts/stats.ts` and `kb-bench` implement the same definit
 
 ## Tier 1 — engine
 
-| Case                | Warm-up | Samples | What one sample is                                                               |
-| ------------------- | ------- | ------- | -------------------------------------------------------------------------------- |
-| `scan`              | 3       | 20      | find and parse every source file into entries                                    |
-| `markdown`          | 3       | 20      | build the notes Markdown of every entry                                          |
-| `sync-cold`         | 2       | 10      | full sync into a database that does not exist                                    |
-| `sync-warm`         | 2       | 10      | full sync into an existing database                                              |
-| `search-app/<q>`    | 20      | 200     | the app's path: open read-only, run the rendered SQL, close, map rows to entries |
-| `search-engine/<q>` | 50      | 500     | the prepared statement on one open connection                                    |
+| Case                | Warm-up | Samples | What one sample is                                                                     |
+| ------------------- | ------- | ------- | -------------------------------------------------------------------------------------- |
+| `scan`              | 3       | 20      | find and parse every source file into entries                                          |
+| `markdown`          | 3       | 20      | build the notes Markdown of every entry                                                |
+| `sync-cold`         | 2       | 10      | full sync into a database that does not exist                                          |
+| `sync-warm`         | 2       | 10      | full sync into an existing database                                                    |
+| `search-app/<q>`    | 20      | 200     | each app's real path, rows mapped back to entries (see below: TS reconnects per query) |
+| `search-engine/<q>` | 50      | 500     | the prepared statement on one open connection                                          |
 
 The TS engine runs under Node 22 — what Raycast runs extensions on — and under Bun for reference. The machine is
 on AC power with other heavy apps closed; results record the power source.

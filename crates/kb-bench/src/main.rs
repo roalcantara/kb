@@ -19,7 +19,7 @@ use kb_domain::markdown::build_entry_markdown;
 use kb_domain::row::row_to_entry;
 use kb_domain::search::search;
 use kb_domain::source::scan_knowledge_base;
-use kb_domain::sync::{open_database, sync_knowledge_base};
+use kb_domain::sync::sync_knowledge_base;
 use rusqlite::{Connection, OpenFlags};
 use serde_json::json;
 
@@ -110,7 +110,6 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
             || search(&connection, &query),
         ));
     }
-    drop(open_database(&database)?);
 
     let result = json!({
         "schema": 1,

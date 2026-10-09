@@ -201,8 +201,13 @@ fn prefix_lines(text: &str, prefix: &str) -> String {
 fn indent_rest(text: &str, spaces: usize) -> String {
     let pad = " ".repeat(spaces);
     let mut lines = text.split('\n');
-    let first = lines.next().unwrap_or_default().to_owned();
-    lines.fold(first, |acc, line| format!("{acc}\n{pad}{line}"))
+    let mut out = lines.next().unwrap_or_default().to_owned();
+    for line in lines {
+        out.push('\n');
+        out.push_str(&pad);
+        out.push_str(line);
+    }
+    out
 }
 
 /// `json2md`'s `parseTextFormat`: HTML emphasis tags as Markdown markers.
