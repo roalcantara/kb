@@ -1,12 +1,13 @@
 //! The resident panel: an accessory app without a Dock icon, one floating window shown by a
 //! global hotkey and hidden when it loses focus (ADR 0004).
 
-use std::time::Duration;
+use std::time::{Duration, Instant};
 
 use futures::StreamExt as _;
 use futures::channel::mpsc;
 use global_hotkey::hotkey::{Code, HotKey, Modifiers};
 use global_hotkey::{GlobalHotKeyEvent, GlobalHotKeyManager, HotKeyState};
+use gpui_kit::component::WindowExt as _;
 use gpui_kit::{
     ActivationPolicy, App, AppContext as _, AsyncApp, Bounds, Entity, Subscription, WindowBounds, WindowKind,
     WindowOptions, px, size,
@@ -15,6 +16,7 @@ use gpui_kit::{
 use crate::config::Config;
 use crate::palette::key_bindings;
 use crate::search_view::SearchView;
+use crate::trace;
 
 /// How long a deactivation must last before the panel hides.
 const BLUR_SETTLE: Duration = Duration::from_millis(100);
@@ -33,6 +35,9 @@ pub fn window_options(cx: &App) -> WindowOptions {
         titlebar: None,
         window_bounds: Some(WindowBounds::Windowed(Bounds::centered(
             None,
+            // The frame is in the platform's points and is fixed before the window has a rem
+            // size; everything inside it is laid out in rems and follows the base font. Raycast's
+            // is 750 × 475; this one is larger so the split pane leaves the notes room.
             size(px(860.), px(520.)),
             cx,
         ))),
@@ -45,53 +50,70 @@ pub fn window_options(cx: &App) -> WindowOptions {
     }
 }
 
-/// Why the panel could not start.
+/// Why the panel could not open.
 #[derive(Debug, thiserror::Error)]
-pub enum PanelError {
-    /// The window could not be opened.
-    #[error("cannot open the panel window: {0}")]
-    Window(String),
-    /// The hotkey could not be registered, usually because another app holds it.
-    #[error("cannot register the hotkey ⌥K: {0}")]
-    Hotkey(#[from] global_hotkey::Error),
-}
+#[error("cannot open the panel window: {0}")]
+pub struct PanelError(String);
 
-/// Opens the panel, registers the hotkey, and keeps both alive for the app's lifetime.
+/// Opens the panel, registers the hotkey, and keeps both alive for the app's lifetime. A hotkey
+/// that cannot be registered — usually because another app holds ⌥K — joins `notices`, which
+/// the panel shows as notifications: the panel still works when shown from the Dock or Finder.
 ///
 /// # Errors
 ///
-/// The window or the hotkey cannot be set up.
-pub fn open(config: Config, cx: &mut App) -> Result<(), PanelError> {
+/// The window cannot be opened.
+pub fn open(config: Config, mut notices: Vec<String>, cx: &mut App) -> Result<(), PanelError> {
     cx.bind_keys(key_bindings());
     cx.set_activation_policy(ActivationPolicy::Accessory);
 
     let (window, view) = gpui_kit::open_window(window_options(cx), cx, |window, cx| {
         cx.new(|cx| SearchView::new(config, window, cx))
     })
-    .map_err(|error| PanelError::Window(error.to_string()))?;
+    .map_err(|error| PanelError(error.to_string()))?;
     let hide_on_blur = hide_on_blur(&view, window, cx);
 
     // The manager must live on the main thread for the app's lifetime; the task below owns it.
-    let manager = GlobalHotKeyManager::new()?;
-    manager.register(hotkey())?;
+    let manager = match register_hotkey() {
+        Ok(manager) => Some(manager),
+        Err(error) => {
+            notices.push(format!("Couldn’t register ⌥K: {error}. Another app may be using it."));
+            None
+        }
+    };
     let (sender, mut presses) = mpsc::unbounded();
     GlobalHotKeyEvent::set_event_handler(Some(move |event: GlobalHotKeyEvent| {
         if event.state() == HotKeyState::Pressed {
-            let _ = sender.unbounded_send(());
+            // The receiver lives as long as the app; a failed send means it is quitting.
+            let _ = sender.unbounded_send(Instant::now());
         }
     }));
     cx.spawn(async move |cx: &mut AsyncApp| {
         let _keep = (manager, hide_on_blur);
-        while presses.next().await.is_some() {
+        while let Some(pressed) = presses.next().await {
             cx.update(|cx| {
                 cx.activate(true);
-                let _ = window.update(cx, |_, window, _| window.activate_window());
+                // The window lives as long as the app.
+                let _ = window.update(cx, |_, window, cx| {
+                    window.activate_window();
+                    trace::shown(pressed, window, cx);
+                });
             });
         }
     })
     .detach();
+    let _ = window.update(cx, |_, window, cx| {
+        for notice in notices {
+            window.push_notification(notice, cx);
+        }
+    });
     cx.activate(true);
     Ok(())
+}
+
+fn register_hotkey() -> global_hotkey::Result<GlobalHotKeyManager> {
+    let manager = GlobalHotKeyManager::new()?;
+    manager.register(hotkey())?;
+    Ok(manager)
 }
 
 /// Hides the app whenever the panel window stops being the active one.

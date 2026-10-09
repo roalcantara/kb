@@ -11,12 +11,13 @@ use gpui_kit::component::input::{Input, InputEvent, InputState, MoveDown, MoveUp
 use gpui_kit::component::kbd::Kbd;
 use gpui_kit::component::list::{List, ListEvent, ListState};
 use gpui_kit::component::resizable::{h_resizable, resizable_panel};
-use gpui_kit::component::{ActiveTheme as _, Icon, IndexPath, Sizable as _, WindowExt as _, h_flex, v_flex};
+use gpui_kit::component::{ActiveTheme as _, Icon, IndexPath, Sizable as _, Theme, WindowExt as _, h_flex, v_flex};
 use gpui_kit::prelude::FluentBuilder as _;
 use gpui_kit::{
-    AppContext as _, ClipboardItem, Context, Entity, FocusHandle, InteractiveElement as _, IntoElement, Keystroke,
-    ParentElement, Render, Styled as _, Subscription, Window, div, px,
+    AnyElement, AppContext as _, ClipboardItem, Context, Entity, FocusHandle, InteractiveElement as _, IntoElement,
+    Keystroke, ParentElement, Render, Styled as _, Subscription, Window, div, rems,
 };
+use kb_domain::entry::Entry;
 use kb_domain::search::{FilterState, entry_types, tags};
 use kb_domain::sync::open_readonly;
 
@@ -26,10 +27,11 @@ use crate::filter::{filter_groups, filter_summary};
 use crate::notes::notes_pane;
 use crate::palette::{
     Back, CONTEXT, CopyUrl, DETAIL_CONTEXT, OpenActions, OpenFilter, OpenPreferences, OpenSourceFile, PaletteCommand,
-    Rebuild, RunPrimary, ToggleDetails, entry_palette,
+    Quit, Rebuild, RunPrimary, ToggleDetails, entry_palette,
 };
 use crate::presentation::{PrimaryKind, TypeKey, primary_action, type_key, type_label};
 use crate::sync_view::{SyncFinished, SyncView};
+use crate::trace;
 
 /// What fills the panel.
 #[derive(Debug)]
@@ -83,6 +85,10 @@ impl SearchView {
         let palette = cx.new(|cx| CommandState::new(window, cx));
         let list_sub = cx.subscribe_in(&list, window, Self::on_list_event);
         let input_sub = cx.subscribe_in(&query_input, window, Self::on_query_input_event);
+        // The theme follows the system's light or dark appearance while the panel is open.
+        let appearance = cx.observe_window_appearance(window, |_, window, cx| {
+            Theme::sync_system_appearance(Some(window), cx);
+        });
         Self {
             config,
             list,
@@ -92,7 +98,7 @@ impl SearchView {
             screen: Screen::Search,
             show_details: true,
             show_metadata: false,
-            subscriptions: vec![list_sub, input_sub],
+            subscriptions: vec![list_sub, input_sub, appearance],
         }
     }
 
@@ -106,6 +112,12 @@ impl SearchView {
     #[must_use]
     pub fn is_showing_detail(&self) -> bool {
         matches!(self.screen, Screen::Detail)
+    }
+
+    /// Whether the rebuild screen is showing.
+    #[must_use]
+    pub fn is_rebuilding(&self) -> bool {
+        matches!(self.screen, Screen::Rebuild(_))
     }
 
     /// Moves the list selection by `delta` rows, clamped to the results, and scrolls to it.
@@ -147,6 +159,7 @@ impl SearchView {
     ) {
         match event {
             InputEvent::Change => {
+                trace::typed(cx);
                 let text = state.read(cx).value().to_string();
                 self.search(&text, window, cx);
             }
@@ -383,10 +396,13 @@ impl SearchView {
         let Some(connection) = delegate.connection() else {
             return;
         };
-        let (types, all_tags) = (
-            entry_types(connection).unwrap_or_default(),
-            tags(connection).unwrap_or_default(),
-        );
+        let (types, all_tags) = match (entry_types(connection), tags(connection)) {
+            (Ok(types), Ok(tags)) => (types, tags),
+            (Err(error), _) | (_, Err(error)) => {
+                window.push_notification(format!("Couldn’t read the filter choices: {error}"), cx);
+                return;
+            }
+        };
         let groups = filter_groups(&types, &all_tags, delegate.filter())
             .into_iter()
             .map(|group| {
@@ -414,13 +430,11 @@ impl SearchView {
         cx.notify();
     }
 }
-impl Render for SearchView {
-    #[allow(clippy::too_many_lines)]
-    fn render(&mut self, window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
-        let selected = self.list.read(cx).delegate().selected_entry().cloned();
+impl SearchView {
+    /// The search field between the back and filter buttons.
+    fn render_header(&self, cx: &mut Context<Self>) -> impl IntoElement {
         let filter_label = filter_summary(self.list.read(cx).delegate().filter());
-
-        let header = h_flex()
+        h_flex()
             .h_12()
             .w_full()
             .items_center()
@@ -428,15 +442,14 @@ impl Render for SearchView {
             .gap_2()
             .border_b_1()
             .border_color(cx.theme().border)
-            .bg(cx.theme().background)
             .child(
                 Button::new("back-button")
                     .ghost()
                     .small()
                     .icon(IconName::ChevronLeft)
-                    .on_click(cx.listener(|this, _, window, cx| {
-                        this.back(&Back, window, cx);
-                    })),
+                    .accessibility_label("Back")
+                    .tooltip("Back (Esc)")
+                    .on_click(cx.listener(|this, _, window, cx| this.back(&Back, window, cx))),
             )
             .child(
                 // A single-line input consumes ↑ and ↓ without propagating them, so they are
@@ -455,14 +468,15 @@ impl Render for SearchView {
                     .icon(IconName::ListFilter)
                     .label(filter_label)
                     .dropdown_caret(true)
-                    .on_click(cx.listener(|this, _, window, cx| {
-                        this.open_filter(&OpenFilter, window, cx);
-                    })),
-            );
+                    .on_click(cx.listener(|this, _, window, cx| this.open_filter(&OpenFilter, window, cx))),
+            )
+    }
 
-        let middle_content = match &self.screen {
+    /// The screen: the list and its split pane, the detail screen, or the rebuild.
+    fn render_content(&self, selected: Option<&Entry>, window: &Window, cx: &mut Context<Self>) -> AnyElement {
+        match &self.screen {
             Screen::Rebuild(sync) => sync.clone().into_any_element(),
-            Screen::Detail => match &selected {
+            Screen::Detail => match selected {
                 Some(entry) => v_flex()
                     .size_full()
                     .child(div().px_3().pt_3().text_lg().child(entry.title.clone()))
@@ -477,31 +491,33 @@ impl Render for SearchView {
                 None => div().into_any_element(),
             },
             Screen::Search => h_resizable("search-split")
-                .child(resizable_panel().size(px(320.)).child(List::new(&self.list)))
-                .when_some(selected.clone().filter(|_| self.show_details), |split, entry| {
-                    split.child(resizable_panel().child(notes_pane(&entry, true, cx)))
+                // The panel API takes pixels; derive them from the rem scale so the split zooms.
+                .child(resizable_panel().size(rems(LIST_WIDTH_REMS).to_pixels(window.rem_size())).child(List::new(&self.list)))
+                .when_some(selected.filter(|_| self.show_details), |split, entry| {
+                    split.child(resizable_panel().child(notes_pane(entry, true, cx)))
                 })
                 .into_any_element(),
-        };
+        }
+    }
 
+    /// The context on the left; the main action and the action palette, with their keys, on the right.
+    fn render_footer(&self, selected: Option<&Entry>, window: &Window, cx: &mut Context<Self>) -> impl IntoElement {
         let (context_icon, context_text) = match &self.screen {
             Screen::Detail => (
                 IconName::BookOpen,
-                selected.as_ref().map_or("Detail".to_string(), |e| e.title.clone()),
+                selected.map_or_else(|| "Detail".to_owned(), |e| e.title.clone()),
             ),
-            Screen::Rebuild(_) => (IconName::RefreshCw, "Rebuilding Index…".to_string()),
-            Screen::Search => (IconName::BookOpen, "Search Knowledge Base".to_string()),
+            Screen::Rebuild(_) => (IconName::RefreshCw, "Rebuilding the index…".to_owned()),
+            Screen::Search => (IconName::BookOpen, "Search knowledge base".to_owned()),
         };
-
         let primary_label = if self.is_showing_detail() {
-            selected.as_ref().map_or("Action", |e| primary_action(e).title)
+            selected.map_or("Run", |e| primary_action(e).title)
         } else {
-            "Show Details"
+            "Show details"
         };
-
         let enter_hint = Keystroke::parse("enter").ok().map(Kbd::new);
         let actions_hint = Kbd::binding_for_action(&OpenActions, Some(CONTEXT), window);
-        let footer = h_flex()
+        h_flex()
             .h_11()
             .w_full()
             .items_center()
@@ -509,22 +525,18 @@ impl Render for SearchView {
             .px_3()
             .border_t_1()
             .border_color(cx.theme().border)
-            .bg(cx.theme().background)
-            // Left context badge
             .child(
                 h_flex()
                     .items_center()
                     .gap_2()
                     .px_2()
                     .py_1()
-                    .rounded_md()
-                    .bg(cx.theme().muted.opacity(0.4))
+                    .rounded(cx.theme().radius)
+                    .bg(cx.theme().muted)
                     .text_xs()
-                    .text_color(cx.theme().foreground)
                     .child(Icon::new(context_icon).small().text_color(cx.theme().red))
                     .child(div().truncate().max_w_80().child(context_text)),
             )
-            // Right action pills
             .child(
                 h_flex()
                     .items_center()
@@ -549,22 +561,26 @@ impl Render for SearchView {
                             .small()
                             .label("Actions")
                             .when_some(actions_hint, ParentElement::child)
-                            .on_click(cx.listener(|this, _, window, cx| {
-                                this.open_actions(&OpenActions, window, cx);
-                            })),
+                            .on_click(cx.listener(|this, _, window, cx| this.open_actions(&OpenActions, window, cx))),
                     ),
-            );
+            )
+    }
+}
 
+/// The list's starting width in the split, in rems.
+const LIST_WIDTH_REMS: f32 = 20.;
+
+impl Render for SearchView {
+    fn render(&mut self, window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
+        let selected = self.list.read(cx).delegate().selected_entry().cloned();
+        let context = if self.is_showing_detail() {
+            format!("{CONTEXT} {DETAIL_CONTEXT}")
+        } else {
+            CONTEXT.to_owned()
+        };
         v_flex()
             .track_focus(&self.focus)
-            .key_context(
-                if self.is_showing_detail() {
-                    format!("{CONTEXT} {DETAIL_CONTEXT}")
-                } else {
-                    CONTEXT.to_owned()
-                }
-                .as_str(),
-            )
+            .key_context(context.as_str())
             .on_action(cx.listener(Self::open_actions))
             .on_action(cx.listener(Self::open_filter))
             .on_action(cx.listener(Self::run_primary))
@@ -574,11 +590,18 @@ impl Render for SearchView {
             .on_action(cx.listener(Self::rebuild))
             .on_action(cx.listener(Self::open_preferences))
             .on_action(cx.listener(Self::back))
+            .on_action(|_: &Quit, _, cx| cx.quit())
             .size_full()
             .bg(cx.theme().background)
             .text_color(cx.theme().foreground)
-            .child(header)
-            .child(div().flex_1().min_h_0().w_full().child(middle_content))
-            .child(footer)
+            .child(self.render_header(cx))
+            .child(
+                div()
+                    .flex_1()
+                    .min_h_0()
+                    .w_full()
+                    .child(self.render_content(selected.as_ref(), window, cx)),
+            )
+            .child(self.render_footer(selected.as_ref(), window, cx))
     }
 }

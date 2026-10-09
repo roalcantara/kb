@@ -43,7 +43,7 @@ pub fn summarize(samples: &[u64]) -> Stats {
     assert!(!samples.is_empty(), "summary of an empty sample set");
     let mut sorted = samples.to_vec();
     sorted.sort_unstable();
-    #[allow(clippy::cast_precision_loss)]
+    #[expect(clippy::cast_precision_loss, reason = "nanosecond samples stay far below 2^52")]
     let mean = sorted.iter().map(|&s| s as f64).sum::<f64>() / sorted.len() as f64;
     Stats {
         n: sorted.len(),

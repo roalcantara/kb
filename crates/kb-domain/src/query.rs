@@ -1,6 +1,10 @@
 //! The search text as an FTS5 query.
 
 /// Replaces FTS5 control characters with spaces and collapses whitespace.
+///
+/// ```
+/// assert_eq!(kb_domain::query::sanitize_query_text(r#" git  "rebase*" "#), "git rebase");
+/// ```
 #[must_use]
 pub fn sanitize_query_text(input: &str) -> String {
     let spaced: String = input
@@ -17,6 +21,10 @@ pub fn sanitize_query_text(input: &str) -> String {
 }
 
 /// The search words.
+///
+/// ```
+/// assert_eq!(kb_domain::query::tokenize_query("docker (ps)"), ["docker", "ps"]);
+/// ```
 #[must_use]
 pub fn tokenize_query(text: &str) -> Vec<String> {
     sanitize_query_text(text)

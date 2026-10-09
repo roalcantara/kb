@@ -3,8 +3,11 @@
 //!
 //! `mise run bench:rs <corpus>` verifies the corpus first and passes its digest.
 
-// A command-line tool reports to the terminal.
-#![allow(clippy::print_stdout, clippy::print_stderr)]
+#![expect(
+    clippy::print_stdout,
+    clippy::print_stderr,
+    reason = "a command-line tool reports to the terminal"
+)]
 
 mod env;
 mod measure;

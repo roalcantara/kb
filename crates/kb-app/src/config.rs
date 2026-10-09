@@ -76,14 +76,24 @@ impl Config {
                 });
             }
         };
+        Ok(Self::from_preferences(parsed, home, data_dir))
+    }
+
+    /// The locations without preferences: the Raycast sources directory and the app's index.
+    #[must_use]
+    pub fn defaults(home: &Path, data_dir: &Path) -> Self {
+        Self::from_preferences(Preferences::default(), home, data_dir)
+    }
+
+    fn from_preferences(parsed: Preferences, home: &Path, data_dir: &Path) -> Self {
         let sources_dir = parsed
             .sources_path
             .map_or_else(|| home.join(DEFAULT_SOURCES), |path| expand_home(&path, home));
-        Ok(Self {
+        Self {
             sources_dir,
             database: data_dir.join("kb-native").join("kb.db"),
-            preferences,
-        })
+            preferences: home.join(PREFERENCES),
+        }
     }
 
     /// The directory the source files are found under.
@@ -143,6 +153,14 @@ mod tests {
         assert_eq!(config.sources_dir(), home.path().join("Work/knowledge"));
         assert_eq!(expand_home("/abs", home.path()), PathBuf::from("/abs"));
         assert_eq!(expand_home("~", home.path()), home.path());
+    }
+
+    #[test]
+    fn falls_back_to_the_defaults() {
+        let home = home_with(Some("sources_path = \"~/elsewhere\"\n"));
+        let config = Config::defaults(home.path(), Path::new("/data"));
+        assert_eq!(config.sources_dir(), home.path().join(".config/kodexb/sources"));
+        assert_eq!(config.preferences(), home.path().join(".config/kb/config.toml"));
     }
 
     #[test]

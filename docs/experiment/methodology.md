@@ -49,13 +49,41 @@ connection its app keeps open. Both turn every row back into an entry, re-readin
   which `ray build` and `ray develop` write by default. (`ray build -e dist` fails here: its type-definition step
   needs the TypeScript JS API, which TypeScript 7 does not ship.) The bundle holds all five commands;
   `searchCommandJsBytes` is kb search alone.
-- Cold-start CPU: `bench/probes/cpu-ts.sh`, five runs. Each run stops Raycast (`killall`: it refuses
+- Physical footprint, sampled the same way by `bench/probes/footprint.sh` from macOS's `footprint`: what Activity
+  Monitor shows as Memory. It counts the GPU memory a window holds, which RSS leaves out, so it is reported beside RSS
+  for a GPU-drawn app; RSS stays the spec's criterion.
+- kb runs as the packaged `.app` (`mise run package`) over `fixtures/private`, through a home whose
+  `~/.config/kb/config.toml` points there. Its pattern is `kb\.app/Contents/MacOS/kb`.
+- Cold-start CPU: `bench/probes/cpu-ts.sh` and `bench/probes/cpu-rs.sh`, five runs each. Each run stops Raycast (`killall`: it refuses
   AppleScript's quit), relaunches it, opens kb Search by deeplink, waits 10 s for both processes to go idle, and
   sums the CPU time (`ps` TIME) the matching processes have used since launch.
 
 ## Tier 3 — perceived latency
 
-Written in Plan 4, when both apps exist and one harness can drive them both.
+One driver for both apps: `bench/probes/probe.swift` (`mise run probes` builds `tmp/bin/probe`) posts key events with
+CGEvent at the HID level, the way a keyboard does, and watches for the result from outside the app. AppleScript's
+`keystroke` is not used: it hands focus back to the calling app, which hides a launcher. The terminal needs
+Accessibility permission; nothing needs Screen Recording.
+
+- **Warm-up.** The first event a process posts reaches the app 25–90 ms late, and later ones in 2–4 ms (measured
+  against a bare AppKit window). Every timed press is therefore preceded by an unbound key-up (F19) and 100 ms.
+  Before this was found, every external figure carried that offset.
+- **Clock.** It starts when key-down is posted, which is what apps act on; key-up follows 10 ms later while the polling
+  (every 1 ms) goes on.
+- **Show** (`bench/probes/latency.sh`): hotkey → the app's window on screen, from `CGWindowListCopyWindowInfo`; 30
+  rounds of show, type a query, clear it, hide. A re-shown window appears with its last frame, so this is when the
+  user sees the panel, not when it has redrawn.
+- **Action** (`bench/probes/action.sh`): task T2's step, ⌘↩ → the clipboard's change count moving; 30 rounds, after a
+  query has settled. kb opens by its hotkey, Raycast's kb command by its deeplink; how it opens does not change the
+  step.
+- **Inside kb** (`kb --trace`, `src/trace.rs`): hotkey handled → new frame, and keystroke → updated list, both as a
+  range: from the start of the frame that draws the change to the start of the next, by which it has been presented.
+  The keystroke figure includes the 150 ms debounce; `settle` is from the debounce firing to the frame.
+- **Raycast keystroke → updated list** has no signal the probe reads and no trace. It is measured by hand: record the
+  screen at 120 fps while typing the last letter of a query, and count frames from the key's echo in the field to the
+  list's change. Not part of the automated run.
+- Raycast's hotkey is ⌘Space, its root search. For the kb command itself, assign it a hotkey in Raycast and pass it as
+  `HOTKEY="<keycode> <mods>"`.
 
 ## Baseline history
 

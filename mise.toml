@@ -16,6 +16,7 @@ cargo-binstall = "1.25.2"
 "cargo:cargo-deny" = "0.20.2"
 "cargo:cargo-llvm-cov" = "0.9.1"
 "cargo:cargo-machete" = "0.9.2"
+"cargo:cargo-packager" = "0.11.8"
 "cargo:cargo-nextest" = "0.9.146"
 dprint = "0.61.0"
 hk = "2.5.0"
@@ -29,6 +30,7 @@ rust = "1.99.0"
 shellcheck = "0.11.0"
 shfmt = "3.14.1"
 taplo = "0.10.0"
+tokei = "15.0.0"
 typos = "1.51.1"
 zizmor = "1.30.1"
 "npm:quick-commitlint" = { version = "0.1.2", allow_low_downloads = true }
@@ -59,6 +61,7 @@ run = '''
   set -euo pipefail
 
   cargo nextest run --workspace --locked
+  cargo test --doc --workspace --locked # nextest does not run doctests
   cargo clippy --workspace --all-targets --locked -- -D warnings
   if [ "${usage_fast:-false}" = "true" ]; then exit 0; fi
   cargo build --workspace --release --locked
@@ -174,10 +177,12 @@ run = '''
 
 [tasks.app]
 description = "Build the panel in release mode and start it; press ⌥K to show it"
+usage = 'flag "--trace" help="log the show and keystroke latencies to stderr"'
 run = '''
   #!/usr/bin/env bash
   set -euo pipefail
   cargo build --release --locked -p kb-app
+  if [ "${usage_trace:-false}" = "true" ]; then exec target/release/kb --trace; fi
   exec target/release/kb
 '''
 
@@ -188,4 +193,72 @@ run = '''
   set -euo pipefail
   cargo build --release --locked -p kb-app
   bench/probes/size-rs.sh "docs/experiment/results/tier2-rust-size-$(date -u +%Y%m%dT%H%M%SZ).json"
+'''
+
+[tasks.probes]
+description = "Build the CGEvent driver (tmp/bin/probe) the tier 2 and tier 3 probes use"
+sources = ["bench/probes/probe.swift"]
+outputs = ["tmp/bin/probe"]
+run = "mkdir -p tmp/bin && swiftc -O -o tmp/bin/probe bench/probes/probe.swift"
+
+[tasks.package]
+description = "Build kb.app (target/packager) and sign it ad hoc for this machine"
+run = '''
+  #!/usr/bin/env bash
+  set -euo pipefail
+  (cd crates/kb-app && cargo packager --release --formats app)
+  # Ad hoc: enough to run here. Distribution needs a Developer ID and notarization (README).
+  codesign --force --sign - target/packager/kb.app
+  echo "target/packager/kb.app"
+'''
+
+[tasks.install]
+description = "Package kb.app and install it in ~/Applications; start it from there or at login"
+depends = ["package"]
+run = '''
+  #!/usr/bin/env bash
+  set -euo pipefail
+  mkdir -p ~/Applications
+  pkill -x kb || true
+  rm -rf ~/Applications/kb.app
+  cp -R target/packager/kb.app ~/Applications/
+  echo "installed ~/Applications/kb.app; open it, then press ⌥K"
+'''
+
+[tasks."bench:memory"]
+description = "Tier 2: RSS and physical footprint of kb or Raycast, idle, open and after 100 queries"
+depends = ["probes"]
+usage = 'arg "<app>" help="kb or raycast"'
+run = '''
+  #!/usr/bin/env bash
+  set -euo pipefail
+  if [ "${usage_app}" = kb ]; then mise run package; fi
+  bench/probes/memory.sh "${usage_app}" docs/experiment/results
+'''
+
+[tasks."bench:e2e"]
+description = "Tier 3: hotkey → window, keystroke → list (kb's trace) and ⌘↩ → clipboard, for kb or Raycast"
+depends = ["probes"]
+usage = 'arg "<app>" help="kb or raycast"'
+run = '''
+  #!/usr/bin/env bash
+  set -euo pipefail
+  if [ "${usage_app}" = kb ]; then mise run package; fi
+  bench/probes/latency.sh "${usage_app}" docs/experiment/results
+  bench/probes/action.sh "${usage_app}" docs/experiment/results
+'''
+
+[tasks."bench:maint"]
+description = "Maintainability: lines of code, dependencies, tests and build times of both implementations"
+run = "bench/probes/maint.sh docs/experiment/results"
+
+[tasks.report]
+description = "Run the gate and golden parity, then write docs/experiment/report.md from the results"
+run = '''
+  #!/usr/bin/env bash
+  set -euo pipefail
+  mise run gate
+  mise run parity
+  cargo run --quiet --locked -p xtask -- report --verified
+  dprint fmt docs/experiment/report.md
 '''

@@ -25,5 +25,21 @@ toml.workspace = true
 [dev-dependencies]
 gpui-kit = { workspace = true, features = ["test-support"] }
 tempfile.workspace = true
+# `cargo packager --release` (mise run package): the .app and .dmg in target/packager.
+[package.metadata.packager]
+product-name = "kb"
+identifier = "dev.roalcantara.kb"
+icons = ["assets/icon.icns"]
+out-dir = "../../target/packager"
+before-packaging-command = "cargo build --release --locked -p kb-app"
+binaries = [{ path = "kb", main = true }]
+category = "Productivity"
+copyright = "© 2026 Rogério Alcântara"
+
+[package.metadata.packager.macos]
+# LSUIElement: no Dock icon or app menu, as the resident panel runs (ADR 0004).
+background-app = true
+minimum-system-version = "13.0"
+
 [lints]
 workspace = true

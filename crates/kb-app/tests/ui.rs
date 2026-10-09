@@ -1,13 +1,14 @@
 //! UI integration tests: the production `SearchView` in a headless window over the committed
 //! sample corpus, driven by real key events.
 
-#![allow(clippy::unwrap_used, clippy::expect_used)]
+#![expect(clippy::unwrap_used, reason = "a fixture that cannot be built is a failed test")]
 
 use std::fs;
 use std::path::Path;
 use std::sync::atomic::AtomicBool;
 use std::time::Duration;
 
+use gpui_kit::WindowAppearance;
 use gpui_kit::component::{ActiveTheme as _, ThemeMode};
 use gpui_kit::test::TestWindowExt as _;
 use gpui_kit::{
@@ -77,11 +78,15 @@ fn titles(view: &Entity<SearchView>, cx: &mut TestAppContext) -> Vec<String> {
 }
 
 #[gpui_kit::test]
-fn initializes_with_dark_theme_mode(cx: &mut gpui_kit::TestAppContext) {
+fn follows_the_system_appearance(cx: &mut gpui_kit::TestAppContext) {
     cx.update(|cx| {
         gpui_kit::init(cx);
         kb_app::init_theme(cx);
-        assert_eq!(cx.theme().mode, ThemeMode::Dark);
+        let dark = matches!(
+            cx.window_appearance(),
+            WindowAppearance::Dark | WindowAppearance::VibrantDark
+        );
+        assert_eq!(cx.theme().mode, if dark { ThemeMode::Dark } else { ThemeMode::Light });
     });
 }
 
@@ -234,4 +239,61 @@ fn the_action_bar_opens_details_and_runs_the_primary_action(cx: &mut TestAppCont
     click(cx, window, "footer-primary-action");
     let copied = cx.read_from_clipboard().and_then(|item| item.text());
     assert_eq!(copied.as_deref(), Some("kubectl get pods -A"));
+}
+
+// Task cost (docs/experiment/parity.md, "Tasks"): each test presses exactly the keys the matrix
+// counts for its task once the panel is shown.
+
+#[gpui_kit::test]
+fn task_t1_opens_a_bookmark_with_a_query_and_one_chord(cx: &mut TestAppContext) {
+    let (_home, window, _view) = open_with_query(cx, "conference");
+    press(cx, window, "secondary-enter");
+    assert_eq!(
+        cx.opened_url().as_deref(),
+        Some("https://www.youtube.com/watch?v=aqz-KE-bpKQ")
+    );
+}
+
+#[gpui_kit::test]
+fn task_t2_copies_a_command_with_a_query_and_one_chord(cx: &mut TestAppContext) {
+    let (_home, window, _view) = open_with_query(cx, "docker");
+    press(cx, window, "secondary-enter");
+    let copied = cx.read_from_clipboard().and_then(|item| item.text());
+    assert_eq!(copied.as_deref(), Some("docker ps -a"));
+}
+
+#[gpui_kit::test]
+fn task_t3_filters_by_a_type_and_a_tag_with_two_picks(cx: &mut TestAppContext) {
+    let home = tempfile::tempdir().unwrap();
+    let (window, view) = open(cx, sample_config(home.path()));
+    for choice in ["Commands", "#docker"] {
+        press(cx, window, "cmd-p");
+        cx.run_until_parked();
+        type_text(cx, window, choice);
+        cx.run_until_parked();
+        press(cx, window, "enter");
+        settle(cx);
+    }
+    let filter = cx.read(|cx| view.read(cx).list().read(cx).delegate().filter().clone());
+    assert_eq!(
+        (filter.types, filter.tags),
+        (vec!["commands".to_owned()], vec!["docker".to_owned()])
+    );
+    assert_eq!(titles(&view, cx), ["docker ps -a"]);
+}
+
+#[gpui_kit::test]
+fn task_t4_reads_a_note_with_a_query_and_return(cx: &mut TestAppContext) {
+    let (_home, window, view) = open_with_query(cx, "rebase");
+    press(cx, window, "enter");
+    assert!(cx.read(|cx| view.read(cx).is_showing_detail()));
+    assert_eq!(selected_title(&view, cx).as_deref(), Some("Interactive rebase"));
+}
+
+#[gpui_kit::test]
+fn task_t5_rebuilds_the_index_with_one_chord(cx: &mut TestAppContext) {
+    let home = tempfile::tempdir().unwrap();
+    let (window, view) = open(cx, sample_config(home.path()));
+    press(cx, window, "cmd-r");
+    assert!(cx.read(|cx| view.read(cx).is_rebuilding()));
 }

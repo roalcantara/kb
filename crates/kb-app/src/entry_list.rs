@@ -4,17 +4,20 @@ use std::time::Duration;
 
 use gpui_kit::component::empty::{Empty, EmptyDescription, EmptyHeader, EmptyTitle};
 use gpui_kit::component::list::{ListDelegate, ListItem, ListState};
+use gpui_kit::component::tag::Tag;
 use gpui_kit::component::{ActiveTheme as _, Icon, IndexPath, Sizable as _, h_flex};
 use gpui_kit::prelude::FluentBuilder as _;
 use gpui_kit::{
-    App, Context, FontWeight, Hsla, IntoElement as _, ParentElement, SharedString, Styled as _, Task, Window, div,
+    App, Context, FontWeight, Hsla, IntoElement as _, ParentElement, Role, SharedString,
+    StatefulInteractiveElement as _, Styled as _, Task, Window, div,
 };
 use kb_domain::Connection;
 use kb_domain::entry::Entry;
 use kb_domain::row::row_to_entry;
 use kb_domain::search::{FilterState, PAGE_SIZE, SearchQuery, search};
 
-use crate::presentation::{Hue, row_tags, tag_hue, type_badge};
+use crate::presentation::{Hue, row_label, row_tags, tag_hue, type_badge};
+use crate::trace;
 
 /// The theme colour of a hue.
 #[must_use]
@@ -136,6 +139,10 @@ impl EntryList {
         let badge_hue = hue_color(badge.hue, cx);
 
         ListItem::new(SharedString::from(entry.id.clone()))
+            // The List wraps each row in its own ListItem node and reports only nodes with a role,
+            // so the row needs one to carry its name to assistive technology.
+            .role(Role::Label)
+            .accessibility_label(row_label(entry))
             .selected(selected)
             .rounded_lg()
             .child(
@@ -182,15 +189,8 @@ impl EntryList {
                     )
                     .children(tags.iter().map(|tag| {
                         let hue = hue_color(tag_hue(tag), cx);
-                        div()
-                            .flex_none()
-                            .px_2()
-                            .py_0p5()
-                            .rounded(cx.theme().radius)
-                            .bg(hue.opacity(0.15))
-                            .text_color(hue)
-                            .text_xs()
-                            .font_weight(FontWeight::MEDIUM)
+                        Tag::custom(hue.opacity(0.15), hue, hue.opacity(0.3))
+                            .xsmall()
                             .child(format!("#{tag}"))
                     }))
                     .when(more > 0, |row| {
@@ -216,17 +216,18 @@ impl EntryList {
 impl ListDelegate for EntryList {
     type Item = ListItem;
 
-    fn perform_search(&mut self, query: &str, _: &mut Window, cx: &mut Context<ListState<Self>>) -> Task<()> {
+    fn perform_search(&mut self, query: &str, window: &mut Window, cx: &mut Context<ListState<Self>>) -> Task<()> {
         let query = query.to_owned();
         // The list drops the previous task when the query changes again, which cancels it, so
         // only a query that has been stable for DEBOUNCE runs.
-        cx.spawn(async move |list, cx| {
+        cx.spawn_in(window, async move |list, cx| {
             cx.background_executor().timer(DEBOUNCE).await;
-            let _ = list.update(cx, |list, cx| {
+            let _ = list.update_in(cx, |list, window, cx| {
                 let delegate = list.delegate_mut();
                 delegate.query = query;
                 delegate.limit = PAGE_SIZE;
                 delegate.refresh();
+                trace::searched(window, cx);
                 cx.notify();
             });
         })

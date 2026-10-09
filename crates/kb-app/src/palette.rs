@@ -40,6 +40,8 @@ actions!(
         OpenPreferences,
         /// Leave the current screen: back to the list, or hide the panel.
         Back,
+        /// Quit the app: it has no Dock icon or menu bar to quit it from.
+        Quit,
     ]
 );
 
@@ -59,6 +61,7 @@ pub fn key_bindings() -> Vec<KeyBinding> {
         KeyBinding::new("cmd-r", Rebuild, context),
         KeyBinding::new("cmd-shift-,", OpenPreferences, context),
         KeyBinding::new("escape", Back, context),
+        KeyBinding::new("cmd-q", Quit, context),
     ]
 }
 
@@ -125,9 +128,9 @@ pub fn entry_palette(entry: Option<&Entry>, showing_details: bool) -> Vec<Palett
             source.push(row("Copy URL", IconName::Copy, PaletteCommand::Run(Box::new(CopyUrl))));
         }
         let toggle = if showing_details {
-            "Hide Details"
+            "Hide details"
         } else {
-            "Show Details"
+            "Show details"
         };
         source.push(row(
             toggle,
@@ -135,7 +138,7 @@ pub fn entry_palette(entry: Option<&Entry>, showing_details: bool) -> Vec<Palett
             PaletteCommand::Run(Box::new(ToggleDetails)),
         ));
         source.push(row(
-            "Open Source File",
+            "Open source file",
             IconName::FolderOpen,
             PaletteCommand::Run(Box::new(OpenSourceFile)),
         ));
@@ -166,20 +169,20 @@ pub fn entry_palette(entry: Option<&Entry>, showing_details: bool) -> Vec<Palett
         }
 
         let mut copy = vec![row(
-            "Copy Title",
+            "Copy title",
             IconName::Copy,
             PaletteCommand::Copy(entry.title.clone()),
         )];
         if let Some(description) = &entry.description {
             copy.push(row(
-                "Copy Description",
+                "Copy description",
                 IconName::Copy,
                 PaletteCommand::Copy(description.clone()),
             ));
         }
         if !entry.notes_markdown.is_empty() {
             copy.push(row(
-                "Copy Notes",
+                "Copy notes",
                 IconName::Copy,
                 PaletteCommand::Copy(entry.notes_markdown.clone()),
             ));
@@ -193,15 +196,16 @@ pub fn entry_palette(entry: Option<&Entry>, showing_details: bool) -> Vec<Palett
         label: "Administration",
         rows: vec![
             row(
-                "Rebuild Index…",
+                "Rebuild index",
                 IconName::RefreshCw,
                 PaletteCommand::Run(Box::new(Rebuild)),
             ),
             row(
-                "Open Preferences",
+                "Open preferences",
                 IconName::Settings,
                 PaletteCommand::Run(Box::new(OpenPreferences)),
             ),
+            row("Quit kb", IconName::Power, PaletteCommand::Run(Box::new(Quit))),
         ],
     });
     groups
@@ -229,14 +233,14 @@ mod tests {
         assert_eq!(
             labels(&entry_palette(Some(&bookmark), false)),
             [
-                ("Entry", vec!["Open in Browser"]),
+                ("Entry", vec!["Open in browser"]),
                 (
                     "Source & Clipboard",
-                    vec!["Copy URL", "Show Details", "Open Source File"]
+                    vec!["Copy URL", "Show details", "Open source file"]
                 ),
                 ("Links", vec!["Open Guide", "Copy URL of Guide"]),
-                ("Copy", vec!["Copy Title", "Copy Description", "Copy Notes"]),
-                ("Administration", vec!["Rebuild Index…", "Open Preferences"]),
+                ("Copy", vec!["Copy title", "Copy description", "Copy notes"]),
+                ("Administration", vec!["Rebuild index", "Open preferences", "Quit kb"]),
             ]
         );
     }
@@ -247,7 +251,7 @@ mod tests {
         let groups = entry_palette(Some(&command), true);
         assert_eq!(
             labels(&groups)[1],
-            ("Source & Clipboard", vec!["Hide Details", "Open Source File"])
+            ("Source & Clipboard", vec!["Hide details", "Open source file"])
         );
         assert!(groups.iter().all(|g| g.label != "Links"));
     }
@@ -256,12 +260,12 @@ mod tests {
     fn offers_only_administration_without_a_selection() {
         assert_eq!(
             labels(&entry_palette(None, false)),
-            [("Administration", vec!["Rebuild Index…", "Open Preferences"])]
+            [("Administration", vec!["Rebuild index", "Open preferences", "Quit kb"])]
         );
     }
 
     #[test]
     fn binds_every_shortcut_in_the_search_context() {
-        assert_eq!(key_bindings().len(), 9);
+        assert_eq!(key_bindings().len(), 10);
     }
 }

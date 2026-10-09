@@ -4,8 +4,12 @@
 //! runs tests from the crate directory) or absolute; they default to the committed sample.
 //! `mise run parity` points them at the private corpus.
 
-// A test fixture that cannot be built is a failed test: its helpers panic like the tests do.
-#![allow(clippy::expect_used, clippy::unwrap_used, clippy::cast_possible_truncation)]
+#![expect(
+    clippy::expect_used,
+    clippy::unwrap_used,
+    clippy::cast_possible_truncation,
+    reason = "a fixture that cannot be built is a failed test; counts fit in usize"
+)]
 
 use std::collections::BTreeSet;
 use std::fmt::Write as _;

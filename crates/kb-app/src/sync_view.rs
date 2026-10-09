@@ -126,12 +126,6 @@ impl SyncView {
         }
     }
 
-    /// Where the sync stands.
-    #[must_use]
-    pub fn status(&self) -> &SyncStatus {
-        &self.status
-    }
-
     /// Whether the sync is still running.
     #[must_use]
     pub fn is_running(&self) -> bool {
@@ -222,12 +216,12 @@ impl Render for SyncView {
                 entries,
                 current,
             } => {
-                #[allow(clippy::cast_precision_loss)]
-                let percent = if *files_total == 0 {
-                    0.0
-                } else {
-                    *files_scanned as f32 * 100.0 / *files_total as f32
-                };
+                // Whole percents: exact in f32, and all a progress bar can show.
+                let percent = files_scanned
+                    .saturating_mul(100)
+                    .checked_div(*files_total)
+                    .map_or(0, |p| p.min(100));
+                let percent = f32::from(u8::try_from(percent).unwrap_or(100));
                 v_flex()
                     .gap_2()
                     .child("Rebuilding the index…")
@@ -247,7 +241,12 @@ impl Render for SyncView {
                         .gap_1()
                         .child(h_flex().gap_2().child(path).child(div().text_color(muted).child(line)))
                         .when_some(excerpt, |row, excerpt| {
-                            row.child(div().font_family("Menlo").text_sm().child(excerpt))
+                            row.child(
+                                div()
+                                    .font_family(cx.theme().mono_font_family.clone())
+                                    .text_sm()
+                                    .child(excerpt),
+                            )
                         })
                 }))
                 .child(div().text_color(muted).child("Press Esc to return to the list.")),

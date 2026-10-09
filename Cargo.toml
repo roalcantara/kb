@@ -1,6 +1,6 @@
 [workspace]
 resolver = "3"
-members = ["crates/kb-domain", "crates/kb-bench", "crates/kb-app"]
+members = ["crates/kb-domain", "crates/kb-bench", "crates/kb-app", "crates/xtask"]
 
 [workspace.package]
 version = "0.1.0"

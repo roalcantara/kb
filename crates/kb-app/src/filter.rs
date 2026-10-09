@@ -43,7 +43,7 @@ pub fn filter_groups(types: &[String], tags: &[String], current: &FilterState) -
         groups.push(FilterGroup {
             label: "Filters",
             choices: vec![FilterChoice {
-                label: "Clear All Filters".into(),
+                label: "Clear all filters".into(),
                 checked: false,
                 next: FilterState::default(),
             }],

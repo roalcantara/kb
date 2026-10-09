@@ -42,6 +42,13 @@ fn code_language(language: &str) -> &str {
 }
 
 /// The `YouTube` video id of a watch, embed or share URL.
+///
+/// ```
+/// use kb_domain::markdown::youtube_video_id;
+///
+/// assert_eq!(youtube_video_id("https://youtu.be/aqz-KE-bpKQ?t=3"), Some("aqz-KE-bpKQ"));
+/// assert_eq!(youtube_video_id("https://example.com"), None);
+/// ```
 #[must_use]
 pub fn youtube_video_id(url: &str) -> Option<&str> {
     let start = ["youtube.com/watch?v=", "youtube.com/embed/", "youtu.be/"]

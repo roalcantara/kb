@@ -10,9 +10,10 @@ out=$4
 
 samples=()
 for ((i = 0; i < seconds; i++)); do
-  # ps reports RSS in KiB; the sum covers every matching process (an app and its helpers).
+  # ps reports RSS in KiB; the sum covers every matching process (an app and its helpers), but
+  # not the probes, whose command lines carry the pattern.
   # shellcheck disable=SC2009
-  kib=$(ps -axo rss=,command= | grep -E -- "$pattern" | grep -v -E 'grep|rss\.sh' | awk '{s += $1} END {print s + 0}')
+  kib=$(ps -axo rss=,command= | grep -E -- "$pattern" | grep -v -E 'grep|bench/probes/' | awk '{s += $1} END {print s + 0}')
   samples+=("$((kib * 1024))")
   sleep 1
 done

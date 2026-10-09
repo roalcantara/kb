@@ -147,18 +147,34 @@ pub struct PrimaryAction {
 #[must_use]
 pub fn primary_action(entry: &Entry) -> PrimaryAction {
     let (kind, title) = match type_key(&entry.entry_type) {
-        TypeKey::Bookmark => (PrimaryKind::OpenInBrowser, "Open in Browser"),
-        TypeKey::Command => (PrimaryKind::Copy, "Copy Command Snippet"),
-        TypeKey::Cheat => (PrimaryKind::Copy, "Copy Cheat Sheet"),
-        TypeKey::Note => (PrimaryKind::Copy, "Copy Notes"),
-        TypeKey::Task => (PrimaryKind::Copy, "Copy Task"),
-        TypeKey::Other => (PrimaryKind::Copy, "Copy Primary Content"),
+        TypeKey::Bookmark => (PrimaryKind::OpenInBrowser, "Open in browser"),
+        TypeKey::Command => (PrimaryKind::Copy, "Copy command snippet"),
+        TypeKey::Cheat => (PrimaryKind::Copy, "Copy cheat sheet"),
+        TypeKey::Note => (PrimaryKind::Copy, "Copy notes"),
+        TypeKey::Task => (PrimaryKind::Copy, "Copy task"),
+        TypeKey::Other => (PrimaryKind::Copy, "Copy primary content"),
     };
     PrimaryAction {
         kind,
         title,
         content: entry.primary_content.clone(),
     }
+}
+
+/// What assistive technology reads for a list row: its visible text, in reading order, because
+/// a row's children do not name it. "docker ps -a, Commands, List every container…, tags docker,
+/// containers".
+#[must_use]
+pub fn row_label(entry: &Entry) -> String {
+    let mut parts = vec![entry.title.clone(), type_label(&entry.entry_type)];
+    parts.extend(entry.description.clone());
+    if !entry.tags.is_empty() {
+        parts.push(format!("tags {}", entry.tags.join(", ")));
+    }
+    if !entry.links.is_empty() {
+        parts.push(format!("{} links", entry.links.len()));
+    }
+    parts.join(", ")
 }
 
 /// The tags a row shows and how many more there are.
@@ -236,12 +252,12 @@ mod tests {
     #[test]
     fn matches_the_raycast_primary_action_matrix() {
         let cases = [
-            ("bookmarks", PrimaryKind::OpenInBrowser, "Open in Browser"),
-            ("commands", PrimaryKind::Copy, "Copy Command Snippet"),
-            ("cheats", PrimaryKind::Copy, "Copy Cheat Sheet"),
-            ("notes", PrimaryKind::Copy, "Copy Notes"),
-            ("tasks", PrimaryKind::Copy, "Copy Task"),
-            ("snippets", PrimaryKind::Copy, "Copy Primary Content"),
+            ("bookmarks", PrimaryKind::OpenInBrowser, "Open in browser"),
+            ("commands", PrimaryKind::Copy, "Copy command snippet"),
+            ("cheats", PrimaryKind::Copy, "Copy cheat sheet"),
+            ("notes", PrimaryKind::Copy, "Copy notes"),
+            ("tasks", PrimaryKind::Copy, "Copy task"),
+            ("snippets", PrimaryKind::Copy, "Copy primary content"),
         ];
         for (entry_type, kind, title) in cases {
             let action = primary_action(&entry(entry_type, "key", "title: t\n"));
@@ -250,6 +266,19 @@ mod tests {
                 (kind, title, "key")
             );
         }
+    }
+
+    #[test]
+    fn names_a_row_by_its_visible_text() {
+        let command = entry(
+            "commands",
+            "docker ps -a",
+            "desc: List containers.\ntags: [docker, ops]\n",
+        );
+        assert_eq!(
+            row_label(&command),
+            "docker ps -a, Commands, List containers., tags docker, ops"
+        );
     }
 
     #[test]

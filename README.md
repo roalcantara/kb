@@ -21,8 +21,9 @@ size and runtime limits are out of the way.
 | Crate / folder     | Role                                                                                        |
 | ------------------ | ------------------------------------------------------------------------------------------- |
 | `crates/kb-domain` | The engine: entries, source files, notes Markdown, the SQLite index and its queries. No UI. |
-| `crates/kb-app`    | The GPUI Kit application: a resident panel opened by a global hotkey. (Plan 3)              |
-| `crates/kb-bench`  | Engine benchmarks writing the shared results schema. (Plan 2)                               |
+| `crates/kb-app`    | The GPUI Kit application: a resident panel opened by a global hotkey.                       |
+| `crates/kb-bench`  | Engine benchmarks writing the shared results schema.                                        |
+| `crates/xtask`     | Repository tasks in Rust: `report` writes `docs/experiment/report.md`.                      |
 | `bench/ts`         | The same benchmarks over the Raycast extension's TypeScript engine.                         |
 | `fixtures`         | Benchmark corpora, queries and golden outputs.                                              |
 
@@ -35,7 +36,8 @@ for the domain vocabulary and [docs/adr](docs/adr) for the decisions.
 
 ```bash
 mise run setup        # tools, crates, TS bench dependencies, git hooks
-mise run app          # build and start the panel (release build)
+mise run install      # build kb.app and copy it to ~/Applications
+open ~/Applications/kb.app
 ```
 
 Then press **⌥K** anywhere to open the panel, and **⌘R** once to build the index from your sources.
@@ -52,6 +54,10 @@ Then press **⌥K** anywhere to open the panel, and **⌘R** once to build the i
 | ⌘R   | rebuild the index                                    |
 | ⌘⇧,  | open the preferences file                            |
 | Esc  | back, then hide the panel                            |
+| ⌘Q   | quit kb                                              |
+
+kb has no Dock icon: it lives behind ⌥K until you quit it. To start it at login, add `~/Applications/kb.app` in
+System Settings › General › Login Items. If another app holds ⌥K, kb says so when it opens.
 
 The sources are `~/.config/kodexb/sources` unless `~/.config/kb/config.toml` says otherwise:
 
@@ -66,7 +72,12 @@ touched.
 
 ```bash
 mise run gate         # every quality gate, stopping at the first failure
+mise run app          # build and start the panel from the terminal; --trace logs its latencies
 ```
+
+`mise run package` builds `target/packager/kb.app` and signs it ad hoc, which is enough for this machine. To give it
+to someone else, sign it with a Developer ID and notarize it (`codesign --options runtime`, `xcrun notarytool`);
+Gatekeeper refuses an ad hoc signature from another machine.
 
 The TS baseline reads the Raycast repository at `$KB_TS_REPO` (default `~/Work/raycast/kb`) and never writes to
 it.
@@ -76,7 +87,7 @@ it.
 ```text
 crates/          Rust crates
 bench/ts/        TypeScript baseline benchmarks and golden writer
-bench/probes/    footprint probes (RSS, scripted typing)
+bench/probes/    tier 2 and 3 probes: memory, CPU, size, latency, and the CGEvent driver
 fixtures/        corpora, queries, goldens (private corpora are gitignored)
 docs/adr/        architecture decisions
 docs/experiment/ methodology, parity matrix, results, report
@@ -93,16 +104,21 @@ tools/           ast-grep rules, mdschema schemas
 
 ## Development Workflow
 
-| Command                      | Does                                                             |
-| ---------------------------- | ---------------------------------------------------------------- |
-| `mise run setup`             | install everything                                               |
-| `mise run gate`              | all gates in order; `--fast` runs tests and clippy only          |
-| `mise run fixtures`          | copy the private corpus, verify its manifest, build the 10× copy |
-| `mise run goldens`           | write goldens from the TS engine                                 |
-| `mise run parity`            | golden parity on the private corpus                              |
-| `mise run bench:ts`          | tier 1 benchmarks of the TS engine                               |
-| `mise run bench:rs <corpus>` | tier 1 benchmarks of kb-domain                                   |
-| `hk check --all`             | every baseline step over the whole repository                    |
+| Command                       | Does                                                             |
+| ----------------------------- | ---------------------------------------------------------------- |
+| `mise run setup`              | install everything                                               |
+| `mise run gate`               | all gates in order; `--fast` runs tests and clippy only          |
+| `mise run fixtures`           | copy the private corpus, verify its manifest, build the 10× copy |
+| `mise run goldens`            | write goldens from the TS engine                                 |
+| `mise run parity`             | golden parity on the private corpus                              |
+| `mise run bench:ts`           | tier 1 benchmarks of the TS engine                               |
+| `mise run bench:rs <corpus>`  | tier 1 benchmarks of kb-domain                                   |
+| `mise run bench:memory <app>` | tier 2 memory of kb or raycast                                   |
+| `mise run bench:e2e <app>`    | tier 3 latency of kb or raycast                                  |
+| `mise run bench:maint`        | lines, dependencies, tests and build time of both                |
+| `mise run package`            | build and sign `kb.app`; `install` copies it to ~/Applications   |
+| `mise run report`             | gate, parity, then `docs/experiment/report.md` from the results  |
+| `hk check --all`              | every baseline step over the whole repository                    |
 
 Commits follow Conventional Commits with a sentence-case subject; hk checks the message.
 

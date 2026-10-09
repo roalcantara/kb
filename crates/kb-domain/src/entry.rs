@@ -50,6 +50,11 @@ pub struct Entry {
 
 /// `<rel path>#<type>#<key>`, the path with forward slashes and no leading slash. Case is kept:
 /// the id is the index's primary key.
+///
+/// ```
+/// let id = kb_domain::entry::derive_entry_id("/tools/cli.yml", "commands", "ls -la");
+/// assert_eq!(id, "tools/cli.yml#commands#ls -la");
+/// ```
 #[must_use]
 pub fn derive_entry_id(source_rel_path: &str, entry_type: &str, key: &str) -> String {
     let path = source_rel_path.replace('\\', "/");
