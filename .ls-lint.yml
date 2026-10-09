@@ -26,3 +26,4 @@ ignore:
   - bench/ts/node_modules
   - bench/ts/dist
   - .ls-lint.yml
+  - .superpowers

@@ -16,3 +16,6 @@
 /bench/ts/dist/
 
 .DS_Store
+
+# Brainstorming prototypes and temporary visual assets
+/.superpowers/
