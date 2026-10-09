@@ -1,6 +1,6 @@
 # 0003. Render mermaid natively
 
-- Status: accepted
+- Status: deferred (design decision D8, 2026-10-09)
 - Date: 2026-10-08
 
 ## Context
@@ -16,3 +16,8 @@ they point at `mermaid.ink`, with the `merman` crate instead, offline.
 ## Consequences
 
 Diagrams render offline and privately. `merman` adds to the binary; its size is reported separately.
+
+## Update, 2026-10-09
+
+Deferred out of the MVP by the owner (D8). `kb-app` shows the `mermaid.ink` image the Markdown links, as Raycast
+does; `merman` is the first follow-up after the experiment.

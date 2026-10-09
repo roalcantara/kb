@@ -31,8 +31,40 @@ for the domain vocabulary and [docs/adr](docs/adr) for the decisions.
 
 ## Getting Started
 
+**Quickstart.**
+
 ```bash
 mise run setup        # tools, crates, TS bench dependencies, git hooks
+mise run app          # build and start the panel (release build)
+```
+
+Then press **⌥K** anywhere to open the panel, and **⌘R** once to build the index from your sources.
+
+| Key  | Does                                                 |
+| ---- | ---------------------------------------------------- |
+| type | search titles, descriptions and notes                |
+| ↑ ↓  | move the selection                                   |
+| ↩    | show the entry; on the entry, run its main action    |
+| ⌘↩   | run the main action: open a bookmark, copy a command |
+| ⌘K   | all actions for the selected entry                   |
+| ⌘P   | filter by type and tag                               |
+| ⌘D   | show or hide the details pane                        |
+| ⌘R   | rebuild the index                                    |
+| ⌘⇧,  | open the preferences file                            |
+| Esc  | back, then hide the panel                            |
+
+The sources are `~/.config/kodexb/sources` unless `~/.config/kb/config.toml` says otherwise:
+
+```toml
+sources_path = "~/Work/knowledge"
+```
+
+The index lives in `~/Library/Application Support/kb-native/kb.db`; the Raycast extension's index is never
+touched.
+
+**Working on it.**
+
+```bash
 mise run gate         # every quality gate, stopping at the first failure
 ```
 
@@ -54,7 +86,8 @@ tools/           ast-grep rules, mdschema schemas
 
 ## Key Features
 
-- The kb search experience — FTS search, filters, split pane, rendered notes, actions, sync — as a native app.
+- The kb search experience — FTS search, filters, split pane, rendered notes with highlighted code, actions,
+  sync — as a native panel opened by ⌥K.
 - Byte-for-byte parity with the Raycast engine's output, proven by golden tests.
 - A reproducible benchmark of both implementations on the same corpus.
 
