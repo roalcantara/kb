@@ -11,6 +11,15 @@ publish = false
 repository = "https://github.com/roalcantara/kb-native"
 
 [workspace.dependencies]
+base64 = "0.22"
+indexmap = "2"
+rusqlite = { version = "0.37", features = ["bundled"] }
+saphyr = "0.1"
+serde = { version = "1", features = ["derive"] }
+serde_json = { version = "1", features = ["preserve_order"] }
+tempfile = "3"
+thiserror = "2"
+walkdir = "2"
 
 [workspace.lints.rust]
 unsafe_code = "forbid"
