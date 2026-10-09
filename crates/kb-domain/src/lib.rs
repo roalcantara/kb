@@ -6,4 +6,5 @@
 
 #![warn(missing_docs)]
 
+pub mod entry;
 pub mod yaml;
