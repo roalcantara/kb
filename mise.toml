@@ -171,3 +171,21 @@ run = '''
   target/release/kb-bench --fixtures fixtures --corpus "$corpus" --digest "$digest" --files "$files" \
     --out "docs/experiment/results/tier1-rust-$corpus-$(date -u +%Y%m%dT%H%M%SZ).json"
 '''
+
+[tasks.app]
+description = "Build the panel in release mode and start it; press ⌥K to show it"
+run = '''
+  #!/usr/bin/env bash
+  set -euo pipefail
+  cargo build --release --locked -p kb-app
+  exec target/release/kb
+'''
+
+[tasks.size]
+description = "Build the release binary, check it against tools/size-budget, and record it under docs/experiment/results"
+run = '''
+  #!/usr/bin/env bash
+  set -euo pipefail
+  cargo build --release --locked -p kb-app
+  bench/probes/size-rs.sh "docs/experiment/results/tier2-rust-size-$(date -u +%Y%m%dT%H%M%SZ).json"
+'''
