@@ -58,8 +58,10 @@ Written in Plan 4, when both apps exist and one harness can drive them both.
 - 2026-10-08: first tier 1 run, on the Raycast repo at `3de16d2`. Type-filtered searches took 58 ms on `private`
   and 4 s on `private-10x`: SQLite 3.51 (Node 22) drove them from `idx_entries_type`.
 - 2026-10-09: kb fixed on branch `fix/kb-search-plan-order` (`8aa510c`, `CROSS JOIN`); tier 1 re-run. Every
-  other case is unchanged within 2 %, and the goldens are identical. Plans 2–4 compare against the 2026-10-09
-  results.
+  other case is unchanged within 2 %, and the goldens are identical.
+- 2026-10-09: the sources were normalized to the spec's source schema (D9): 44 entries render differently, none
+  added or lost. The private corpus was re-snapshotted (68 files: `tv.yml` held only an empty key) and tier 1
+  re-run. **Plans 2–4 compare against these results** (`tier1-ts-*-2026100908*`).
 
 ## Results
 

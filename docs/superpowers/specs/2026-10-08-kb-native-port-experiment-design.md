@@ -21,14 +21,18 @@ The port follows three skills as normative guides: `~/.agents/skills/gpui-kit` (
 
 ## Decisions
 
-| #  | Question             | Decision                                                                                                                                                |
-| -- | -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| D1 | MVP scope            | Core loop: list, FTS search, split pane with rendered notes, detail screen, type and tag filter, primary and copy actions, manual sync with its report. |
-| D2 | Measurement depth    | All three tiers: engine benchmarks, process footprint, perceived end-to-end latency.                                                                    |
-| D3 | Launch model         | Resident launcher: background app, global hotkey, floating panel, hidden on Esc or blur.                                                                |
-| D4 | Notes rendering      | GPUI Kit `TextView` (Markdown) with a tree-sitter `code_block_highlighter`; mermaid rendered natively and offline with `merman`.                        |
-| D5 | Project shape        | Cargo workspace mirroring kb's layering: a pure domain crate, an app crate, a bench crate, an `xtask`.                                                  |
-| D6 | Location and tooling | New repo `~/Work/rust/kb`, bootstrapped like kb: mise for tools and tasks, hk for hooks, `kb/hk.pkl` ported step by step, kb-shaped documentation.      |
+| #   | Question             | Decision                                                                                                                                                                                                                   |
+| --- | -------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| D1  | MVP scope            | Core loop: list, FTS search, split pane with rendered notes, detail screen, type and tag filter, primary and copy actions, manual sync with its report.                                                                    |
+| D2  | Measurement depth    | All three tiers: engine benchmarks, process footprint, perceived end-to-end latency.                                                                                                                                       |
+| D3  | Launch model         | Resident launcher: background app, global hotkey, floating panel, hidden on Esc or blur.                                                                                                                                   |
+| D4  | Notes rendering      | GPUI Kit `TextView` (Markdown) with a tree-sitter `code_block_highlighter`; mermaid shown as the same `mermaid.ink` image the TS engine links (D8).                                                                        |
+| D5  | Project shape        | Cargo workspace mirroring kb's layering: a pure domain crate, an app crate, a bench crate, an `xtask`.                                                                                                                     |
+| D6  | Location and tooling | New repo `~/Work/rust/kb`, bootstrapped like kb: mise for tools and tasks, hk for hooks, `kb/hk.pkl` ported step by step, kb-shaped documentation.                                                                         |
+| D7  | Buy over build       | Before writing a component, use an existing crate, tool or GPUI Kit component; build only the gap a golden or a test proves. Normalize data rather than code around it.                                                    |
+| D8  | MVP deferrals        | Out of the MVP, recorded as **Deferred** parity rows: Copy Raw YAML; native mermaid (`merman`); bookmark favicons; tag icons from assets; the per-file detail of the sync report.                                          |
+| D9  | Source schema        | The port implements the normalized schema below. Data outside it is fixed in the sources, not handled in code (2026-10-09 normalization).                                                                                  |
+| D10 | Bench sampler        | `kb-bench` times every call itself, as `bench/ts` does, rather than using `criterion`: criterion reports batch statistics, and the comparison needs per-call samples with the same nearest-rank percentiles on both sides. |
 
 ## Scope
 
@@ -44,7 +48,19 @@ The port follows three skills as normative guides: `~/.agents/skills/gpui-kit` (
 - empty states; manual sync with progress, cancellation and a per-file report.
 
 **Out:** jobx (capture, opportunities, fill), yabai, Windows and Linux, signing and publishing, any write to the
-Raycast repo.
+Raycast repo, and the D8 deferrals.
+
+## Source schema (D9)
+
+A source file maps entry types to maps of entries; an entry is a map. Its `notes` are a string, or a list (or a
+map) of `format: text` pairs whose text is a block of that format — `md` is inserted as Markdown, `mermaid`, `svg`
+and `img` become images, any other format a fenced code block. Keys are strings; no value is empty.
+
+On 2026-10-09 the sources (`~/Work/knowledge`, not under version control; backup
+`~/Work/knowledge.backup-20261009.tgz`) were normalized to this schema: 4 empty keys and the one-key `tv.yml`
+removed; 38 `format: |` blocks whose text was indented at the key's column re-indented; 4 structured YAML blocks
+turned into `yml: |` text; 2 `links` lists that had slipped inside notes moved back to their entry; 1 numeric link
+title quoted. All 4,233 entries still parse; exactly the 44 touched entries render differently.
 
 ## Repository layout
 
@@ -55,7 +71,7 @@ Raycast repo.
 ├── crates/
 │   ├── kb-domain/             # pure engine; no gpui, no kb-app
 │   ├── kb-app/                # the gpui-kit application
-│   └── kb-bench/              # criterion benches + footprint probes
+│   └── kb-bench/              # engine benches (same sampler as bench/ts) + footprint probes
 ├── xtask/                     # cargo xtask: report
 ├── bench/ts/                  # Bun/Node scripts over the Raycast repo's packages/domain/kb: bench, goldens
 ├── fixtures/
@@ -87,17 +103,17 @@ used. Committed tests and CI use `fixtures/sample/` alone. The TS runner finds t
 
 A synchronous library with no UI dependency, one module per TS file in `packages/domain/kb/src`:
 
-| Module     | TS counterpart | Responsibility                                                                      |
-| ---------- | -------------- | ----------------------------------------------------------------------------------- |
-| `entry`    | `entry.ts`     | `Entry`, `EntryLink`, id derivation, primary content, link and tag normalization    |
-| `type`     | `type.ts`      | known entry types, labels, type extraction                                          |
-| `source`   | `source.ts`    | recursive `.yml`/`.yaml` discovery, parsing, skipped entries                        |
-| `markdown` | `markdown.ts`  | `build_entry_markdown`, byte-compatible with the json2md output                     |
-| `row`      | `row.ts`       | `IndexRow`, searchable notes text, entry ↔ row                                      |
-| `sync`     | `sync.ts`      | the same `SCHEMA_DDL`; transactional, cancellable (`AtomicBool`), progress callback |
-| `query`    | `query.ts`     | sanitize, tokenize, FTS5 prefix query                                               |
-| `search`   | `search.ts`    | `FilterState`, `SearchQuery`, `build_search_sql`, `PAGE_SIZE = 50`                  |
-| `report`   | `report.ts`    | per-file sync report and source excerpts                                            |
+| Module     | TS counterpart | Responsibility                                                                                                  |
+| ---------- | -------------- | --------------------------------------------------------------------------------------------------------------- |
+| `entry`    | `entry.ts`     | `Entry`, `EntryLink`, id derivation, primary content, link and tag normalization                                |
+| `type`     | `type.ts`      | known entry types, labels, type extraction                                                                      |
+| `source`   | `source.ts`    | recursive `.yml`/`.yaml` discovery, parsing, skipped entries                                                    |
+| `markdown` | `markdown.ts`  | `build_entry_markdown`, byte-compatible with the json2md output (its ~40-line subset is built: no crate exists) |
+| `row`      | `row.ts`       | `IndexRow`, searchable notes text, entry ↔ row                                                                  |
+| `sync`     | `sync.ts`      | the same `SCHEMA_DDL`; transactional, cancellable (`AtomicBool`), progress callback                             |
+| `query`    | `query.ts`     | sanitize, tokenize, FTS5 prefix query                                                                           |
+| `search`   | `search.ts`    | `FilterState`, `SearchQuery`, `build_search_sql`, `PAGE_SIZE = 50`                                              |
+| `report`   | `report.ts`    | per-file sync report and source excerpts                                                                        |
 
 Dependencies: `serde`, a YAML parser that keeps key order (`serde_yaml_ng` or `saphyr`, chosen in the plan by the
 golden tests), `rusqlite` (`bundled`, FTS5), `walkdir`, `thiserror`. Errors are typed enums; the library does not
@@ -125,9 +141,8 @@ Highlighting: `TextView::code_block_highlighter` backed by the GPUI Kit tree-sit
 features the notes actually use: bash (also `sh`, `zsh`), python, ruby, yaml, javascript (`js`, `jsx`),
 typescript (`ts`, `tsx`), sql, json, toml, markdown (`md`), kotlin. Unknown languages render unhighlighted.
 
-Mermaid: a `TextView` block plugin renders ` ```mermaid ` blocks with `merman`, offline. The TS side renders them
-as remote `mermaid.ink` images; this is a deliberate improvement, and its binary-size cost is reported separately.
-The Markdown string still matches the TS output byte for byte; only the renderer differs.
+Mermaid: deferred (D8). The Markdown links the `mermaid.ink` image exactly as the TS engine does, and `TextView`
+shows it as any remote image. Native rendering with `merman` is the first follow-up after the MVP.
 
 State ownership follows the GPUI Kit Coding Guides: retained state in `Entity<T>`, stateless parts as
 `RenderOnce`, stable `ElementId`s, subscriptions stored on the view that observes.
@@ -196,7 +211,7 @@ need no renamed keys. Every run verifies `private.sha256` first and refuses to r
 
 **Tier 1: engine.** The same cases on both sides: scan and parse; full sync, cold and warm; `build_entry_markdown`
 over every entry; search latency p50/p95/p99 over 30 fixed queries (empty, one to three words, prefixes, with and
-without type and tag filters). Rust: `criterion` in `kb-bench`. TS: `bench/ts/bench.ts` under Node (what Raycast
+without type and tag filters). Rust: `kb-bench`, a sampler that mirrors `bench/ts/measure.ts` (D10). TS: `bench/ts/bench.ts` under Node (what Raycast
 runs: Node 22) and under Bun (reference only).
 
 **Tier 2: footprint.** RSS of the Raycast extension's Node worker vs `kb-app`: idle with the panel hidden, panel
@@ -219,6 +234,10 @@ with the debounce included and, for `kb-app`, also from debounce settle to paint
   queries, where results sharing a sort key compare as a set: the TS query orders by rank alone, so ties have no
   defined order on either side. `fixtures/sample-goldens/` is committed and runs in CI; `fixtures/private-goldens/`
   is local and runs in `mise run parity`. Goldens are regenerated deliberately.
+  - `raw_yaml` is compared by value, not by bytes: the port writes it with `saphyr`'s emitter (D7), and both texts
+    must parse to the same value. Its only user, Copy Raw YAML, is deferred (D8).
+  - A source that fails to parse must fail in both engines at the same line and column; the message text is the
+    parser's own.
 - **Unit tests** beside the code (`#[cfg(test)]`); `proptest` for query sanitizing and tokenizing.
 - **UI tests** with GPUI's `TestAppContext`: search → select → detail; filter toggling; ⌘K actions; sync cancel.
 - **Visual check.** Side-by-side screenshots of ten representative entries: code-heavy, tables, mermaid,
@@ -233,12 +252,13 @@ report), every action and its shortcut, the filter, navigation (←/→, Esc, �
 
 Each row records a status, the evidence for it, and, unless the status is **Same**, a justification:
 
-| Status      | Meaning                                                                      | Justification required |
-| ----------- | ---------------------------------------------------------------------------- | ---------------------- |
-| **Same**    | Behaves and reads as in Raycast                                              | no                     |
-| **Adapted** | Works differently because GPUI Kit, the Design Guides or the platform differ | yes                    |
-| **Better**  | Goes beyond Raycast (for example a resizable split, offline mermaid)         | yes                    |
-| **Missing** | Not delivered                                                                | yes, with a follow-up  |
+| Status       | Meaning                                                                      | Justification required |
+| ------------ | ---------------------------------------------------------------------------- | ---------------------- |
+| **Same**     | Behaves and reads as in Raycast                                              | no                     |
+| **Adapted**  | Works differently because GPUI Kit, the Design Guides or the platform differ | yes                    |
+| **Better**   | Goes beyond Raycast (for example a resizable split)                          | yes                    |
+| **Missing**  | Not delivered                                                                | yes, with a follow-up  |
+| **Deferred** | Out of the MVP by an owner decision (D8)                                     | the decision itself    |
 
 Evidence for each row is a `TestAppContext` test, a screenshot pair, or both. Two measures come from the
 matrix:
@@ -267,7 +287,8 @@ which criterion failed and why:
 - **Performance:** at least 2× faster on search p95 or on perceived latency.
 - **Footprint:** at most 50% of the RSS.
 - **Output parity:** full golden parity for rows, notes Markdown and query order.
-- **UI/UX parity:** no Missing rows in the matrix; every Adapted or Better row justified; no scripted task needs
+- **UI/UX parity:** no Missing rows in the matrix (Deferred rows are D8's, and only D8's); every Adapted or Better
+  row justified; no scripted task needs
   more keystrokes than in Raycast.
 - **Quality:** every gate passes.
 
@@ -276,8 +297,9 @@ which criterion failed and why:
 | Risk                                                    | Mitigation                                                                                |
 | ------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
 | json2md quirks are hard to match byte for byte          | goldens first; port `markdown.ts` test by test against them                               |
-| YAML key order or scalar typing differs between parsers | parser chosen by golden results; recorded in an ADR                                       |
+| YAML key order or scalar typing differs between parsers | saphyr's loader agrees with `yaml` on the normalized corpus; goldens catch any regression |
+| New source data drifts outside the schema               | the sync report lists it; the fix is in the source (D9)                                   |
 | GPUI has no global hotkey or launcher-panel primitive   | `global-hotkey` crate plus a pop-up window kind; isolated in `main`, recorded in ADR 0004 |
 | Raycast's process is opaque, so tier 3 is noisy         | same external harness for both apps; medians, IQR and caveats in the report               |
-| `merman` and tree-sitter grammars inflate the binary    | sizes broken out per feature; grammars limited to languages present in the notes          |
+| Tree-sitter grammars inflate the binary                 | sizes broken out per feature; grammars limited to languages present in the notes          |
 | GPUI Kit API churn                                      | exact version pinned; upgrade only deliberately                                           |
