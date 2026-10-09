@@ -149,3 +149,23 @@ run = '''
   [ -d fixtures/private-goldens ] || mise run goldens private
   KB_CORPUS=fixtures/private KB_GOLDENS=fixtures/private-goldens cargo test -p kb-domain --test goldens
 '''
+
+[tasks."bench:rs"]
+description = "Tier 1: benchmark kb-domain on a corpus (release build), in the schema bench/ts writes"
+usage = 'arg "<corpus>" help="sample, private or private-10x"'
+run = '''
+  #!/usr/bin/env bash
+  set -euo pipefail
+  corpus="${usage_corpus}"
+  if [ "$corpus" = sample ]; then
+    digest=$( (cd fixtures/sample && find . -type f \( -name '*.yml' -o -name '*.yaml' \) -print0 | LC_ALL=C sort -z | xargs -0 shasum -a 256) | shasum -a 256 | cut -d' ' -f1)
+    files=$(find fixtures/sample -type f \( -name '*.yml' -o -name '*.yaml' \) | wc -l | tr -d ' ')
+  else
+    mise run fixtures
+    digest=$(shasum -a 256 fixtures/private.sha256 | cut -d' ' -f1)
+    files=$(wc -l < fixtures/private.sha256 | tr -d ' ')
+  fi
+  cargo build --release -p kb-bench
+  target/release/kb-bench --fixtures fixtures --corpus "$corpus" --digest "$digest" --files "$files" \
+    --out "docs/experiment/results/tier1-rust-$corpus-$(date -u +%Y%m%dT%H%M%SZ).json"
+'''

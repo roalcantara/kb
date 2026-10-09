@@ -1,6 +1,6 @@
 [workspace]
 resolver = "3"
-members = ["crates/kb-domain"]
+members = ["crates/kb-domain", "crates/kb-bench"]
 
 [workspace.package]
 version = "0.1.0"
@@ -13,6 +13,7 @@ repository = "https://github.com/roalcantara/kb-native"
 [workspace.dependencies]
 base64 = "0.22"
 indexmap = "2"
+kb-domain = { path = "crates/kb-domain" }
 rusqlite = { version = "0.37", features = ["bundled"] }
 saphyr = "0.1"
 serde = { version = "1", features = ["derive"] }

@@ -1,0 +1,19 @@
+[package]
+name = "kb-bench"
+description = "Tier 1 engine benchmarks of kb-domain, written in the same results schema as bench/ts."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish.workspace = true
+repository.workspace = true
+
+[dependencies]
+kb-domain.workspace = true
+rusqlite.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+tempfile.workspace = true
+
+[lints]
+workspace = true
