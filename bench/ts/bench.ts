@@ -39,7 +39,9 @@ async function main(): Promise<void> {
 
   const report = (c: CaseResult): void => {
     cases.push(c)
-    process.stderr.write(`[${cases.length}/64] ${c.name} (p50: ${Math.round(c.stats.p50 / 1e6)}ms)\n`)
+    process.stderr.write(
+      `[${cases.length}/${4 + 2 * queries.length}] ${c.name} (p50: ${Math.round(c.stats.p50 / 1e6)}ms)\n`
+    )
   }
 
   try {

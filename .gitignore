@@ -6,9 +6,8 @@
 *.db-shm
 
 # Private corpora and everything derived from them; only fixtures/private.sha256 is committed.
-/fixtures/private/
-/fixtures/private-10x/
-/fixtures/private-goldens/
+# Any fixtures/private* directory: private/, private-10x/, private-goldens/ and whatever comes next.
+/fixtures/private*/
 
 # The TS bench links to the Raycast repo and bundles locally.
 /bench/ts/kb

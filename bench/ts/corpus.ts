@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto'
-import { readdirSync, readFileSync } from 'node:fs'
+import { existsSync, readdirSync, readFileSync } from 'node:fs'
 import { join, relative, resolve } from 'node:path'
 
 /** A corpus a run measures, identified by a digest so results can prove which one they used. */
@@ -12,6 +12,7 @@ export interface Corpus {
 }
 
 const NAMES = ['sample', 'private', 'private-10x'] as const
+const COPIES = Array.from({ length: 10 }, (_, i) => `copy-${i}`)
 
 function yamlFiles(dir: string): string[] {
   return readdirSync(dir, { recursive: true, withFileTypes: true })
@@ -45,16 +46,19 @@ export function resolveCorpus(name: string, fixturesDir: string): Corpus {
   }
   const corpusName = name as Corpus['name']
   const root = resolve(fixturesDir, corpusName)
-  const files = yamlFiles(corpusName === 'private-10x' ? join(root, 'copy-0') : root).length
-
   if (corpusName === 'sample') {
+    const files = yamlFiles(root).length
     return { name: corpusName, root, digest: sha256(manifestOf(root)), files }
   }
+  // Distinct files: private-10x holds ten copies of the same set.
+  const files = yamlFiles(join(fixturesDir, 'private')).length
 
   const expected = readFileSync(join(fixturesDir, 'private.sha256'), 'utf8')
-  const actual = manifestOf(join(fixturesDir, 'private'))
-  if (actual !== expected) {
-    throw new Error('fixtures/private does not match fixtures/private.sha256; run `mise run fixtures`')
+  const copies = corpusName === 'private' ? [root] : COPIES.map(copy => join(root, copy))
+  for (const dir of [join(fixturesDir, 'private'), ...copies]) {
+    if (!existsSync(dir) || manifestOf(dir) !== expected) {
+      throw new Error(`${relative(fixturesDir, dir)} does not match fixtures/private.sha256; run \`mise run fixtures\``)
+    }
   }
   return { name: corpusName, root, digest: sha256(expected), files }
 }

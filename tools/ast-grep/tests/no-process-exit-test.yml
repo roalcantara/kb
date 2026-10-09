@@ -1,5 +1,11 @@
 id: no-process-exit
 valid:
   - "fn main() { std::process::exit(1) }"
+  - "fn main() { process::exit(1) }"
+  - "fn helper() { std::process::abort() }"
+  - "use std::process::Command;"
 invalid:
   - "fn helper() { std::process::exit(1) }"
+  - "fn helper() { process::exit(1) }"
+  - "use std::process::exit;"
+  - "use std::process::{exit, Command};"

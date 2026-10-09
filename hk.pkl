@@ -188,7 +188,16 @@ local baseline_steps = new Mapping<String, Step> {
 
     ["private-key"] = Builtins.detect_private_key
     ["gitleaks"] = (Builtins.gitleaks) {
-        check = "gitleaks dir --redact --verbose --no-banner --log-level error {{files}}"
+        // `gitleaks dir` takes one path. Given hk's file list it scans the whole working
+        // directory instead — ignored files included — so each file is scanned on its own.
+        shell = "bash -o pipefail -c"
+        check = """
+          status=0
+          for file in {{files}}; do
+            gitleaks dir --redact --verbose --no-banner --log-level error "$file" || status=1
+          done
+          exit $status
+          """
         exclude = binary_excludes
     }
 
@@ -256,7 +265,7 @@ local push_steps = new Mapping<String, Step> {
         check = "cargo nextest run --workspace --locked --no-tests=warn"
     }
     ["bench-ts-test"] {
-        check = "bun test --cwd bench/ts"
+        check = "bun run --cwd bench/ts test"
     }
     ["build"] {
         check = "cargo build --workspace --release --locked"
@@ -274,11 +283,9 @@ local candidate_steps = new Mapping<String, Step> {
         check = "RUSTDOCFLAGS='-D warnings' cargo doc --workspace --no-deps --locked"
         profiles = List("candidate")
     }
-    ["coverage"] {
-        // A report, not a gate: there is no threshold until Plan 2 has code to measure.
-        check = "cargo llvm-cov nextest --workspace --locked --no-tests=warn --summary-only || true"
-        profiles = List("candidate")
-    }
+    // No coverage step yet: llvm-cov fails outright on a workspace with no tests, and
+    // `|| true` would hide every later failure too. Plan 2 adds
+    // `cargo llvm-cov nextest --workspace --locked --summary-only` with its first test.
 }
 
 // Security and provenance: the concerns that matter once code ships.

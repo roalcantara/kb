@@ -4,7 +4,8 @@
   "type": "module",
   "scripts": {
     "typecheck": "tsc --noEmit -p .",
-    "build": "bun build bench.ts goldens.ts --target=node --outdir dist --entry-naming [name].mjs"
+    "build": "bun build bench.ts goldens.ts --target=node --outdir dist --entry-naming [name].mjs",
+    "test": "bun test --path-ignore-patterns 'kb/**'"
   },
   "dependencies": { "@types/json2md": "^1.5.4", "json2md": "^2.0.3", "yaml": "^2.9.1" },
   "devDependencies": { "@types/bun": "^1.4.2", "@types/node": "^26.6.4", "typescript": "^7.0.2" }

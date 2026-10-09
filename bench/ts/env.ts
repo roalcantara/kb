@@ -32,7 +32,7 @@ export function captureEnv(sqliteVersion: string, tsRepo: string): RunEnv {
     power: read('pmset', ['-g', 'batt']).match(/'([^']+)'/)?.[1] ?? 'unknown',
     runtime: isBun ? `bun-${process.versions.bun}` : `node-${process.versions.node}`,
     sqlite: sqliteVersion,
-    tsRepoCommit: read('git', ['-C', tsRepo, 'rev-parse', 'HEAD']),
-    repoCommit: read('git', ['rev-parse', 'HEAD'])
+    tsRepoCommit: read('git', ['-C', tsRepo, 'describe', '--always', '--dirty', '--abbrev=40']),
+    repoCommit: read('git', ['describe', '--always', '--dirty', '--abbrev=40'])
   }
 }

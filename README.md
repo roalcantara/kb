@@ -82,7 +82,7 @@ Commits follow Conventional Commits with a sentence-case subject; hk checks the 
 
 ```bash
 cargo nextest run --workspace   # Rust tests
-bun test --cwd bench/ts         # TS bench helpers
+bun run --cwd bench/ts test     # TS bench helpers (not the linked Raycast specs)
 ```
 
 Golden tests compare the Rust engine with the TypeScript one. `fixtures/sample-goldens` is committed and runs

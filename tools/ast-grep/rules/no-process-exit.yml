@@ -6,7 +6,17 @@ note: |
   `std::process::exit` skips destructors, so an open SQLite transaction or a GPUI window never
   gets to clean up. Libraries and handlers return `Result` and let `main` decide.
 rule:
-  pattern: std::process::exit($CODE)
+  any:
+    - pattern: std::process::exit($CODE)
+    - pattern: process::exit($CODE)
+    # `use std::process::exit;` brings the bare name in; flag the import, since a bare `exit(…)`
+    # call cannot be told apart from any other function named exit.
+    - pattern: use std::process::exit;
+    - pattern: use std::process::{$$$ITEMS};
+      has:
+        kind: identifier
+        regex: ^exit$
+        stopBy: end
   not:
     inside:
       kind: function_item

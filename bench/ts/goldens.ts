@@ -21,6 +21,9 @@ const sqlite = process.getBuiltinModule('node:sqlite') as SqliteModule
 async function main(): Promise<void> {
   const fixtures = resolve(arg('fixtures'))
   const corpus = resolveCorpus(arg('corpus'), fixtures)
+  // The 10x corpus is ten copies of private: its goldens add nothing and would be one more
+  // private-derived directory to keep out of git.
+  if (corpus.name === 'private-10x') throw new Error('goldens are written for sample or private only')
   const out = resolve(arg('out'))
   const work = mkdtempSync(join(tmpdir(), 'kb-goldens-'))
   const database = join(work, 'kb.db')
