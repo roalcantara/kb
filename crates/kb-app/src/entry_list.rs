@@ -4,16 +4,15 @@ use std::time::Duration;
 
 use gpui_kit::component::empty::{Empty, EmptyDescription, EmptyHeader, EmptyTitle};
 use gpui_kit::component::list::{ListDelegate, ListItem, ListState};
-use gpui_kit::component::tag::Tag;
-use gpui_kit::component::{ActiveTheme as _, Icon, IndexPath, Sizable as _, h_flex};
+use gpui_kit::component::{ActiveTheme as _, Icon, IndexPath, h_flex};
 use gpui_kit::prelude::FluentBuilder as _;
-use gpui_kit::{App, Context, IntoElement as _, ParentElement, SharedString, Styled as _, Task, Window, div};
+use gpui_kit::{App, Context, IntoElement as _, ParentElement, SharedString, Styled as _, Task, Window, div, px};
 use kb_domain::Connection;
 use kb_domain::entry::Entry;
 use kb_domain::row::row_to_entry;
 use kb_domain::search::{FilterState, PAGE_SIZE, SearchQuery, search};
 
-use crate::presentation::{row_tags, type_icon};
+use crate::presentation::{row_tags, tag_tint, type_badge};
 
 /// Keystrokes settle this long before a query runs, as in the Raycast command.
 pub const DEBOUNCE: Duration = Duration::from_millis(150);
@@ -116,30 +115,79 @@ impl EntryList {
 
     fn render_row(entry: &Entry, selected: bool, cx: &App) -> ListItem {
         let (tags, more) = row_tags(&entry.tags);
+        let badge = type_badge(&entry.entry_type);
+
         ListItem::new(SharedString::from(entry.id.clone()))
             .selected(selected)
+            .rounded_lg()
             .child(
                 h_flex()
                     .w_full()
-                    .gap_2()
-                    .child(Icon::new(type_icon(&entry.entry_type)).text_color(cx.theme().muted_foreground))
-                    .child(div().flex_none().child(entry.title.clone()))
+                    .items_center()
+                    .gap_3()
+                    .py_1()
+                    .px_1p5()
+                    // Vibrant type badge
+                    .child(
+                        div()
+                            .size_5()
+                            .rounded_md()
+                            .border_1()
+                            .border_color(badge.border)
+                            .bg(badge.bg)
+                            .flex()
+                            .items_center()
+                            .justify_center()
+                            .text_xs()
+                            .font_weight(gpui_kit::FontWeight::BOLD)
+                            .text_color(badge.fg)
+                            .map(|el| {
+                                if let Some(glyph) = badge.glyph {
+                                    el.child(glyph)
+                                } else {
+                                    el.child(Icon::new(badge.icon).size(px(12.)).text_color(badge.fg))
+                                }
+                            }),
+                    )
+                    // Row title
+                    .child(
+                        div()
+                            .flex_none()
+                            .font_weight(gpui_kit::FontWeight::SEMIBOLD)
+                            .text_color(cx.theme().foreground)
+                            .child(entry.title.clone()),
+                    )
+                    // Row description / subtitle
                     .child(
                         div()
                             .flex_1()
                             .min_w_0()
                             .truncate()
                             .text_color(cx.theme().muted_foreground)
+                            .text_xs()
                             .when_some(entry.description.clone(), ParentElement::child),
                     )
-                    .children(tags.iter().map(|tag| Tag::secondary().small().child(format!("#{tag}"))))
+                    // Deterministic pastel tags
+                    .children(tags.iter().map(|tag| {
+                        let tint = tag_tint(tag);
+                        div()
+                            .px_2()
+                            .py_0p5()
+                            .rounded_md()
+                            .bg(tint.bg)
+                            .text_color(tint.fg)
+                            .text_xs()
+                            .font_weight(gpui_kit::FontWeight::MEDIUM)
+                            .child(format!("#{tag}"))
+                    }))
                     .when(more > 0, |row| {
-                        row.child(div().text_color(cx.theme().muted_foreground).child(format!("+{more}")))
+                        row.child(div().text_color(cx.theme().muted_foreground).text_xs().child(format!("+{more}")))
                     })
                     .when(!entry.links.is_empty(), |row| {
                         row.child(
                             div()
                                 .text_color(cx.theme().muted_foreground)
+                                .text_xs()
                                 .child(format!("{} links", entry.links.len())),
                         )
                     }),

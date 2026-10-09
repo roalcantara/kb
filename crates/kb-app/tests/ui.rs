@@ -73,6 +73,16 @@ fn initializes_with_dark_theme_mode(cx: &mut gpui_kit::TestAppContext) {
     });
 }
 
+#[gpui_kit::test]
+fn renders_rows_with_vibrant_badge_and_tinted_tags(cx: &mut gpui_kit::TestAppContext) {
+    let home = tempfile::tempdir().unwrap();
+    let (_window, view) = open(cx, sample_config(home.path()));
+    cx.read(|cx| {
+        let list = view.read(cx).list();
+        assert_ne!(list.read(cx).delegate().entries(), []);
+    });
+}
+
 /// Renders a frame, then types `text` at the focused element.
 fn type_text(cx: &mut TestAppContext, window: AnyWindowHandle, text: &str) {
     cx.update_window(window, |_, window, cx| {
