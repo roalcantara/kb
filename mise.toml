@@ -139,3 +139,13 @@ run = '''
   "$(mise where node@22.22.2)/bin/node" bench/ts/dist/goldens.mjs \
     --fixtures fixtures --corpus "${usage_corpus}" --out "fixtures/${usage_corpus}-goldens"
 '''
+
+[tasks.parity]
+description = "Golden parity of kb-domain on the private corpus (local only: the corpus and its goldens are gitignored)"
+run = '''
+  #!/usr/bin/env bash
+  set -euo pipefail
+  mise run fixtures
+  [ -d fixtures/private-goldens ] || mise run goldens private
+  KB_CORPUS=fixtures/private KB_GOLDENS=fixtures/private-goldens cargo test -p kb-domain --test goldens
+'''
