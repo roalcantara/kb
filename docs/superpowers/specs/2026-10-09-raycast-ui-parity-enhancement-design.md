@@ -203,3 +203,21 @@ The implementation must fulfill the following acceptance criteria, directly matc
 - **Test Coverage:** All existing unit and UI integration tests pass (`cargo nextest run`).
 - **New UI Tests:** Dedicated tests in `crates/kb-app/tests/ui.rs` verify header query forwarding, action bar dispatches, filter button dispatch, and detail back navigation.
 - **Quality Gates:** `cargo clippy --workspace --all-targets -- -D warnings` and `mise run gate` pass cleanly.
+
+## Outcome (review, 2026-10-09)
+
+Built: the dark theme at start-up, the header with the search field and the filter button, typed badges, hashed tag
+colours, the bottom action bar. Changed in review, and why:
+
+- **Colours come from the theme.** The hex and `rgba` values above conflict with the GPUI Kit Design Guides the
+  experiment follows ("no raw hex, `rgb` or `hsla` in application UI"). Badges and tags use the theme's hues
+  (`theme.green`, `theme.cyan`, …) at fixed opacities, so they follow any theme; the exact shades differ from
+  Raycast's (parity S05 and S07 are Adapted).
+- **No red description bar.** The description is already the notes' first blockquote (the Markdown keeps golden
+  parity), so a separate bar showed it twice; `TextView` has no blockquote style to colour instead (S12).
+- **Sizes are rem helpers** (`h_12`, `h_11`, `max_w_80`), and key hints are `Kbd`s read from the bindings.
+- **The header search field keeps the list's behaviour:** it feeds `ListState::set_query` (150 ms debounce, first
+  result selected), its ↑/↓ move the selection, and Enter opens the details without running the primary action.
+
+Not built: the custom surface tokens (AC1), the inset stats blocks (AC6) and the metadata pill grid. They are
+cosmetic and stay open.

@@ -17,11 +17,13 @@ pub mod sync_view;
 
 use gpui_kit::component::{Theme, ThemeMode};
 
-/// Configures the launcher theme in dark mode with refined surface tokens.
+use crate::config::Config;
+
+/// Starts in the dark theme, as a launcher panel over other windows usually is. Every colour the
+/// app draws comes from the theme, so a light theme only needs this call changed.
 pub fn init_theme(cx: &mut gpui_kit::App) {
     Theme::change(ThemeMode::Dark, None, cx);
 }
-use crate::config::Config;
 
 /// Starts the app with `config` and blocks until it quits.
 pub fn run(config: Config) {

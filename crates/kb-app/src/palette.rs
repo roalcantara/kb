@@ -16,6 +16,9 @@ use crate::presentation::{PrimaryKind, TypeKey, primary_action, type_key};
 /// The key context of the search panel; every binding below applies inside it.
 pub const CONTEXT: &str = "Search";
 
+/// Added to [`CONTEXT`] while the detail screen shows.
+pub const DETAIL_CONTEXT: &str = "Detail";
+
 actions!(
     kb,
     [
@@ -46,9 +49,9 @@ pub fn key_bindings() -> Vec<KeyBinding> {
     let context = Some(CONTEXT);
     vec![
         KeyBinding::new("cmd-k", OpenActions, context),
-        // The list binds Enter to show details first; elsewhere in the panel Enter runs the
-        // primary action, as on the Raycast detail screen.
-        KeyBinding::new("enter", RunPrimary, context),
+        // Enter runs the primary action only on the detail screen. In the list, the search field
+        // propagates Enter after reporting it, so a panel-wide binding would also fire there.
+        KeyBinding::new("enter", RunPrimary, Some(DETAIL_CONTEXT)),
         KeyBinding::new("cmd-p", OpenFilter, context),
         KeyBinding::new("cmd-shift-c", CopyUrl, context),
         KeyBinding::new("cmd-d", ToggleDetails, context),

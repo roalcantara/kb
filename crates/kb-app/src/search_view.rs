@@ -7,14 +7,15 @@ use std::rc::Rc;
 use gpui_kit::assets::IconName;
 use gpui_kit::component::button::{Button, ButtonVariants as _};
 use gpui_kit::component::command::{Command, CommandGroup, CommandItem, CommandState};
-use gpui_kit::component::input::{Input, InputEvent, InputState};
+use gpui_kit::component::input::{Input, InputEvent, InputState, MoveDown, MoveUp};
+use gpui_kit::component::kbd::Kbd;
 use gpui_kit::component::list::{List, ListEvent, ListState};
 use gpui_kit::component::resizable::{h_resizable, resizable_panel};
 use gpui_kit::component::{ActiveTheme as _, Icon, IndexPath, Sizable as _, WindowExt as _, h_flex, v_flex};
 use gpui_kit::prelude::FluentBuilder as _;
 use gpui_kit::{
-    AppContext as _, ClipboardItem, Context, Entity, FocusHandle, InteractiveElement as _, IntoElement,
-    ParentElement as _, Render, Styled as _, Subscription, Window, div, px,
+    AppContext as _, ClipboardItem, Context, Entity, FocusHandle, InteractiveElement as _, IntoElement, Keystroke,
+    ParentElement, Render, Styled as _, Subscription, Window, div, px,
 };
 use kb_domain::search::{FilterState, entry_types, tags};
 use kb_domain::sync::open_readonly;
@@ -24,8 +25,8 @@ use crate::entry_list::EntryList;
 use crate::filter::{filter_groups, filter_summary};
 use crate::notes::notes_pane;
 use crate::palette::{
-    Back, CONTEXT, CopyUrl, OpenActions, OpenFilter, OpenPreferences, OpenSourceFile, PaletteCommand, Rebuild,
-    RunPrimary, ToggleDetails, entry_palette,
+    Back, CONTEXT, CopyUrl, DETAIL_CONTEXT, OpenActions, OpenFilter, OpenPreferences, OpenSourceFile, PaletteCommand,
+    Rebuild, RunPrimary, ToggleDetails, entry_palette,
 };
 use crate::presentation::{PrimaryKind, TypeKey, primary_action, type_key, type_label};
 use crate::sync_view::{SyncFinished, SyncView};
@@ -107,23 +108,30 @@ impl SearchView {
         matches!(self.screen, Screen::Detail)
     }
 
-    /// Sets the search query programmatically.
-    pub fn set_query(&mut self, query: &str, cx: &mut Context<Self>) {
-        let q = query.to_owned();
+    /// Moves the list selection by `delta` rows, clamped to the results, and scrolls to it.
+    fn move_selection(&mut self, delta: isize, window: &mut Window, cx: &mut Context<Self>) {
         self.list.update(cx, |list, cx| {
-            list.delegate_mut().set_query(&q);
-            cx.notify();
+            let count = list.delegate().entries().len();
+            if count == 0 {
+                return;
+            }
+            let current = list.selected_index().map_or(0, |ix| ix.row);
+            let row = current.saturating_add_signed(delta).min(count - 1);
+            list.set_selected_index(Some(IndexPath::new(row)), window, cx);
+            list.scroll_to_selected_item(window, cx);
         });
         cx.notify();
     }
 
-    /// Indicates whether the action bar is available.
-    #[must_use]
-    pub fn has_action_bar(&self) -> bool {
-        true
+    /// Searches for `text`: the list debounces it and selects the first result.
+    fn search(&mut self, text: &str, window: &mut Window, cx: &mut Context<Self>) {
+        self.list.update(cx, |list, cx| list.set_query(text, window, cx));
     }
 
     fn show_detail_screen(&mut self, window: &mut Window, cx: &mut Context<Self>) {
+        if self.list.read(cx).delegate().selected_entry().is_none() {
+            return;
+        }
         self.screen = Screen::Detail;
         self.show_metadata = false;
         self.focus.focus(window, cx);
@@ -140,7 +148,7 @@ impl SearchView {
         match event {
             InputEvent::Change => {
                 let text = state.read(cx).value().to_string();
-                self.set_query(&text, cx);
+                self.search(&text, window, cx);
             }
             InputEvent::PressEnter { secondary, .. } => {
                 if *secondary {
@@ -271,7 +279,7 @@ impl SearchView {
                     self.query_input.update(cx, |input, cx| {
                         input.set_value("", window, cx);
                     });
-                    self.set_query("", cx);
+                    self.search("", window, cx);
                 }
             }
             Screen::Detail | Screen::Rebuild(_) => {
@@ -407,14 +415,13 @@ impl SearchView {
     }
 }
 impl Render for SearchView {
-    #[allow(clippy::too_many_lines, clippy::unreadable_literal)]
-    fn render(&mut self, _window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
+    #[allow(clippy::too_many_lines)]
+    fn render(&mut self, window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
         let selected = self.list.read(cx).delegate().selected_entry().cloned();
         let filter_label = filter_summary(self.list.read(cx).delegate().filter());
 
-        // 52px top header bar
         let header = h_flex()
-            .h(px(52.))
+            .h_12()
             .w_full()
             .items_center()
             .px_3()
@@ -432,9 +439,13 @@ impl Render for SearchView {
                     })),
             )
             .child(
+                // A single-line input consumes ↑ and ↓ without propagating them, so they are
+                // captured here, before it, to move the list selection.
                 div()
                     .flex_1()
                     .min_w_0()
+                    .capture_action(cx.listener(|this, _: &MoveUp, window, cx| this.move_selection(-1, window, cx)))
+                    .capture_action(cx.listener(|this, _: &MoveDown, window, cx| this.move_selection(1, window, cx)))
                     .child(Input::new(&self.query_input).cleanable(true).appearance(false)),
             )
             .child(
@@ -473,7 +484,6 @@ impl Render for SearchView {
                 .into_any_element(),
         };
 
-        // 44px docked bottom action bar
         let (context_icon, context_text) = match &self.screen {
             Screen::Detail => (
                 IconName::BookOpen,
@@ -489,8 +499,10 @@ impl Render for SearchView {
             "Show Details"
         };
 
+        let enter_hint = Keystroke::parse("enter").ok().map(Kbd::new);
+        let actions_hint = Kbd::binding_for_action(&OpenActions, Some(CONTEXT), window);
         let footer = h_flex()
-            .h(px(44.))
+            .h_11()
             .w_full()
             .items_center()
             .justify_between()
@@ -509,8 +521,8 @@ impl Render for SearchView {
                     .bg(cx.theme().muted.opacity(0.4))
                     .text_xs()
                     .text_color(cx.theme().foreground)
-                    .child(Icon::new(context_icon).size(px(14.)).text_color(gpui_kit::rgb(0xf87171)))
-                    .child(div().truncate().max_w(px(300.)).child(context_text)),
+                    .child(Icon::new(context_icon).small().text_color(cx.theme().red))
+                    .child(div().truncate().max_w_80().child(context_text)),
             )
             // Right action pills
             .child(
@@ -522,24 +534,12 @@ impl Render for SearchView {
                             .ghost()
                             .small()
                             .label(primary_label)
-                            .child(
-                                div()
-                                    .px_1p5()
-                                    .py_0p5()
-                                    .rounded_sm()
-                                    .bg(cx.theme().muted)
-                                    .text_xs()
-                                    .text_color(cx.theme().foreground)
-                                    .child("↵"),
-                            )
+                            .when_some(enter_hint, ParentElement::child)
                             .on_click(cx.listener(|this, _, window, cx| {
                                 if this.is_showing_detail() {
                                     this.run_primary(&RunPrimary, window, cx);
                                 } else {
-                                    this.screen = Screen::Detail;
-                                    this.show_metadata = false;
-                                    this.focus.focus(window, cx);
-                                    cx.notify();
+                                    this.show_detail_screen(window, cx);
                                 }
                             })),
                     )
@@ -548,30 +548,7 @@ impl Render for SearchView {
                             .ghost()
                             .small()
                             .label("Actions")
-                            .child(
-                                h_flex()
-                                    .gap_1()
-                                    .child(
-                                        div()
-                                            .px_1p5()
-                                            .py_0p5()
-                                            .rounded_sm()
-                                            .bg(cx.theme().muted)
-                                            .text_xs()
-                                            .text_color(cx.theme().foreground)
-                                            .child("⌘"),
-                                    )
-                                    .child(
-                                        div()
-                                            .px_1p5()
-                                            .py_0p5()
-                                            .rounded_sm()
-                                            .bg(cx.theme().muted)
-                                            .text_xs()
-                                            .text_color(cx.theme().foreground)
-                                            .child("K"),
-                                    ),
-                            )
+                            .when_some(actions_hint, ParentElement::child)
                             .on_click(cx.listener(|this, _, window, cx| {
                                 this.open_actions(&OpenActions, window, cx);
                             })),
@@ -580,7 +557,14 @@ impl Render for SearchView {
 
         v_flex()
             .track_focus(&self.focus)
-            .key_context(CONTEXT)
+            .key_context(
+                if self.is_showing_detail() {
+                    format!("{CONTEXT} {DETAIL_CONTEXT}")
+                } else {
+                    CONTEXT.to_owned()
+                }
+                .as_str(),
+            )
             .on_action(cx.listener(Self::open_actions))
             .on_action(cx.listener(Self::open_filter))
             .on_action(cx.listener(Self::run_primary))

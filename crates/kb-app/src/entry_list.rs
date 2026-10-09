@@ -4,15 +4,32 @@ use std::time::Duration;
 
 use gpui_kit::component::empty::{Empty, EmptyDescription, EmptyHeader, EmptyTitle};
 use gpui_kit::component::list::{ListDelegate, ListItem, ListState};
-use gpui_kit::component::{ActiveTheme as _, Icon, IndexPath, h_flex};
+use gpui_kit::component::{ActiveTheme as _, Icon, IndexPath, Sizable as _, h_flex};
 use gpui_kit::prelude::FluentBuilder as _;
-use gpui_kit::{App, Context, IntoElement as _, ParentElement, SharedString, Styled as _, Task, Window, div, px};
+use gpui_kit::{
+    App, Context, FontWeight, Hsla, IntoElement as _, ParentElement, SharedString, Styled as _, Task, Window, div,
+};
 use kb_domain::Connection;
 use kb_domain::entry::Entry;
 use kb_domain::row::row_to_entry;
 use kb_domain::search::{FilterState, PAGE_SIZE, SearchQuery, search};
 
-use crate::presentation::{row_tags, tag_tint, type_badge};
+use crate::presentation::{Hue, row_tags, tag_hue, type_badge};
+
+/// The theme colour of a hue.
+#[must_use]
+pub fn hue_color(hue: Hue, cx: &App) -> Hsla {
+    let theme = cx.theme();
+    match hue {
+        Hue::Red => theme.red,
+        Hue::Yellow => theme.yellow,
+        Hue::Green => theme.green,
+        Hue::Cyan => theme.cyan,
+        Hue::Blue => theme.blue,
+        Hue::Magenta => theme.magenta,
+        Hue::Neutral => theme.muted_foreground,
+    }
+}
 
 /// Keystrokes settle this long before a query runs, as in the Raycast command.
 pub const DEBOUNCE: Duration = Duration::from_millis(150);
@@ -77,13 +94,6 @@ impl EntryList {
         self.refresh();
     }
 
-    /// Replaces the query string and runs the query again from the first page.
-    pub fn set_query(&mut self, query: &str) {
-        query.clone_into(&mut self.query);
-        self.limit = PAGE_SIZE;
-        self.refresh();
-    }
-
     /// The entries shown.
     #[must_use]
     pub fn entries(&self) -> &[Entry] {
@@ -123,6 +133,7 @@ impl EntryList {
     fn render_row(entry: &Entry, selected: bool, cx: &App) -> ListItem {
         let (tags, more) = row_tags(&entry.tags);
         let badge = type_badge(&entry.entry_type);
+        let badge_hue = hue_color(badge.hue, cx);
 
         ListItem::new(SharedString::from(entry.id.clone()))
             .selected(selected)
@@ -134,37 +145,32 @@ impl EntryList {
                     .gap_3()
                     .py_1()
                     .px_1p5()
-                    // Vibrant type badge
                     .child(
                         div()
+                            .flex_none()
                             .size_5()
-                            .rounded_md()
+                            .rounded(cx.theme().radius)
                             .border_1()
-                            .border_color(badge.border)
-                            .bg(badge.bg)
+                            .border_color(badge_hue.opacity(0.6))
+                            .bg(badge_hue.opacity(0.15))
                             .flex()
                             .items_center()
                             .justify_center()
                             .text_xs()
-                            .font_weight(gpui_kit::FontWeight::BOLD)
-                            .text_color(badge.fg)
-                            .map(|el| {
-                                if let Some(glyph) = badge.glyph {
-                                    el.child(glyph)
-                                } else {
-                                    el.child(Icon::new(badge.icon).size(px(12.)).text_color(badge.fg))
-                                }
+                            .font_weight(FontWeight::BOLD)
+                            .text_color(badge_hue)
+                            .map(|square| match badge.glyph {
+                                Some(glyph) => square.child(glyph),
+                                None => square.child(Icon::new(badge.icon).xsmall().text_color(badge_hue)),
                             }),
                     )
-                    // Row title
                     .child(
                         div()
                             .flex_none()
-                            .font_weight(gpui_kit::FontWeight::SEMIBOLD)
+                            .font_weight(FontWeight::SEMIBOLD)
                             .text_color(cx.theme().foreground)
                             .child(entry.title.clone()),
                     )
-                    // Row description / subtitle
                     .child(
                         div()
                             .flex_1()
@@ -174,21 +180,26 @@ impl EntryList {
                             .text_xs()
                             .when_some(entry.description.clone(), ParentElement::child),
                     )
-                    // Deterministic pastel tags
                     .children(tags.iter().map(|tag| {
-                        let tint = tag_tint(tag);
+                        let hue = hue_color(tag_hue(tag), cx);
                         div()
+                            .flex_none()
                             .px_2()
                             .py_0p5()
-                            .rounded_md()
-                            .bg(tint.bg)
-                            .text_color(tint.fg)
+                            .rounded(cx.theme().radius)
+                            .bg(hue.opacity(0.15))
+                            .text_color(hue)
                             .text_xs()
-                            .font_weight(gpui_kit::FontWeight::MEDIUM)
+                            .font_weight(FontWeight::MEDIUM)
                             .child(format!("#{tag}"))
                     }))
                     .when(more > 0, |row| {
-                        row.child(div().text_color(cx.theme().muted_foreground).text_xs().child(format!("+{more}")))
+                        row.child(
+                            div()
+                                .text_color(cx.theme().muted_foreground)
+                                .text_xs()
+                                .child(format!("+{more}")),
+                        )
                     })
                     .when(!entry.links.is_empty(), |row| {
                         row.child(
