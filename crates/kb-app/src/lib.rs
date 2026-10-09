@@ -2,3 +2,5 @@
 //!
 //! `main` only resolves the configuration and calls [`run`]; everything else is a module here,
 //! so the UI integration tests build the same views the app shows.
+
+pub mod config;
