@@ -5,6 +5,7 @@
 
 pub mod config;
 pub mod filter;
+pub mod palette;
 pub mod presentation;
 
 #[cfg(test)]
