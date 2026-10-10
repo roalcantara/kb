@@ -22,10 +22,7 @@ size and runtime limits are out of the way.
 | ------------------ | ------------------------------------------------------------------------------------------- |
 | `crates/kb-domain` | The engine: entries, source files, notes Markdown, the SQLite index and its queries. No UI. |
 | `crates/kb-app`    | The GPUI Kit application: a resident panel opened by a global hotkey.                       |
-| `crates/kb-bench`  | Engine benchmarks writing the shared results schema.                                        |
-| `crates/xtask`     | Repository tasks in Rust: `report` writes `docs/experiment/report.md`.                      |
-| `bench/ts`         | The same benchmarks over the Raycast extension's TypeScript engine.                         |
-| `fixtures`         | Benchmark corpora, queries and golden outputs.                                              |
+| `tools/bench`      | The benchmark kit, purgeable as one folder: benchmarks of both engines, probes, the report. |
 
 `kb-domain` never depends on a UI crate; the `domain-purity` hk step enforces it. See [CONTEXT.md](CONTEXT.md)
 for the domain vocabulary and [docs/adr](docs/adr) for the decisions.
@@ -35,7 +32,7 @@ for the domain vocabulary and [docs/adr](docs/adr) for the decisions.
 **Quickstart.**
 
 ```bash
-mise run setup        # tools, crates, TS bench dependencies, git hooks
+mise run setup        # tools, crates, git hooks (the benchmark kit: mise run bench:setup)
 mise run install      # build kb.app and copy it to ~/Applications
 open ~/Applications/kb.app
 ```
@@ -84,16 +81,27 @@ it.
 
 ## Project Structure
 
+Three folders at the root, each named by a widely used convention; the `root-layout` hk step fails on a fourth.
+
 ```text
-crates/          Rust crates
-bench/ts/        TypeScript baseline benchmarks and golden writer
-bench/probes/    tier 2 and 3 probes: memory, CPU, size, latency, and the CGEvent driver
-fixtures/        corpora, queries, goldens (private corpora are gitignored)
-docs/adr/        architecture decisions
-docs/experiment/ methodology, parity matrix, results, report
-docs/superpowers/ design specs and implementation plans
-tools/           ast-grep rules, mdschema schemas
+crates/                     Rust code: our crates, and patched third-party ones
+  kb-domain/                  the engine; tests/fixtures/ holds the sample corpus and its goldens
+  kb-app/                     the GPUI Kit app
+  third-party/                patched external crates, outside the workspace (see its README)
+docs/                       adr/, experiment/ (methodology, parity, results, report), superpowers/ (specs, plans)
+tools/                      developer tooling
+  bench/                      the benchmark kit: TS and Rust benchmarks, probes, report, their fixtures and tasks
+  size/                       the release binary's size budget and its check
+  ast-grep/ icon/ mdschema/   lint rules, the app icon's source, document schemas
 ```
+
+- **Where things go.** Rust code in `crates/`; prose in `docs/`; anything that helps build, check or measure in
+  `tools/`, one folder per tool. Test data lives with the crate whose contract it is (`<crate>/tests/fixtures/`).
+- **The benchmark kit** (`tools/bench/`) produces the experiment's measurements and nothing else depends on it; its
+  [README](tools/bench/README.md) lists the purge steps.
+- **Root files** are the configs each tool looks for there. Moving tool configs into `.config/` is a later decision
+  (`TODO.md`).
+- **Local state** (`target/`, `tmp/`, code graphs, agent worktrees) is gitignored; generated output goes to `tmp/`.
 
 ## Key Features
 
@@ -116,7 +124,7 @@ tools/           ast-grep rules, mdschema schemas
 | `mise run bench:memory <app>` | tier 2 memory of kb or raycast                                        |
 | `mise run bench:e2e <app>`    | tier 3 latency of kb or raycast                                       |
 | `mise run bench:maint`        | lines, dependencies, tests and build time of both                     |
-| `mise run bench:home`         | an isolated home over `fixtures/private`, index synced by `kb --sync` |
+| `mise run bench:home`         | an isolated home over the private corpus, index synced by `kb --sync` |
 | `mise run bench:size <app>`   | tier 2 artifact size of kb or raycast                                 |
 | `mise run bench:cpu <app>`    | tier 2 cold-start CPU of kb or raycast                                |
 | `mise run bench:session`      | preflight, then every tier 2 and 3 run and maintainability, in order  |
@@ -141,10 +149,10 @@ Commits follow Conventional Commits with a sentence-case subject; hk checks the 
 
 ```bash
 cargo nextest run --workspace   # Rust tests
-bun run --cwd bench/ts test     # TS bench helpers (not the linked Raycast specs)
+bun run --cwd tools/bench/ts test   # TS bench helpers (not the linked Raycast specs)
 ```
 
-Golden tests compare the Rust engine with the TypeScript one. `fixtures/sample-goldens` is committed and runs
+Golden tests compare the Rust engine with the TypeScript one. `crates/kb-domain/tests/fixtures/sample-goldens` is committed and runs
 everywhere; the private corpus's goldens stay local.
 
 ## Contributing

@@ -19,6 +19,10 @@ dependency depth, coverage, duplication and lint rows and a link to `findings.md
 
 [spec]: ../specs/2026-10-10-kb-native-05-measurement-and-report-design.md
 
+> **Paths moved (2026-10-10).** Tasks 1–8 are recorded as done, with the paths of their time. The repository layout
+> ([design](../specs/2026-10-10-repository-layout-design.md)) then moved `bench/ts`, `bench/probes`, `crates/kb-bench`,
+> `crates/xtask` (now `kb-report`) and `fixtures/` into the benchmark kit `tools/bench/`; Tasks 9–12 use the new paths.
+
 ---
 
 ## Done before this plan (`06190c7`, verified 2026-10-10)
@@ -1198,7 +1202,7 @@ camera. For each run count frames from the letter's echo in the field to the lis
 
 - [ ] **Step 2: Write the result**
 
-Run: `bench/probes/manual-keystroke.sh docs/experiment/results 120 <frames of run 1> … <frames of run 10>`
+Run: `tools/bench/probes/manual-keystroke.sh docs/experiment/results 120 <frames of run 1> … <frames of run 10>`
 Expected: `keystroke-manual: p50 <ms> ms (IQR …, n 10)`.
 
 - [ ] **Step 3: Commit the results**

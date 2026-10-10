@@ -4,18 +4,18 @@ How every number in the report is produced. A result that was not produced this 
 
 ## Corpora
 
-| Name          | What                                                | In git                |
-| ------------- | --------------------------------------------------- | --------------------- |
-| `sample`      | hand-written, every notes shape (`fixtures/sample`) | yes, with its goldens |
-| `private`     | snapshot of the real sources, verified by manifest  | manifest only         |
-| `private-10x` | ten copies of `private` in `copy-0` … `copy-9`      | no                    |
+| Name          | What                                                                       | In git                |
+| ------------- | -------------------------------------------------------------------------- | --------------------- |
+| `sample`      | hand-written, every notes shape (`crates/kb-domain/tests/fixtures/sample`) | yes, with its goldens |
+| `private`     | snapshot of the real sources, verified by manifest                         | manifest only         |
+| `private-10x` | ten copies of `private` in `copy-0` … `copy-9`                             | no                    |
 
-Every run verifies `fixtures/private.sha256` first and records the corpus digest in its result.
+Every run verifies `tools/bench/fixtures/private.sha256` first and records the corpus digest in its result.
 
 ## Statistics
 
 Every figure is a nearest-rank percentile of measured samples — no interpolation, so every reported time was
-actually observed. `bench/ts/stats.ts` and `kb-bench` implement the same definition.
+actually observed. `tools/bench/ts/stats.ts` and `kb-bench` implement the same definition.
 
 ## Tier 1 — engine
 
@@ -37,31 +37,31 @@ connection its app keeps open. Both turn every row back into an entry, re-readin
 
 ## Tier 2 — footprint
 
-- RSS, sampled once a second for 30 s by `bench/probes/rss.sh`, in three scenarios: idle with the window closed,
-  search open, and after 100 scripted queries (`bench/probes/drive-queries.sh`).
+- RSS, sampled once a second for 30 s by `tools/bench/probes/rss.sh`, in three scenarios: idle with the window closed,
+  search open, and after 100 scripted queries (`tools/bench/probes/drive-queries.sh`).
 - Raycast is measured two ways: the extension worker alone (`RAYCAST_WORKER`) and the whole app with its helpers
   (`RAYCAST_ALL`), because the native app replaces both for this use.
 - Process patterns used on this machine: `RAYCAST_ALL=(Raycast\.app|Raycast Backend|com\.raycast)`,
   `RAYCAST_WORKER=Raycast Backend`.
 - Caveats on the Raycast figures: `Raycast Backend` is the Node host shared by every extension, so the
   worker figure is an upper bound on kb's share; and kb runs under `ray develop`, i.e. the unminified dev bundle.
-- Artifact size: `bench/probes/size-ts.sh` measures the bundle Raycast loads, `~/.config/raycast/extensions/kb`,
+- Artifact size: `tools/bench/probes/size-ts.sh` measures the bundle Raycast loads, `~/.config/raycast/extensions/kb`,
   which `ray build` and `ray develop` write by default. (`ray build -e dist` fails here: its type-definition step
   needs the TypeScript JS API, which TypeScript 7 does not ship.) The bundle holds all five commands;
   `searchCommandJsBytes` is kb search alone.
-- Physical footprint, sampled the same way by `bench/probes/footprint.sh` from macOS's `footprint`: what Activity
+- Physical footprint, sampled the same way by `tools/bench/probes/footprint.sh` from macOS's `footprint`: what Activity
   Monitor shows as Memory. It counts the GPU memory a window holds, which RSS leaves out, so it is reported beside RSS
   for a GPU-drawn app; RSS stays the spec's criterion.
-- kb runs as the packaged `.app` (`mise run package`) over `fixtures/private`, through a home whose
+- kb runs as the packaged `.app` (`mise run package`) over `tools/bench/fixtures/private`, through a home whose
   `~/.config/kb/config.toml` points there: `mise run bench:home` builds it in `tmp/bench-home` and syncs its index with
   `kb --sync`. Every kb probe uses it unless `KB_HOME` names another. Its pattern is `kb\.app/Contents/MacOS/kb`.
-- Cold-start CPU: `bench/probes/cpu-ts.sh` and `bench/probes/cpu-rs.sh`, five runs each. Each run stops Raycast (`killall`: it refuses
+- Cold-start CPU: `tools/bench/probes/cpu-ts.sh` and `tools/bench/probes/cpu-rs.sh`, five runs each. Each run stops Raycast (`killall`: it refuses
   AppleScript's quit), relaunches it, opens kb Search by deeplink, waits 10 s for both processes to go idle, and
   sums the CPU time (`ps` TIME) the matching processes have used since launch.
 
 ## Tier 3 — perceived latency
 
-One driver for both apps: `bench/probes/probe.swift` (`mise run probes` builds `tmp/bin/probe`) posts key events with
+One driver for both apps: `tools/bench/probes/probe.swift` (`mise run probes` builds `tmp/bin/probe`) posts key events with
 CGEvent at the HID level, the way a keyboard does, and watches for the result from outside the app. AppleScript's
 `keystroke` is not used: it hands focus back to the calling app, which hides a launcher. The terminal needs
 Accessibility permission; nothing needs Screen Recording.
@@ -71,10 +71,10 @@ Accessibility permission; nothing needs Screen Recording.
   Before this was found, every external figure carried that offset.
 - **Clock.** It starts when key-down is posted, which is what apps act on; key-up follows 10 ms later while the polling
   (every 1 ms) goes on.
-- **Show** (`bench/probes/latency.sh`): hotkey → the app's window on screen, from `CGWindowListCopyWindowInfo`; 30
+- **Show** (`tools/bench/probes/latency.sh`): hotkey → the app's window on screen, from `CGWindowListCopyWindowInfo`; 30
   rounds of show, type a query, clear it, hide. A re-shown window appears with its last frame, so this is when the
   user sees the panel, not when it has redrawn.
-- **Action** (`bench/probes/action.sh`): task T2's step, ⌘↩ → the clipboard's change count moving; 30 rounds, after a
+- **Action** (`tools/bench/probes/action.sh`): task T2's step, ⌘↩ → the clipboard's change count moving; 30 rounds, after a
   query has settled. kb opens by its hotkey, Raycast's kb command by its deeplink; how it opens does not change the
   step.
 - **Inside kb** (`kb --trace`, `src/trace.rs`): hotkey handled → new frame, and keystroke → updated list, both as a
@@ -82,7 +82,7 @@ Accessibility permission; nothing needs Screen Recording.
   The keystroke figure includes the 150 ms debounce; `settle` is from the debounce firing to the frame.
 - **Raycast keystroke → updated list** has no signal the probe reads and no trace. It is measured by hand: record the
   screen at 120 fps while typing the last letter of a query, and count frames from the key's echo in the field to the
-  list's change, for ten runs at least. `bench/probes/manual-keystroke.sh docs/experiment/results 120 <frames>...`
+  list's change, for ten runs at least. `tools/bench/probes/manual-keystroke.sh docs/experiment/results 120 <frames>...`
   records them as `tier3-raycast-keystroke-manual-<stamp>.json`, which the report reads.
 - **Raycast's hotkey.** The latency run opens the kb command by its own hotkey, not Raycast's root search: assign kb
   Search a hotkey in Raycast and set it in the gitignored `mise.local.toml` as
@@ -91,7 +91,7 @@ Accessibility permission; nothing needs Screen Recording.
 
 ## Maintainability
 
-`bench/probes/maint.sh` (`mise run bench:maint`) counts, for kb search in each implementation: lines of code (tokei),
+`tools/bench/probes/maint.sh` (`mise run bench:maint`) counts, for kb search in each implementation: lines of code (tokei),
 test files and tests, direct and transitive dependencies, dependency depth (`cargo tree`; for TypeScript `npm ls` over
 the whole Raycast repo, which it cannot scope), line coverage (`cargo llvm-cov`; TypeScript's is not measured: the
 Raycast repo has no coverage provider and nothing here writes to it), duplicated lines (jscpd, run from `tmp/`), clippy
@@ -106,7 +106,7 @@ Tiers 2 and 3 are measured in one sitting, so both apps see the same machine sta
 2. `mise run bench:session`: preflight, `bench:home`, size, maintainability, memory, CPU, then latency and ⌘↩, for kb
    and Raycast. It stops at the first failure.
 3. Owner: the manual keystroke run (Tier 3), recorded with `manual-keystroke.sh`.
-4. Commit the results, then `mise run report`: never `xtask report --verified` by hand, which would claim gates that
+4. Commit the results, then `mise run report`: never `kb-report report --verified` by hand, which would claim gates that
    did not run. Uncommitted results make the report cite a `-dirty` commit.
 
 ## Baseline history

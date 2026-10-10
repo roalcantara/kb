@@ -1,6 +1,6 @@
 # Compliance
 
-The checklists the port is held to, each item with its evidence. `xtask report` counts the checked items per section;
+The checklists the port is held to, each item with its evidence. `kb-report report` counts the checked items per section;
 an unchecked item says why and what would close it. Sources: the GPUI Kit Coding Guides ("Implementation checklist",
 "Theme and styling", "Events, actions, and focus", "Performance rules"), the GPUI Kit Design Guides ("Accessibility
 checklist", "Interface language"), and the rust-best-practices quick reference.
@@ -61,7 +61,7 @@ checklist", "Interface language"), and the rust-best-practices quick reference.
 
 - [x] Fallible operations return `Result`; no `unwrap` or `expect` outside tests (`clippy::unwrap_used` and
       `expect_used` are denied by the gate, `clippy.toml` allows them only in tests).
-- [x] `thiserror` for every error type (`SyncError`, `ConfigError`, `PanelError`, `xtask::Error`); no `anyhow`.
+- [x] `thiserror` for every error type (`SyncError`, `ConfigError`, `PanelError`, `kb-report`'s `Error`); no `anyhow`.
 - [x] `#[expect(lint, reason = …)]` instead of `#[allow]`: no `allow` attribute remains in the crates.
 - [x] Clippy `pedantic` with `-D warnings` on all targets, in the gate (`mise run gate`).
 - [x] Public items are documented: `missing_docs` on both library crates, an error under the gate's `-D warnings`;

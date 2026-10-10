@@ -8,40 +8,40 @@
   - **Position**: "file:///Users/roalcantara/Work/rust/kb/crates/kb-app/src/cli.rs#L1:1"
   - **Tags**: app, plan5
 
-- [x] 0TZ2 **-** Plan 5 T2: bench:home, and the kb probes run under its synced home over fixtures/private (ed2eeae)
+- [x] 0TZ2 **-** Plan 5 T2: bench:home, and the kb probes run under its synced home over the private corpus (ed2eeae)
   - **Priority**: high
   - **Created**: 2026-10-10 02:29
-  - **Position**: "file:///Users/roalcantara/Work/rust/kb/bench/probes/kb-home.sh#L1:1"
+  - **Position**: "file:///Users/roalcantara/Work/rust/kb/tools/bench/probes/kb-home.sh#L1:1"
   - **Tags**: bench, plan5
 
 - [x] oEGj **-** Plan 5 T3: the Raycast latency run requires KB_RAYCAST_HOTKEY, kb Search's own hotkey (81ec9f3)
   - **Priority**: high
   - **Created**: 2026-10-10 02:29
-  - **Position**: "file:///Users/roalcantara/Work/rust/kb/bench/probes/latency.sh#L1:1"
+  - **Position**: "file:///Users/roalcantara/Work/rust/kb/tools/bench/probes/latency.sh#L1:1"
   - **Tags**: bench, plan5
 
 - [x] VkWL **-** Plan 5 T4: manual-keystroke.sh records Raycast's hand-timed keystroke run, and the report shows it (cd45960)
   - **Priority**: medium
   - **Created**: 2026-10-10 02:29
-  - **Position**: "file:///Users/roalcantara/Work/rust/kb/bench/probes/manual-keystroke.sh#L1:1"
+  - **Position**: "file:///Users/roalcantara/Work/rust/kb/tools/bench/probes/manual-keystroke.sh#L1:1"
   - **Tags**: plan5, report
 
 - [x] mjTU **-** Plan 5 T5: maintainability adds dependency depth, coverage, duplication and clippy warnings (7224357)
   - **Priority**: medium
   - **Created**: 2026-10-10 02:29
-  - **Position**: "file:///Users/roalcantara/Work/rust/kb/bench/probes/maint.sh#L1:1"
+  - **Position**: "file:///Users/roalcantara/Work/rust/kb/tools/bench/probes/maint.sh#L1:1"
   - **Tags**: plan5, report
 
 - [x] pL64 **-** Plan 5 T6: the report links findings.md from its verdict (7076c6f)
   - **Priority**: medium
   - **Created**: 2026-10-10 02:29
-  - **Position**: "file:///Users/roalcantara/Work/rust/kb/crates/xtask/src/report.rs#L1:1"
+  - **Position**: "file:///Users/roalcantara/Work/rust/kb/tools/bench/report/src/report.rs#L1:1"
   - **Tags**: plan5, report
 
 - [x] nHvS **-** Plan 5 T7: bench:cpu, bench:size, bench:session and a preflight (68f678d)
   - **Priority**: high
   - **Created**: 2026-10-10 02:29
-  - **Position**: "file:///Users/roalcantara/Work/rust/kb/bench/probes/preflight.sh#L1:1"
+  - **Position**: "file:///Users/roalcantara/Work/rust/kb/tools/bench/probes/preflight.sh#L1:1"
   - **Tags**: bench, plan5
 
 - [x] bt8n **-** Plan 5 T8: methodology Session and Maintainability sections, and the spec's report amendment (44fedfa)
@@ -61,7 +61,7 @@
   - **Comments**: z4MO
   - **Priority**: high
   - **Created**: 2026-10-10 02:29
-  - **Position**: "file:///Users/roalcantara/Work/rust/kb/bench/probes/drive-queries.sh#L1:1"
+  - **Position**: "file:///Users/roalcantara/Work/rust/kb/tools/bench/probes/drive-queries.sh#L1:1"
   - **Tags**: bench
 
 - [x] AmRh **-** Archive the pre-polish tier 2 and 3 runs (a0ee1aa)
@@ -81,7 +81,7 @@
   - **Comments**: HGSp
   - **Priority**: high
   - **Created**: 2026-10-10 02:29
-  - **Position**: "file:///Users/roalcantara/Work/rust/kb/bench/probes/memory.sh#L36:1"
+  - **Position**: "file:///Users/roalcantara/Work/rust/kb/tools/bench/probes/memory.sh#L36:1"
   - **Tags**: bench, decision, next
 
 - [ ] pzxe **-** Plan 5 T9: re-run mise run bench:session after the polish, both apps in one sitting
@@ -94,7 +94,7 @@
 - [ ] mMjd **-** Plan 5 T10: time Raycast's keystroke → list by hand at 120 fps (10 runs), record it with manual-keystroke.sh, commit the results
   - **Priority**: medium
   - **Created**: 2026-10-10 02:29
-  - **Position**: "file:///Users/roalcantara/Work/rust/kb/bench/probes/manual-keystroke.sh#L1:1"
+  - **Position**: "file:///Users/roalcantara/Work/rust/kb/tools/bench/probes/manual-keystroke.sh#L1:1"
   - **Tags**: bench, plan5
 
 - [ ] NRYN **-** Plan 5 T11: mise run report, write findings.md and the README Findings section, regenerate and commit the report
@@ -112,14 +112,14 @@
   - **Comments**: ouCi
   - **Priority**: low
   - **Created**: 2026-10-10 02:29
-  - **Position**: "file:///Users/roalcantara/Work/rust/kb/mise.toml#L1:1"
+  - **Position**: "file:///Users/roalcantara/Work/rust/kb/tools/bench/tasks.toml#L1:1"
   - **Tags**: bench
 
 - [ ] EYAZ **-** Read KB_RAYCAST_DEEP_LINK in memory.sh, action.sh and cpu-ts.sh, or drop it from mise.local.toml
   - **Comments**: S3cM
   - **Priority**: low
   - **Created**: 2026-10-10 02:29
-  - **Position**: "file:///Users/roalcantara/Work/rust/kb/bench/probes/memory.sh#L13:1"
+  - **Position**: "file:///Users/roalcantara/Work/rust/kb/tools/bench/probes/memory.sh#L13:1"
   - **Tags**: bench
 
 - [ ] niEv **-** The notes pane is invisible to VoiceOver: GPUI Kit's TextView sets no accessibility role (0.7.1)
@@ -134,6 +134,25 @@
   - **Created**: 2026-10-10 02:42
   - **Position**: "file:///Users/roalcantara/Work/rust/kb/crates/third-party/README.md#L1:1"
   - **Tags**: deps, upstream
+
+- [x] tquG **-** Repository layout: three root folders (crates, docs, tools), the benchmark kit isolated in tools/bench, a root-layout hk guard
+  - **Priority**: medium
+  - **Created**: 2026-10-10 03:42
+  - **Position**: "file:///Users/roalcantara/Work/rust/kb/docs/superpowers/specs/2026-10-10-repository-layout-design.md#L1:1"
+  - **Tags**: layout, tools
+
+- [ ] KDYD **-** Evaluate moving tool configs (mise, hk, dprint, typos, ls-lint, jscpd, gitleaks, mdschema, commitlint, cchk, taplo, ast-grep) into .config/
+  - **Comments**: JOrA
+  - **Priority**: low
+  - **Created**: 2026-10-10 03:42
+  - **Position**: "file:///Users/roalcantara/Work/rust/kb/README.md#L1:1"
+  - **Tags**: config, layout
+
+- [ ] jYHt **-** Decide whether to keep the benchmark kit after the report, or purge it (tools/bench/README.md, Purge)
+  - **Priority**: low
+  - **Created**: 2026-10-10 03:42
+  - **Position**: "file:///Users/roalcantara/Work/rust/kb/tools/bench/README.md#L1:1"
+  - **Tags**: bench, decision
 
 # Actors
 
@@ -175,4 +194,7 @@
 
 - qC0Z **-** The only unchecked item of docs/experiment/compliance.md. Upstream fix; until then the row label carries the description.
   - **Task**: niEv
+
+- JOrA **-** Checked 2026-10-10 in a scratch worktree: mise finds .config/mise.toml; cargo deny fell back to its defaults (it reads deny.toml, .deny.toml or .cargo/deny.toml); dprint, typos, taplo and ast-grep were inconclusive. Cargo/rustc configs (Cargo.toml, rust-toolchain.toml, rustfmt.toml, clippy.toml, deny.toml) stay at the root, as in every surveyed repo. Survey: uv, ruff, rust-analyzer, Zed and Servo keep a .config/ folder.
+  - **Task**: KDYD
 

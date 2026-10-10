@@ -23,3 +23,8 @@
 
 # Machine-local settings, such as KB_RAYCAST_HOTKEY (docs/experiment/methodology.md).
 /mise.local.toml
+
+# Local state of developer tools: code graphs and agent worktrees, never committed.
+/graphify-out/
+/.code-review-graph/
+/.delta/

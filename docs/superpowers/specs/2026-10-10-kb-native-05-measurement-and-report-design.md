@@ -4,6 +4,10 @@
 - Date: 2026-10-10
 - Replaces: the "Remaining work" of `docs/superpowers/plans/2026-10-09-kb-native-05-mvp-compliance-and-report.md`
 
+> **Paths moved (2026-10-10).** Written before the repository layout
+> ([design](2026-10-10-repository-layout-design.md)): `bench/` is now `tools/bench/`, `fixtures/` is split between
+> `crates/kb-domain/tests/fixtures/` and `tools/bench/fixtures/`, and `xtask` is `kb-report`.
+
 ## Goal
 
 Finish the experiment: every figure the report needs comes from a mise task, the runs happen in one ordered session,

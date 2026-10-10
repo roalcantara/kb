@@ -54,8 +54,8 @@ not part of the kit. `docs/experiment/` stays in `docs/` as the record.
 under one heading.
 
 **D7. One description of the layout.** README's "Project Structure" documents the folders and the rule for each;
-AGENTS.md's repository map points to it. Live documents (README, AGENTS, CONTEXT, methodology, Plan 5, the Plan 5
-design, ADRs, compliance) get the new paths; earlier plans and specs stay as written, a record of their time.
+AGENTS.md's repository map points to it. Live documents (README, AGENTS, CONTEXT, methodology, ADRs, compliance) get the new paths; Plan 5 gets them in its open
+tasks and a note, its design a note; earlier plans and specs stay as written, a record of their time.
 
 ## Scope
 

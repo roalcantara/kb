@@ -250,6 +250,11 @@ local baseline_steps = new Mapping<String, Step> {
         glob = List("**/*.rs", "tools/bench/ts/*.ts")
         check = "jscpd"
     }
+    // The root holds three folders (README, "Project Structure"); a new one is a layout decision.
+    ["root-layout"] {
+        // `|| true`: grep finds nothing when the layout is clean, and hk runs steps with pipefail.
+        check = #"extra=$(git ls-files | cut -s -d/ -f1 | sort -u | grep -v -x -E '\.github|crates|docs|tools' || true); [ -z "$extra" ] || { echo "unexpected top-level folder (README, Project Structure): $extra"; exit 1; }"#
+    }
 
     // ── Benchmark kit (tools/bench/README.md: remove the bench-ts-* steps when purging it) ──
     // The TS bench is code too: typecheck it with the compiler its own package pins.

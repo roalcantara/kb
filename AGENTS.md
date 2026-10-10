@@ -10,11 +10,12 @@ in `docs/superpowers/plans/`.
 
 ## Repository map
 
-- `crates/kb-domain/`: the engine; no UI dependency
-- `crates/kb-app/`: the GPUI Kit application (Plan 3)
-- `crates/kb-bench/`: engine benchmarks (Plan 2)
-- `bench/ts/`: the TypeScript baseline; imports the Raycast repo through the gitignored `bench/ts/kb` symlink
-- `fixtures/`: corpora, queries, goldens
+The layout and the rule for each folder: [README, "Project Structure"](README.md#project-structure).
+
+- `crates/kb-domain/`: the engine; no UI dependency; `tests/fixtures/` holds the sample corpus and its goldens
+- `crates/kb-app/`: the GPUI Kit application
+- `crates/third-party/`: patched external crates, outside the workspace
+- `tools/bench/`: the benchmark kit (TS and Rust benchmarks, probes, report); purgeable as a unit
 - `docs/`: ADRs, experiment, specs and plans
 - `TODO.md`: done and pending work, kept with the `todo` CLI (pinned in `mise.toml`; usage in its REF comments)
 
@@ -24,8 +25,8 @@ in `docs/superpowers/plans/`.
   enforces it; do not bypass it.
 - Follow `~/.agents/skills/rust-best-practices`, and for UI work read the GPUI Kit Coding Guides
   (`~/.agents/skills/gpui-kit`) and Design Guides (`~/.agents/skills/gpui-kit-design-guides`) before deciding.
-- Never commit anything from or derived from the private corpus: `fixtures/private*` is gitignored and must stay
-  so. Only `fixtures/private.sha256` is committed.
+- Never commit anything from or derived from the private corpus: `tools/bench/fixtures/private*` is gitignored and must
+  stay so. Only `tools/bench/fixtures/private.sha256` is committed.
 - Never write to the Raycast repository (`$KB_TS_REPO`).
 - Keep quality gates and thresholds unchanged unless the owner approves the change.
 

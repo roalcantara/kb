@@ -1,6 +1,6 @@
 # Archived: tier 2 and 3 before the visual polish
 
-Not used by the report (`xtask` reads only the top level of `results/`). Kept as a record of what was measured and why
+Not used by the report (`kb-report` reads only the top level of `results/`). Kept as a record of what was measured and why
 it was set aside. Tier 1 stays in `results/`: the engine is unchanged and Plan 5 does not re-run it.
 
 ## Why each set is invalid
