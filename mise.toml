@@ -74,6 +74,33 @@ run = '''
   RUSTDOCFLAGS='-D warnings' cargo doc --workspace --no-deps --locked
 '''
 
+# CI (.github/workflows/ci.yml) runs these on Linux; kb itself compiles only on macOS (GPUI).
+[tasks.ci]
+description = "What CI checks: the gate on macOS; elsewhere ci:lint and ci:test, in parallel"
+run = '''
+  #!/usr/bin/env bash
+  set -euo pipefail
+  if [ "$(uname -s)" = Darwin ]; then exec mise run gate; fi
+  exec mise run ci:lint ::: ci:test
+'''
+
+[tasks."ci:lint"]
+description = "hk's checks that need neither GPUI nor the Raycast link nor a branch name"
+# cargo-check and clippy compile the app (GPUI, macOS only); bench-ts-typecheck needs the TS bench's link to the
+# Raycast repo; branch reads a branch name, which a pull request's merge checkout has not.
+run = "hk check --all --skip-step cargo-check --skip-step clippy --skip-step bench-ts-typecheck --skip-step branch"
+
+[tasks."ci:test"]
+description = "The engine, which compiles anywhere: clippy, tests and doctests of kb-domain; cargo deny"
+run = '''
+  #!/usr/bin/env bash
+  set -euo pipefail
+  cargo clippy -p kb-domain --all-targets --locked -- -D warnings
+  cargo nextest run -p kb-domain --locked
+  cargo test --doc -p kb-domain --locked
+  cargo deny check
+'''
+
 [tasks.app]
 description = "Build the panel in release mode and start it; press ⌥K to show it"
 usage = 'flag "--trace" help="log the show and keystroke latencies to stderr"'
