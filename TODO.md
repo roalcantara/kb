@@ -154,6 +154,37 @@
   - **Position**: "file:///Users/roalcantara/Work/rust/kb/tools/bench/README.md#L1:1"
   - **Tags**: bench, decision
 
+- [x] jyHv **-** CI and releases: lint and test on Linux for every PR and push to main; semantic-release cuts releases with CHANGELOG.md and kb.app (ADR 0007)
+  - **Priority**: medium
+  - **Created**: 2026-10-10 04:46
+  - **Position**: "file:///Users/roalcantara/Work/rust/kb/.github/workflows/ci.yml#L1:1"
+  - **Tags**: ci, release
+
+- [ ] zfJD **-** GitHub Pages: a one-page site (a screenshot and the feature list), once the repo is public or the plan allows Pages on private repos
+  - **Comments**: toCs
+  - **Priority**: low
+  - **Created**: 2026-10-10 04:46
+  - **Position**: "file:///Users/roalcantara/Work/rust/kb/docs/adr/0007-releases.md#L1:1"
+  - **Tags**: decision, pages, release
+
+- [ ] Sdkb **-** Sign kb.app with a Developer ID and notarize it, so macOS opens it without asking
+  - **Priority**: low
+  - **Created**: 2026-10-10 04:46
+  - **Position**: "file:///Users/roalcantara/Work/rust/kb/docs/adr/0006-packaging.md#L1:1"
+  - **Tags**: release, signing
+
+- [ ] enBz **-** Release a universal binary (Apple silicon and Intel): today's zip is arm64 only
+  - **Priority**: low
+  - **Created**: 2026-10-10 04:46
+  - **Position**: "file:///Users/roalcantara/Work/rust/kb/mise.toml#L1:1"
+  - **Tags**: release
+
+- [ ] DTN3 **-** A Linux build of kb (GPUI supports Linux; needs its system libraries on the runner)
+  - **Priority**: low
+  - **Created**: 2026-10-10 04:46
+  - **Position**: "file:///Users/roalcantara/Work/rust/kb/.github/workflows/ci.yml#L1:1"
+  - **Tags**: linux, release
+
 # Actors
 
 # Comments
@@ -197,4 +228,7 @@
 
 - JOrA **-** Checked 2026-10-10 in a scratch worktree: mise finds .config/mise.toml; cargo deny fell back to its defaults (it reads deny.toml, .deny.toml or .cargo/deny.toml); dprint, typos, taplo and ast-grep were inconclusive. Cargo/rustc configs (Cargo.toml, rust-toolchain.toml, rustfmt.toml, clippy.toml, deny.toml) stay at the root, as in every surveyed repo. Survey: uv, ruff, rust-analyzer, Zed and Servo keep a .config/ folder.
   - **Task**: KDYD
+
+- toCs **-** GitHub Free publishes Pages only from public repositories (checked 2026-10-10). Then: a deploy job in .github/workflows/ci.yml after release (actions/upload-pages-artifact + actions/deploy-pages), from a static page in docs/.
+  - **Task**: zfJD
 

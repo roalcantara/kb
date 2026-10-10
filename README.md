@@ -112,30 +112,37 @@ tools/                      developer tooling
 
 ## Development Workflow
 
-| Command                       | Does                                                                  |
-| ----------------------------- | --------------------------------------------------------------------- |
-| `mise run setup`              | install everything                                                    |
-| `mise run gate`               | all gates in order; `--fast` runs tests and clippy only               |
-| `mise run fixtures`           | copy the private corpus, verify its manifest, build the 10× copy      |
-| `mise run goldens`            | write goldens from the TS engine                                      |
-| `mise run parity`             | golden parity on the private corpus                                   |
-| `mise run bench:ts`           | tier 1 benchmarks of the TS engine                                    |
-| `mise run bench:rs <corpus>`  | tier 1 benchmarks of kb-domain                                        |
-| `mise run bench:memory <app>` | tier 2 memory of kb or raycast                                        |
-| `mise run bench:e2e <app>`    | tier 3 latency of kb or raycast                                       |
-| `mise run bench:maint`        | lines, dependencies, tests and build time of both                     |
-| `mise run bench:home`         | an isolated home over the private corpus, index synced by `kb --sync` |
-| `mise run bench:size <app>`   | tier 2 artifact size of kb or raycast                                 |
-| `mise run bench:cpu <app>`    | tier 2 cold-start CPU of kb or raycast                                |
-| `mise run bench:session`      | preflight, then every tier 2 and 3 run and maintainability, in order  |
-| `mise run package`            | build and sign `kb.app`; `install` copies it to ~/Applications        |
-| `mise run report`             | gate, parity, then `docs/experiment/report.md` from the results       |
-| `hk check --all`              | every baseline step over the whole repository                         |
+| Command                                 | Does                                                                  |
+| --------------------------------------- | --------------------------------------------------------------------- |
+| `mise run setup`                        | install everything                                                    |
+| `mise run gate`                         | all gates in order; `--fast` runs tests and clippy only               |
+| `mise run fixtures`                     | copy the private corpus, verify its manifest, build the 10× copy      |
+| `mise run goldens`                      | write goldens from the TS engine                                      |
+| `mise run parity`                       | golden parity on the private corpus                                   |
+| `mise run bench:ts`                     | tier 1 benchmarks of the TS engine                                    |
+| `mise run bench:rs <corpus>`            | tier 1 benchmarks of kb-domain                                        |
+| `mise run bench:memory <app>`           | tier 2 memory of kb or raycast                                        |
+| `mise run bench:e2e <app>`              | tier 3 latency of kb or raycast                                       |
+| `mise run bench:maint`                  | lines, dependencies, tests and build time of both                     |
+| `mise run bench:home`                   | an isolated home over the private corpus, index synced by `kb --sync` |
+| `mise run bench:size <app>`             | tier 2 artifact size of kb or raycast                                 |
+| `mise run bench:cpu <app>`              | tier 2 cold-start CPU of kb or raycast                                |
+| `mise run bench:session`                | preflight, then every tier 2 and 3 run and maintainability, in order  |
+| `mise run package`                      | build and sign `kb.app`; `install` copies it to ~/Applications        |
+| `mise run ci`                           | what CI checks: the gate on macOS, `ci:lint` and `ci:test` elsewhere  |
+| `mise run release -- --dry-run --no-ci` | preview the next release (`GITHUB_TOKEN=$(gh auth token)`)            |
+| `mise run report`                       | gate, parity, then `docs/experiment/report.md` from the results       |
+| `hk check --all`                        | every baseline step over the whole repository                         |
 
 Measuring both apps is one sitting: set up what `docs/experiment/methodology.md` ("Session") asks, run
 `mise run bench:session`, record the manual keystroke run, commit the results, then `mise run report`.
 
 Commits follow Conventional Commits with a sentence-case subject; hk checks the message.
+
+**Releases.** Every push to `main` is checked on GitHub Actions, and one with a `feat`, `fix` or `perf` commit is released:
+semantic-release picks the version, updates [CHANGELOG.md](CHANGELOG.md), tags it and publishes a
+[GitHub Release](https://github.com/roalcantara/kb/releases) with `kb.app` for Apple silicon. The app is signed ad hoc:
+open it the first time with right-click → Open. How and why: [ADR 0007](docs/adr/0007-releases.md).
 
 ## Coding Standards
 

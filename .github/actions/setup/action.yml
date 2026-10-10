@@ -1,0 +1,17 @@
+name: Set up
+description: The Rust toolchain from rust-toolchain.toml, then every tool in mise.toml (cached).
+inputs:
+  rust-cache:
+    description: Cache Cargo's registry and build output (Swatinem/rust-cache).
+    default: "false"
+runs:
+  using: composite
+  steps:
+    # The toolchain first: mise builds some of its tools with cargo, and rustup installing the toolchain while
+    # those builds start fails ("cargo binary ... not applicable to the toolchain").
+    - name: Install the Rust toolchain
+      shell: bash
+      run: rustup toolchain install
+    - uses: jdx/mise-action@2d8d4cafcbd33be2ea37d2b6f5ad595363d1f1ca # v5.1.1
+    - if: inputs.rust-cache == 'true'
+      uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
