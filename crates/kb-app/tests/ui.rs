@@ -222,6 +222,14 @@ fn selects_the_first_result_of_a_new_query(cx: &mut TestAppContext) {
 }
 
 #[gpui_kit::test]
+fn opens_on_the_list_alone_and_toggles_the_split_pane_with_cmd_d(cx: &mut TestAppContext) {
+    let (_home, window, view) = open_with_query(cx, "kubectl");
+    assert!(!cx.read(|cx| view.read(cx).is_showing_details()));
+    press(cx, window, "cmd-d");
+    assert!(cx.read(|cx| view.read(cx).is_showing_details()));
+}
+
+#[gpui_kit::test]
 fn opens_details_with_enter_in_the_list_without_running_the_primary_action(cx: &mut TestAppContext) {
     let (_home, window, view) = open_with_query(cx, "kubectl");
     cx.write_to_clipboard(gpui_kit::ClipboardItem::new_string("before".into()));

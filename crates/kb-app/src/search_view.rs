@@ -96,7 +96,8 @@ impl SearchView {
             palette,
             focus: cx.focus_handle(),
             screen: Screen::Search,
-            show_details: true,
+            // The list alone, as Raycast's kb Search opens; ⌘D shows the split pane.
+            show_details: false,
             show_metadata: false,
             subscriptions: vec![list_sub, input_sub, appearance],
         }
@@ -112,6 +113,12 @@ impl SearchView {
     #[must_use]
     pub fn is_showing_detail(&self) -> bool {
         matches!(self.screen, Screen::Detail)
+    }
+
+    /// Whether the list shows the split pane with the selected entry's notes.
+    #[must_use]
+    pub fn is_showing_details(&self) -> bool {
+        self.show_details
     }
 
     /// Whether the rebuild screen is showing.
