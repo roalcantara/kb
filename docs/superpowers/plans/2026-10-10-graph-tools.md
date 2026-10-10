@@ -30,14 +30,14 @@ Graphify 0.9.79.
 
 ## File map
 
-| Path                                                                                                 | Change                                         | Task |
-| ---------------------------------------------------------------------------------------------------- | ---------------------------------------------- | ---- |
-| `mise.toml`, `mise.lock`, `.github/workflows/ci.yml`                                                 | pins, re-lock, CI skips them                   | 1    |
-| `tools/graph/graph.ts`, `tools/graph/tasks.toml`, `mise.toml`                                        | the `graph` task                               | 2    |
-| `mise.toml`                                                                                          | `[doctor.checks.graph_*]`                      | 3    |
-| `.mcp.json`, `.agents/skills/`, `.claude/skills` (symlink), `.claude/settings.json`                  | agent wiring                                   | 4    |
-| `tools/graph/refresh.sh`, `hk.pkl`                                                                   | post-commit, post-merge, post-checkout refresh | 5    |
-| `hk.pkl`, `.ls-lint.yml`, `.gitignore`, `README.md`, `AGENTS.md`, `tools/graph/README.md`, `TODO.md` | layout guard, docs                             | 6    |
+| Path                                                                                                 | Change                                                  | Task |
+| ---------------------------------------------------------------------------------------------------- | ------------------------------------------------------- | ---- |
+| `mise.toml`, `mise.lock`, `.github/workflows/ci.yml`, `.fnox.toml`, `.gitignore`                     | pins (fnox too), re-lock, CI skips them, secrets config | 1    |
+| `tools/graph/graph.ts`, `tools/graph/tasks.toml`, `mise.toml`                                        | the `graph` task                                        | 2    |
+| `mise.toml`                                                                                          | `[doctor.checks.graph_*]`                               | 3    |
+| `.mcp.json`, `.agents/skills/`, `.claude/skills` (symlink), `.claude/settings.json`                  | agent wiring                                            | 4    |
+| `tools/graph/refresh.sh`, `hk.pkl`                                                                   | post-commit, post-merge, post-checkout refresh          | 5    |
+| `hk.pkl`, `.ls-lint.yml`, `.gitignore`, `README.md`, `AGENTS.md`, `tools/graph/README.md`, `TODO.md` | layout guard, docs                                      | 6    |
 
 ### Task 1: Pin the tools
 
@@ -48,15 +48,24 @@ Graphify 0.9.79.
 "github:zzet/gortex" = "0.64.7"
 "pipx:code-review-graph" = "2.3.9"
 "pipx:graphifyy" = "0.9.79"
+# Secrets for Graphify's LLM pass (and GITHUB_TOKEN), resolved from password-store (.fnox.toml)
+fnox = "1.39.0"
 ```
+
+- [ ] Copy `~/Work/raycast/kb/.fnox.toml` to the repo root unchanged: it names `pass` entries
+      (`tokens/github.com`, `tokens/DEEPSEEK_API_KEY`), never secret values. In `.gitignore`, under a
+      `# fnox: local overrides, never committed.` comment, add `/fnox.local.toml` and `/.fnox.local.toml`.
 
 - [ ] `mise install` then `GITHUB_TOKEN=$(gh auth token) mise lock`. Expected: `✓ Lockfile written`, and
       `.mise/locks/` gains `pipx-code-review-graph` and `pipx-graphifyy` folders.
 - [ ] `.github/workflows/ci.yml`: extend `MISE_DISABLE_TOOLS` to
-      `tokei,cargo:https://github.com/RayanBO/todo/,github:zzet/gortex,pipx:code-review-graph,pipx:graphifyy`, and
+      `tokei,cargo:https://github.com/RayanBO/todo/,github:zzet/gortex,pipx:code-review-graph,pipx:graphifyy,fnox`, and
       its comment to "Tools in mise.toml that no CI job runs".
-- [ ] `mise fmt && taplo fmt mise.toml && hk check --all`. Expected: pass.
-- [ ] Commit: `build: Pin the code graph tools in mise`.
+- [ ] Check fnox: `fnox list -P default --sources` lists `GITHUB_TOKEN` and `DEEPSEEK_API_KEY`;
+      `fnox exec -- sh -c 'test -n "$DEEPSEEK_API_KEY"' && echo resolved`. If `pass` has no such entry on this machine,
+      report it and go on: the key is only needed for `--force`.
+- [ ] `mise fmt && taplo fmt mise.toml && hk check --all`. Expected: pass (gitleaks too: `.fnox.toml` holds no secret).
+- [ ] Commit: `build: Pin the code graph tools and fnox in mise`.
 
 ### Task 2: The `graph` task
 
@@ -99,8 +108,18 @@ then add, after `run`, a `usage = '''…'''` copied verbatim from `~/Work/raycas
       `# Code graph health (tools/graph/README.md): mise doctor project.` Change only:
   - `graph_crg_mcp`'s hint to "`.mcp.json` is committed: restore it with `git checkout -- .mcp.json`.";
   - `graph_crg_installed`, `graph_gortex_installed`, `graph_graphify_installed` hints to "Run `mise install`."
+
+  and add, after them:
+
+```toml
+[doctor.checks.graph_fnox_secrets]
+description = "fnox resolves the secrets in .fnox.toml (Graphify's --force pass needs an LLM key)"
+run = "fnox list -P default --sources >/dev/null 2>&1"
+hint = "Run `mise install`; fnox reads password-store (`pass`): see .fnox.toml for the entries it expects."
+```
+
 - [ ] `mise run graph setup crg && mise run graph setup graphify && mise run graph setup gortex`, then
-      `mise doctor project`. Expected: every `graph_*` check passes. Note in your final report that `setup gortex`
+      `mise doctor project`. Expected: every `graph_*` check passes (`graph_fnox_secrets` needs `pass` set up on this machine; report it if not). Note in your final report that `setup gortex`
       tracked the repo and started Gortex's daemon on this machine.
 - [ ] Commit: `build: Add mise doctor checks for the code graphs`.
 
@@ -185,8 +204,10 @@ and inside `hooks { … }`:
       queries, `gortex wakeup`/`context` briefings; Graphify: `graphify-out/GRAPH_REPORT.md` and `graph.html`); the
       commands (`mise run graph setup` once; `update`, `build`, `--force` for Graphify's LLM pass, `--dry-run`); what
       refreshes automatically (Claude Code hooks; hk post-commit/merge/checkout → `tmp/graph-update.log`);
-      `mise doctor project`; global side effects (spec D6); and how to remove it all (the folder, the `includes` line,
-      the three pins, the doctor checks, `.mcp.json`, `.agents/skills`, `.claude/`, the hk hooks).
+      `mise doctor project`; secrets (`.fnox.toml`: `--force` runs Graphify through `fnox exec`, which resolves
+      `DEEPSEEK_API_KEY` from password-store; keys can also come from the environment); global side effects (spec D6);
+      and how to remove it all (the folder, the `includes` line,
+      the four pins, the doctor checks, `.fnox.toml`, `.mcp.json`, `.agents/skills`, `.claude/`, the hk hooks).
 - [ ] `README.md` "Project Structure": add `tools/graph/` to the tree and a bullet for `.agents/` and `.claude/` beside
       the hidden-folders bullet; "Development Workflow" table: `mise run graph setup` and `mise doctor project` rows.
 - [ ] `AGENTS.md` "Repository map": `- tools/graph/: code graphs for agents (CRG, Gortex, Graphify); use them before a

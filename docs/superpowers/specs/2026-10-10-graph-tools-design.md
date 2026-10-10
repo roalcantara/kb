@@ -53,7 +53,9 @@ into the user's agent configs) and `graph setup gortex` (repo tracking, daemon) 
 with `--no-instructions`, so `CLAUDE.md` stays `@AGENTS.md @CONTEXT.md`.
 
 **D7. Graphify's LLM pass is opt-in.** Automatic updates are code-only (no LLM, no key, no cost);
-`mise run graph build graphify --force [--backend …]` runs the semantic pass on request.
+`mise run graph build graphify --force [--backend …]` runs the semantic pass on request. Its keys come from fnox: `fnox = "1.39.0"` is
+pinned, `.fnox.toml` (copied from the Raycast repo) names the `pass` entries — references, never values — and
+`fnox.local.toml` overrides stay ignored. CI skips fnox.
 
 **D8. The layout guard knows the new hidden folders.** `root-layout` and ls-lint allow `.agents` and `.claude`; README's
 "Project Structure" lists them and `tools/graph/`. Graph output (`graphify-out/`, `.code-review-graph/`, `.gortex/`)
