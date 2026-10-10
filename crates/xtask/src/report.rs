@@ -205,6 +205,7 @@ fn perceived(results: &Results) -> Result<(String, Option<f64>), Error> {
         results.latest("tier3-kb-action")?,
         results.latest("tier3-raycast-action")?,
     );
+    let raycast_keystroke = results.latest("tier3-raycast-keystroke-manual")?;
     let quartiles = |run: Option<&Run>, metric: Option<&str>| -> String {
         let Some(run) = run else {
             return "not measured".into();
@@ -227,8 +228,11 @@ fn perceived(results: &Results) -> Result<(String, Option<f64>), Error> {
             quartiles(kb.as_ref(), Some("show-trace-presented")),
         ],
         vec![
-            "Keystroke → updated list, 150 ms debounce included (`kb --trace`)".to_owned(),
-            "manual (methodology)".into(),
+            "Keystroke → updated list (Raycast: counted at 120 fps; kb: `kb --trace`, 150 ms debounce included)"
+                .to_owned(),
+            raycast_keystroke
+                .as_ref()
+                .map_or_else(|| "manual: not recorded".into(), |run| quartiles(Some(run), None)),
             quartiles(kb.as_ref(), Some("keystroke-trace-presented")),
         ],
         vec![
@@ -603,6 +607,8 @@ fn times(ratio: f64) -> String {
 
 #[cfg(test)]
 mod tests {
+    use std::fs;
+
     use super::*;
 
     #[test]
@@ -638,5 +644,38 @@ mod tests {
             pass: None,
         }];
         assert!(verdict(&criteria).contains("not all were measured:** Quality"));
+    }
+
+    /// A results directory holding `files` (name, JSON).
+    fn results_with(files: &[(&str, &str)]) -> (tempfile::TempDir, Results) {
+        let dir = tempfile::tempdir().unwrap();
+        for (name, json) in files {
+            fs::write(dir.path().join(name), json).unwrap();
+        }
+        let results = Results::open(dir.path()).unwrap();
+        (dir, results)
+    }
+
+    /// The tier 3 table's keystroke row, rendered from `files`.
+    fn keystroke_row(files: &[(&str, &str)]) -> String {
+        let (_dir, results) = results_with(files);
+        let (out, _) = perceived(&results).unwrap();
+        let row = out.lines().find(|l| l.starts_with("| Keystroke → updated list"));
+        row.unwrap().to_owned()
+    }
+
+    #[test]
+    fn shows_the_manual_raycast_keystroke_run() {
+        let row = keystroke_row(&[(
+            "tier3-raycast-keystroke-manual-20261010T120000Z.json",
+            r#"{"stats": {"p25": 25.0, "p50": 33.3, "p75": 41.7}}"#,
+        )]);
+        assert!(row.contains("| 33.3 (25.0–41.7) |"), "{row}");
+    }
+
+    #[test]
+    fn says_when_the_manual_keystroke_run_is_missing() {
+        let row = keystroke_row(&[]);
+        assert!(row.contains("| manual: not recorded |"), "{row}");
     }
 }
