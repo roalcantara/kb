@@ -1,0 +1,26 @@
+{
+  "roles": {
+    "window": { "hex": "#1E2532", "screen": "1-list-ray.png", "box": [1500, 500, 1600, 560] },
+    "header": { "hex": "#1E2235", "screen": "1-list-ray.png", "box": [900, 30, 1000, 60] },
+    "selection": { "hex": "#272D47", "screen": "1-list-ray.png", "box": [1250, 205, 1350, 255] },
+    "raised": { "hex": "#404853", "screen": "1-list-ray.png", "box": [520, 1165, 535, 1215] },
+    "divider": { "hex": "#373D43", "screen": "7-bookmark-split-ray.png", "box": [760, 400, 770, 600] },
+    "text": { "hex": "#F6FCFD", "screen": "1-list-ray.png", "box": [150, 210, 235, 250] },
+    "textMuted": { "hex": "#A6B4BF", "screen": "1-list-ray.png", "box": [265, 210, 780, 250] },
+    "textFaint": { "hex": "#F2FDFD", "screen": "1-list-ray.png", "box": [150, 75, 700, 120] },
+    "green": { "hex": "#9DFB9B", "screen": "1-list-ray.png", "box": [68, 205, 115, 255] },
+    "purple": { "hex": "#8F7EF1", "screen": "7-bookmark-split-ray.png", "box": [1740, 875, 1900, 905] },
+    "blue": { "hex": "#629EF8", "screen": "2-list-split-ray.png", "box": [1790, 810, 1910, 850] },
+    "red": { "hex": "#42504D", "screen": "5-actions-ray.png", "box": [1450, 680, 1660, 760] },
+    "magenta": { "hex": "#32403C", "screen": "5-actions-ray.png", "box": [1460, 760, 1720, 840] },
+    "orange": { "hex": "#9DFC9B", "screen": "6-filter-ray.png", "box": [1240, 690, 1500, 760] },
+    "yellow": { "hex": "#9EFC9C", "screen": "6-filter-ray.png", "box": [1240, 760, 1500, 835] }
+  },
+  "sizes": {
+    "window": { "w": 1049.0, "h": 663.0, "radius_estimate": 331.5 },
+    "selected_row": { "w": 516.5, "h": 53.0, "radius_estimate": 26.5 },
+    "tag_pill": { "w": 107.0, "h": 29.5, "radius_estimate": 14.75 },
+    "footer_pill": { "w": 43.0, "h": 32.5, "radius_estimate": 16.25 },
+    "keycap": { "w": 50.0, "h": 18.5, "radius_estimate": 9.25 }
+  }
+}

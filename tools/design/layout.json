@@ -1,0 +1,78 @@
+{
+  "source": {
+    "system": "Raycast",
+    "references": [
+      "tools/reports/1-list-ray.png",
+      "tools/reports/2-list-split-ray.png",
+      "tools/reports/3-list-split-down-ray.png",
+      "tools/reports/4-detail-ray.png",
+      "tools/reports/5-actions-ray.png",
+      "tools/reports/6-filter-ray.png",
+      "tools/reports/7-bookmark-split-ray.png",
+      "tools/reports/8-bookmark-detail-ray.png"
+    ],
+    "unit": "logical points",
+    "note": "Screenshot-derived visual estimates, not an official Raycast spacing specification. Shared values are normalized into a small consistent ramp; component geometry still follows the reference anatomy."
+  },
+  "spacing": {
+    "unit": 4,
+    "values": {
+      "none": 0,
+      "hairline": 1,
+      "tight": 4,
+      "compact": 8,
+      "inset": 12,
+      "standard": 16,
+      "relaxed": 24,
+      "section": 32
+    }
+  },
+  "components": {
+    "panel": { "outerInset": 8, "cornerRadius": 28 },
+    "header": {
+      "height": 56,
+      "horizontalInset": 32,
+      "controlGap": 12,
+      "searchTextStart": "aligned with result-title start",
+      "divider": false
+    },
+    "resultRow": {
+      "height": 50,
+      "selectionInsetX": 8,
+      "selectionInsetY": 2,
+      "horizontalInset": 16,
+      "iconColumn": 24,
+      "iconToTitleGap": 12,
+      "titleToDescriptionGap": 4,
+      "selectionRadius": 12,
+      "verticalGap": 0
+    },
+    "tag": { "horizontalPadding": 10, "verticalPadding": 4, "gap": 8, "cornerRadius": 10 },
+    "footer": { "panelInset": 8, "pillGap": 8, "pillHorizontalPadding": 12, "pillVerticalPadding": 8, "keycapGap": 4 },
+    "popover": { "anchorGap": 8, "contentInset": 8, "sectionGap": 12, "cornerRadius": 16 },
+    "actionItem": { "height": 40, "horizontalInset": 8, "cornerRadius": 8 },
+    "filterControl": { "triggerHeight": 40, "optionGap": 8, "selectedMarkColumn": 16 },
+    "splitPane": { "listFraction": 0.34, "detailFraction": 0.66, "paneGap": 1 },
+    "detail": { "contentInset": 24, "sectionGap": 16 },
+    "metadata": { "contentInset": 12, "rowGap": 8, "labelValueGap": 12, "valuesAlign": "trailing" },
+    "media": { "contentInset": 0, "sectionGap": 16, "cornerRadius": 12 }
+  },
+  "alignmentRules": [
+    "Align the search text's leading edge with result titles.",
+    "Center the header back control and result icons on the same vertical axis.",
+    "Reserve one stable icon column; title, description, and tag content must not shift when icon glyphs differ.",
+    "Keep row title and description on a shared left edge; tags are trailing accessories and do not determine that edge.",
+    "Use the same horizontal inset for equivalent content inside a panel, detail view, and popover; component-specific inset differences are explicit.",
+    "Use spacing and grouping before adding a divider. Dividers are reserved for real section or pane boundaries."
+  ],
+  "screenCoverage": {
+    "1-list-ray.png": ["panel", "header", "resultRow", "tag", "footer"],
+    "2-list-split-ray.png": ["splitPane", "resultRow", "tag", "metadata"],
+    "3-list-split-down-ray.png": ["splitPane", "resultRow", "tag", "metadata"],
+    "4-detail-ray.png": ["panel", "header", "detail", "footer"],
+    "5-actions-ray.png": ["popover", "actionItem", "footer"],
+    "6-filter-ray.png": ["popover", "filterControl", "resultRow", "footer"],
+    "7-bookmark-split-ray.png": ["splitPane", "metadata", "media"],
+    "8-bookmark-detail-ray.png": ["detail", "media"]
+  }
+}

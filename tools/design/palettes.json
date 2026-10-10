@@ -1,0 +1,25 @@
+[{
+  "id": "tokyo-night-storm-flat-separated",
+  "name": "Tokyo Night Storm Flat Separated",
+  "source": "Tokyo Night Storm + manual tuning",
+  "roles": {
+    "window": "#23273A",
+    "header": "#24293E",
+    "selection": "#2A3047",
+    "raised": "#24293E",
+    "divider": "#353D5A",
+    "text": "#CBD4FF",
+    "textMuted": "#B2BADB",
+    "textFaint": "#7A86B6",
+    "blue": "#70B9F4",
+    "green": "#30E1A5",
+    "orange": "#F5A95D",
+    "purple": "#A362F2",
+    "magenta": "#E927AB",
+    "yellow": "#D9E753",
+    "red": "#E04F50"
+  },
+  "notes": [
+    "Prioritizes accent separability under color-blind simulation while keeping a flat Tokyo-like surface stack."
+  ]
+}]

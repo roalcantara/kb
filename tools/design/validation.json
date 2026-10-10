@@ -1,0 +1,27 @@
+[{
+  "id": "tokyo-night-storm-flat-separated",
+  "failed": 0,
+  "warned": 3,
+  "checks": [
+    { "name": "text on window", "value": 10.12, "status": "pass" },
+    { "name": "textMuted on window", "value": 7.69, "status": "pass" },
+    { "name": "text on selection", "value": 8.93, "status": "pass" },
+    { "name": "textMuted on selection", "value": 6.79, "status": "pass" },
+    { "name": "text on raised", "value": 9.85, "status": "pass" },
+    { "name": "textMuted on raised", "value": 7.48, "status": "pass" },
+    { "name": "text on header", "value": 9.85, "status": "pass" },
+    { "name": "textMuted on header", "value": 7.48, "status": "pass" },
+    { "name": "textFaint on window", "value": 4.16, "status": "pass" },
+    { "name": "divider on window", "value": 1.38, "status": "pass" },
+    { "name": "#blue on its pill", "value": 4.67, "status": "pass" },
+    { "name": "#green on its pill", "value": 5.58, "status": "pass" },
+    { "name": "#orange on its pill", "value": 4.99, "status": "pass" },
+    { "name": "#purple on its pill", "value": 3.04, "status": "warn" },
+    { "name": "#magenta on its pill", "value": 3.13, "status": "warn" },
+    { "name": "#yellow on its pill", "value": 6.46, "status": "pass" },
+    { "name": "#red on its pill", "value": 3.07, "status": "warn" },
+    { "name": "accents apart (normal)", "value": 15.52, "status": "pass", "pair": "magenta/red" },
+    { "name": "accents apart (protan)", "value": 11, "status": "pass", "pair": "green/yellow" },
+    { "name": "accents apart (deutan)", "value": 8.75, "status": "pass", "pair": "green/orange" }
+  ]
+}]
