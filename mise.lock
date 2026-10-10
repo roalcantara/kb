@@ -136,6 +136,36 @@ url = "https://github.com/dprint/dprint/releases/download/0.61.0/dprint-aarch64-
 url_api = "https://api.github.com/repos/dprint/dprint/releases/assets/619216190"
 provenance = "github-attestations"
 
+[[tools.fnox]]
+version = "1.39.0"
+backend = "packslip:github.com/jdx/fnox"
+specifiers = ["1.39.0"]
+
+[tools.fnox."platforms.linux-x64"]
+checksum = "sha256:0a623ed38907b9cb633d07593b4d19a4ba741a6a50d226eb243bd16f2f5ba81b"
+url = "https://github.com/jdx/fnox/releases/download/v1.39.0/fnox-x86_64-unknown-linux-gnu.tar.gz"
+signer = "sigstore-oidc:https://github.com/jdx/fnox/.github/workflows/release.yml"
+
+[tools.fnox."platforms.macos-arm64"]
+checksum = "sha256:5604196e7a0aafb949251be1ae088bf0bb524edbfb45748d1be0cbc46e98b8f5"
+url = "https://github.com/jdx/fnox/releases/download/v1.39.0/fnox-aarch64-apple-darwin.tar.gz"
+signer = "sigstore-oidc:https://github.com/jdx/fnox/.github/workflows/release.yml"
+
+[[tools."github:zzet/gortex"]]
+version = "0.64.7"
+backend = "github:zzet/gortex"
+specifiers = ["0.64.7"]
+
+[tools."github:zzet/gortex"."platforms.linux-x64"]
+checksum = "sha256:5d87894d9fa09d65f8eb48657d14dd16ed5ce10dd5a03077cc7998fb857400d4"
+url = "https://github.com/zzet/gortex/releases/download/v0.64.7/gortex_linux_amd64.tar.gz"
+url_api = "https://api.github.com/repos/zzet/gortex/releases/assets/610164848"
+
+[tools."github:zzet/gortex"."platforms.macos-arm64"]
+checksum = "sha256:bb7b7e1501ba7c391501f5338077d89de1f393c61ad4b786cf29d70b77896904"
+url = "https://github.com/zzet/gortex/releases/download/v0.64.7/gortex_darwin_arm64.tar.gz"
+url_api = "https://api.github.com/repos/zzet/gortex/releases/assets/610167526"
+
 [[tools.hk]]
 version = "2.5.0"
 backend = "packslip:github.com/jdx/hk"
@@ -258,11 +288,23 @@ url = "https://github.com/suzuki-shunsuke/pinact/releases/download/v5.0.0/pinact
 url_api = "https://api.github.com/repos/suzuki-shunsuke/pinact/releases/assets/558638064"
 provenance = "github-attestations"
 
+[[tools."pipx:code-review-graph"]]
+version = "2.3.9"
+backend = "pipx:code-review-graph"
+specifiers = ["2.3.9"]
+uv = { path = ".mise/locks/pipx-code-review-graph/2.3.9", digest = "sha256:677a72b72a5b90d3df3186b09682545dac440e30b97f4e17aa69ea80deacf1db" }
+
 [[tools."pipx:commit-check"]]
 version = "2.18.2"
 backend = "pipx:commit-check"
 specifiers = ["2.18.2"]
 uv = { path = ".mise/locks/pipx-commit-check/2.18.2", digest = "sha256:287078208d8a95cf5a6ec4e85c4d5fdf7f6f2e78a7de1e124c0814a2f276729c" }
+
+[[tools."pipx:graphifyy"]]
+version = "0.9.79"
+backend = "pipx:graphifyy"
+specifiers = ["0.9.79"]
+uv = { path = ".mise/locks/pipx-graphifyy/0.9.79", digest = "sha256:ffc5b61cb5eca9d44e5246b1a38e802a9e257182147be25d0cfaefab4005a90d" }
 
 [[tools.pkl]]
 version = "0.32.1"
@@ -279,14 +321,25 @@ checksum = "sha256:563eb51c9a20b16a3625464ed745c675ed9750381f2126722696a0d7cac1d
 url = "https://github.com/apple/pkl/releases/download/0.32.1/pkl-macos-aarch64"
 url_api = "https://api.github.com/repos/apple/pkl/releases/assets/487426570"
 
+[[tools.python]]
+version = "3.13.16"
+backend = "core:python"
+specifiers = ["3.13.16"]
+
+[tools.python."platforms.linux-x64"]
+checksum = "sha256:24801ea31c7d406d559a17e2226325c723d50c56900b9c0da7b62adaae2affc9"
+url = "https://github.com/astral-sh/python-build-standalone/releases/download/20261009/cpython-3.13.16+20261009-x86_64-unknown-linux-gnu-install_only_stripped.tar.gz"
+provenance = "github-attestations"
+
+[tools.python."platforms.macos-arm64"]
+checksum = "sha256:11785155d0f70e634178219c20925d8f20be00a3da4684fc4f5019dd15602ef7"
+url = "https://github.com/astral-sh/python-build-standalone/releases/download/20261009/cpython-3.13.16+20261009-aarch64-apple-darwin-install_only_stripped.tar.gz"
+provenance = "github-attestations"
+
 [[tools.rust]]
 version = "1.99.0"
 backend = "core:rust"
 specifiers = ["1.99.0"]
-
-[tools.rust.options]
-components = "clippy,llvm-tools-preview,rustfmt"
-profile = "minimal"
 
 [[tools.shellcheck]]
 version = "0.11.0"

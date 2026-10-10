@@ -16,6 +16,7 @@ The layout and the rule for each folder: [README, "Project Structure"](README.md
 - `crates/kb-app/`: the GPUI Kit application
 - `crates/third-party/`: patched external crates, outside the workspace
 - `tools/bench/`: the benchmark kit (TS and Rust benchmarks, probes, report); purgeable as a unit
+- `tools/graph/`: code graphs for agents (CRG, Gortex, Graphify); use them before a broad search: tools/graph/README.md
 - `docs/`: ADRs, experiment, specs and plans
 - `TODO.md`: done and pending work, kept with the `todo` CLI (pinned in `mise.toml`; usage in its REF comments)
 

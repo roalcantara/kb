@@ -25,7 +25,8 @@ mise run report          # gate, golden parity, then docs/experiment/report.md
 
 1. Delete `tools/bench/`.
 2. `Cargo.toml`: remove the two `tools/bench/…` workspace members.
-3. `mise.toml`: remove the marked "Benchmark kit" block (`KB_TS_REPO`, `KB_SOURCES`, `[task_config]`).
+3. `mise.toml`: remove the marked "Benchmark kit" block (`KB_TS_REPO`, `KB_SOURCES`) and the `tools/bench/tasks.toml`
+   line in `[task_config] includes`.
 4. `hk.pkl`: remove the marked `bench-ts-*` steps.
 5. `.gitignore`: remove the marked "Benchmark kit" block.
 6. Run `mise run gate`.

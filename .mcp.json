@@ -1,0 +1,5 @@
+{
+  "mcpServers": {
+    "code-review-graph": { "command": "mise", "args": ["x", "--", "code-review-graph", "serve"], "type": "stdio" }
+  }
+}

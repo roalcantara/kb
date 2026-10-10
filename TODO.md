@@ -185,6 +185,29 @@
   - **Position**: "file:///Users/roalcantara/Work/rust/kb/.github/workflows/ci.yml#L1:1"
   - **Tags**: linux, release
 
+- [x] TbiD **-** Code graph tools for agents: CRG, Gortex, Graphify
+  - **Created**: 2026-10-10 06:58
+  - **Position**: "file:///Users/roalcantara/Work/rust/kb/tools/graph/README.md#L1:1"
+  - **Tags**: graph, tools
+
+- [ ] BuLS **-** Run Graphify's semantic pass (mise run graph build graphify --force) once API keys are in fnox
+  - **Priority**: low
+  - **Created**: 2026-10-10 06:58
+  - **Position**: "file:///Users/roalcantara/Work/rust/kb/tools/graph/README.md#L1:1"
+  - **Tags**: graph, tools
+
+- [ ] 3mTj **-** Decide whether CI should publish a graph report
+  - **Priority**: low
+  - **Created**: 2026-10-10 06:58
+  - **Position**: "file:///Users/roalcantara/Work/rust/kb/tools/graph/README.md#L1:1"
+  - **Tags**: graph, tools
+
+- [ ] qlkb **-** Type-check tools/graph/graph.ts in hk: it needs TypeScript and Bun's types outside the benchmark kit (checked once with the kit's tsc, strict, 2026-10-10)
+  - **Priority**: low
+  - **Created**: 2026-10-10 07:17
+  - **Position**: "file:///Users/roalcantara/Work/rust/kb/tools/graph/graph.ts#L1:1"
+  - **Tags**: graph, quality, tools
+
 # Actors
 
 # Comments

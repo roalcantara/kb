@@ -1,0 +1,26 @@
+# :schema https://fnox.jdx.dev/schema.json
+# Fnox configuration for managing secrets using the password-store provider
+# USAGE:
+#   fnox list -P default --sources                                        # List all available secrets from the default provider
+#   fnox get GITHUB_TOKEN                                                 # Retrieve the GitHub token from the default provider
+#   fnox exec -- sh -c 'test -n "$GITHUB_TOKEN"' >/dev/null 2>&1          # Ensure the GitHub token is set
+# REFERENCES:
+#   https://fnox.jdx.dev
+
+# Define the default provider for secrets
+default_provider = "pass"
+
+# https://fnox.jdx.dev/guide/mise-integration.html
+# https://fnox.jdx.dev/providers/password-store.html
+[providers.pass]
+type = "password-store"
+# Optional: prepend to all secret paths (default: none)
+# prefix = "tokens/"
+# Optional: custom store location (default: ~/.password-store)
+# store_dir = "./password-store"
+# Optional: extra GPG options, passed as PASSWORD_STORE_GPG_OPTS
+# gpg_opts = "--no-throw-keyids"
+
+[secrets]
+GITHUB_TOKEN = { provider = "pass", value = "tokens/github.com", line = 1 }
+DEEPSEEK_API_KEY = { provider = "pass", value = "tokens/DEEPSEEK_API_KEY", line = 1 }

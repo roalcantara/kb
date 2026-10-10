@@ -41,35 +41,37 @@ Graphify 0.9.79.
 
 ### Task 1: Pin the tools
 
-- [ ] In `mise.toml` `[tools]`, add (keep the table's alphabetical-ish grouping; `mise fmt` decides):
+- [x] In `mise.toml` `[tools]`, add (keep the table's alphabetical-ish grouping; `mise fmt` decides):
 
 ```toml
 # Code graphs for agents (tools/graph/README.md)
 "github:zzet/gortex" = "0.64.7"
 "pipx:code-review-graph" = "2.3.9"
 "pipx:graphifyy" = "0.9.79"
+# The interpreter the pipx tools run on: mise probes `python` on PATH before installing one (2026.10.7).
+python = "3.13.16"
 # Secrets for Graphify's LLM pass (and GITHUB_TOKEN), resolved from password-store (.fnox.toml)
 fnox = "1.39.0"
 ```
 
-- [ ] Copy `~/Work/raycast/kb/.fnox.toml` to the repo root unchanged: it names `pass` entries
+- [x] Copy `~/Work/raycast/kb/.fnox.toml` to the repo root unchanged: it names `pass` entries
       (`tokens/github.com`, `tokens/DEEPSEEK_API_KEY`), never secret values. In `.gitignore`, under a
       `# fnox: local overrides, never committed.` comment, add `/fnox.local.toml` and `/.fnox.local.toml`.
 
-- [ ] `mise install` then `GITHUB_TOKEN=$(gh auth token) mise lock`. Expected: `✓ Lockfile written`, and
+- [x] `mise install` then `GITHUB_TOKEN=$(gh auth token) mise lock`. Expected: `✓ Lockfile written`, and
       `.mise/locks/` gains `pipx-code-review-graph` and `pipx-graphifyy` folders.
-- [ ] `.github/workflows/ci.yml`: extend `MISE_DISABLE_TOOLS` to
-      `tokei,cargo:https://github.com/RayanBO/todo/,github:zzet/gortex,pipx:code-review-graph,pipx:graphifyy,fnox`, and
+- [x] `.github/workflows/ci.yml`: extend `MISE_DISABLE_TOOLS` to
+      `tokei,cargo:https://github.com/RayanBO/todo/,github:zzet/gortex,pipx:code-review-graph,pipx:graphifyy,fnox,pipx:commit-check,python`, and
       its comment to "Tools in mise.toml that no CI job runs".
-- [ ] Check fnox: `fnox list -P default --sources` lists `GITHUB_TOKEN` and `DEEPSEEK_API_KEY`;
+- [x] Check fnox: `fnox list -P default --sources` lists `GITHUB_TOKEN` and `DEEPSEEK_API_KEY`;
       `fnox exec -- sh -c 'test -n "$DEEPSEEK_API_KEY"' && echo resolved`. If `pass` has no such entry on this machine,
       report it and go on: the key is only needed for `--force`.
-- [ ] `mise fmt && taplo fmt mise.toml && hk check --all`. Expected: pass (gitleaks too: `.fnox.toml` holds no secret).
-- [ ] Commit: `build: Pin the code graph tools and fnox in mise`.
+- [x] `mise fmt && taplo fmt mise.toml && hk check --all`. Expected: pass (gitleaks too: `.fnox.toml` holds no secret).
+- [x] Commit: `build: Pin the code graph tools and fnox in mise`.
 
 ### Task 2: The `graph` task
 
-- [ ] Create `tools/graph/tasks.toml`:
+- [x] Create `tools/graph/tasks.toml`:
 
 ```toml
 # The code graph tools (tools/graph/README.md), included from the root mise.toml. An included file is a flat list of
@@ -83,7 +85,7 @@ run = "bun tools/graph/graph.ts"
 then add, after `run`, a `usage = '''…'''` copied verbatim from `~/Work/raycast/kb/mise.toml`, the `usage` value of
 `[tasks.graph]` (from `usage = '''` to its closing `'''`, about lines 239–289).
 
-- [ ] Create `tools/graph/graph.ts` from the same task's `run = '''…'''` body (from `#!/usr/bin/env bun` to the line
+- [x] Create `tools/graph/graph.ts` from the same task's `run = '''…'''` body (from `#!/usr/bin/env bun` to the line
       before the closing `'''`, about lines 291–519), dedented by two spaces, with these changes and no others:
   1. First lines, after the shebang:
      `// mise run graph (tools/graph/tasks.toml): install, set up, build or update the code graphs.`
@@ -94,16 +96,16 @@ then add, after `run`, a `usage = '''…'''` copied verbatim from `~/Work/raycas
      `gortex not found (ignored)`; else run `gortex daemon status` read-only and quiet; when it succeeds, run
      `gortex daemon reload` (quiet) and print `gortex reloaded`; otherwise print
      `gortex daemon not running — skipped (mise run graph setup gortex starts it)`.
-- [ ] In `mise.toml` `[task_config] includes`, add `"tools/graph/tasks.toml"` after the benchmark kit's entry, outside
+- [x] In `mise.toml` `[task_config] includes`, add `"tools/graph/tasks.toml"` after the benchmark kit's entry, outside
       the kit's marked block, with the comment `# The code graph tools (tools/graph/README.md).`
-- [ ] Check: `mise tasks | grep '^graph'` lists it; `mise run graph update --dry-run` prints one `would run` per tool
+- [x] Check: `mise tasks | grep '^graph'` lists it; `mise run graph update --dry-run` prints one `would run` per tool
       (or `… not found (ignored)`); `mise run graph install --dry-run` prints the CRG message from change 2;
       `mise run graph update crg` exits 0.
-- [ ] Commit: `feat(tools): Add the graph task for agents' code graphs`.
+- [x] Commit: `feat(tools): Add the graph task for agents' code graphs`.
 
 ### Task 3: Doctor checks
 
-- [ ] Copy `~/Work/raycast/kb/mise.toml` lines 3–75 (`[doctor.checks.graph_crg_installed]` through
+- [x] Copy `~/Work/raycast/kb/mise.toml` lines 3–75 (`[doctor.checks.graph_crg_installed]` through
       `[doctor.checks.graph_graphify_gitignore]`) into kb's `mise.toml`, after `[settings]`, under the comment
       `# Code graph health (tools/graph/README.md): mise doctor project.` Change only:
   - `graph_crg_mcp`'s hint to "`.mcp.json` is committed: restore it with `git checkout -- .mcp.json`.";
@@ -118,14 +120,14 @@ run = "fnox list -P default --sources >/dev/null 2>&1"
 hint = "Run `mise install`; fnox reads password-store (`pass`): see .fnox.toml for the entries it expects."
 ```
 
-- [ ] `mise run graph setup crg && mise run graph setup graphify && mise run graph setup gortex`, then
+- [x] `mise run graph setup crg && mise run graph setup graphify && mise run graph setup gortex`, then
       `mise doctor project`. Expected: every `graph_*` check passes (`graph_fnox_secrets` needs `pass` set up on this machine; report it if not). Note in your final report that `setup gortex`
       tracked the repo and started Gortex's daemon on this machine.
-- [ ] Commit: `build: Add mise doctor checks for the code graphs`.
+- [x] Commit: `build: Add mise doctor checks for the code graphs`.
 
 ### Task 4: Agent wiring
 
-- [ ] `.mcp.json`:
+- [x] `.mcp.json`:
 
 ```json
 {
@@ -135,18 +137,18 @@ hint = "Run `mise install`; fnox reads password-store (`pass`): see .fnox.toml f
 }
 ```
 
-- [ ] Copy `~/Work/raycast/kb/.claude/skills/{debug-issue,explore-codebase,refactor-safely,review-changes}/SKILL.md`
+- [x] Copy `~/Work/raycast/kb/.claude/skills/{debug-issue,explore-codebase,refactor-safely,review-changes}/SKILL.md`
       to `.agents/skills/<same>/SKILL.md`, unchanged. Then `mkdir -p .claude && ln -s ../.agents/skills .claude/skills`
       (a relative symlink, committed).
-- [ ] `.claude/settings.json`: copy `~/Work/raycast/kb/.claude/settings.json` unchanged (the `PostToolUse` CRG update
+- [x] `.claude/settings.json`: copy `~/Work/raycast/kb/.claude/settings.json` unchanged (the `PostToolUse` CRG update
       and the `SessionStart` CRG status hooks).
-- [ ] Check: `ls .claude/skills/` lists the four; `jq . .mcp.json .claude/settings.json` parses; in this repo,
+- [x] Check: `ls .claude/skills/` lists the four; `jq . .mcp.json .claude/settings.json` parses; in this repo,
       `mise x -- code-review-graph status` reports the graph built in Task 3.
-- [ ] Commit: `build: Wire the code graphs into agents`.
+- [x] Commit: `build: Wire the code graphs into agents`.
 
 ### Task 5: Refresh after commits, merges and checkouts
 
-- [ ] Create `tools/graph/refresh.sh` (`chmod +x`):
+- [x] Create `tools/graph/refresh.sh` (`chmod +x`):
 
 ```bash
 #!/usr/bin/env bash
@@ -164,7 +166,7 @@ mkdir "$lock" 2>/dev/null || exit 0 # an update is already running
 ) </dev/null >/dev/null 2>&1 &
 ```
 
-- [ ] `hk.pkl`: before `hooks {`, add
+- [x] `hk.pkl`: before `hooks {`, add
 
 ```pkl
 // Code graphs (tools/graph/README.md) follow every commit, merge and checkout. The step returns at once and never
@@ -185,22 +187,22 @@ and inside `hooks { … }`:
 ["post-checkout"] { steps = graph_refresh_steps }
 ```
 
-- [ ] `hk install --mise`, then `git config --get-regexp '^hook\.'`. Expected: entries for `post-commit`,
+- [x] `hk install --mise`, then `git config --get-regexp '^hook\.'`. Expected: entries for `post-commit`,
       `post-merge` and `post-checkout` beside the existing hooks. If hk is installed globally (`~/.gitconfig` has
       `hook.hk-*`), the global hooks already cover them; say which in your report.
-- [ ] Check: make a commit (this task's), then within a few seconds `ls tmp/graph-update.lock` may exist and
+- [x] Check: make a commit (this task's), then within a few seconds `ls tmp/graph-update.lock` may exist and
       `tmp/graph-update.log` ends with each tool's update line; `git status --short` stays clean. Then
       `git switch main && git switch -` refreshes again (log rewritten). The commit itself returns in about the time it
       did before.
-- [ ] Commit: `feat(tools): Refresh the code graphs after commits and checkouts`.
+- [x] Commit: `feat(tools): Refresh the code graphs after commits and checkouts`.
 
 ### Task 6: Layout, docs, TODO
 
-- [ ] `hk.pkl` `root-layout`: allow the two new hidden folders —
+- [x] `hk.pkl` `root-layout`: allow the two new hidden folders —
       `grep -v -x -E '\.agents|\.claude|\.github|\.mise|crates|docs|tools'` — and its comment.
-- [ ] `.ls-lint.yml`: the root `.dir` regex becomes `regex:^([a-z0-9-]+|\.agents|\.claude|\.github|\.config)$`.
-- [ ] `.gitignore`, local-state block: add `/.gortex/` beside `/graphify-out/` and `/.code-review-graph/`.
-- [ ] `tools/graph/README.md`: what each tool is for (CRG: MCP graph queries, impact and review; Gortex: daemon-backed
+- [x] `.ls-lint.yml`: the root `.dir` regex becomes `regex:^([a-z0-9-]+|\.agents|\.claude|\.github|\.config)$`.
+- [x] `.gitignore`, local-state block: add `/.gortex/` beside `/graphify-out/` and `/.code-review-graph/`.
+- [x] `tools/graph/README.md`: what each tool is for (CRG: MCP graph queries, impact and review; Gortex: daemon-backed
       queries, `gortex wakeup`/`context` briefings; Graphify: `graphify-out/GRAPH_REPORT.md` and `graph.html`); the
       commands (`mise run graph setup` once; `update`, `build`, `--force` for Graphify's LLM pass, `--dry-run`); what
       refreshes automatically (Claude Code hooks; hk post-commit/merge/checkout → `tmp/graph-update.log`);
@@ -208,22 +210,22 @@ and inside `hooks { … }`:
       `DEEPSEEK_API_KEY` from password-store; keys can also come from the environment); global side effects (spec D6);
       and how to remove it all (the folder, the `includes` line,
       the four pins, the doctor checks, `.fnox.toml`, `.mcp.json`, `.agents/skills`, `.claude/`, the hk hooks).
-- [ ] `README.md` "Project Structure": add `tools/graph/` to the tree and a bullet for `.agents/` and `.claude/` beside
+- [x] `README.md` "Project Structure": add `tools/graph/` to the tree and a bullet for `.agents/` and `.claude/` beside
       the hidden-folders bullet; "Development Workflow" table: `mise run graph setup` and `mise doctor project` rows.
-- [ ] `AGENTS.md` "Repository map": `- tools/graph/: code graphs for agents (CRG, Gortex, Graphify); use them before a
+- [x] `AGENTS.md` "Repository map": `- tools/graph/: code graphs for agents (CRG, Gortex, Graphify); use them before a
       broad search: tools/graph/README.md`.
-- [ ] `TODO.md`, with the `todo` CLI (REF comments at its end): add and mark done a task for this work (tags
+- [x] `TODO.md`, with the `todo` CLI (REF comments at its end): add and mark done a task for this work (tags
       `tools,graph`, position `tools/graph/README.md`); add pending low-priority tasks "Run Graphify's semantic pass
       (`mise run graph build graphify --force`) once API keys are in fnox" and "Decide whether CI should publish a
       graph report".
-- [ ] `dprint fmt && hk check --all && mise run gate`. Expected: all pass.
-- [ ] Commit: `docs: Document the code graph tools`.
+- [x] `dprint fmt && hk check --all && mise run gate`. Expected: all pass.
+- [x] Commit: `docs: Document the code graph tools`.
 
 ### Task 7: Self-review and hand-off
 
-- [ ] `git diff main --stat` and read the whole diff: no file from `~/Work/raycast/kb` beyond those named here; no
+- [x] `git diff main --stat` and read the whole diff: no file from `~/Work/raycast/kb` beyond those named here; no
       generated graph output committed (`git ls-files | grep -E 'graphify-out|\.code-review-graph|\.gortex'` is
       empty); `git log main..` has at least one `feat`.
-- [ ] `git push -u origin feat/graph-tools`. Do not open the pull request.
-- [ ] Report: commits, check results (doctor output, refresh log tail, gate), the hk install mode, global side effects
+- [x] `git push -u origin feat/graph-tools`. Do not open the pull request.
+- [x] Report: commits, check results (doctor output, refresh log tail, gate), the hk install mode, global side effects
       on this machine, and anything that deviated from this plan.

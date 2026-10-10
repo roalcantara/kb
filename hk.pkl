@@ -254,11 +254,10 @@ local baseline_steps = new Mapping<String, Step> {
         glob = List("**/*.rs", "tools/bench/ts/*.ts")
         check = "jscpd"
     }
-    // The root holds three folders, plus .github and .mise (README, "Project Structure"); a new one is a layout
-    // decision.
+    // Layout guard: a new top-level folder is a deliberate architectural decision.
     ["root-layout"] {
         // `|| true`: grep finds nothing when the layout is clean, and hk runs steps with pipefail.
-        check = #"extra=$(git ls-files | cut -s -d/ -f1 | sort -u | grep -v -x -E '\.github|\.mise|crates|docs|tools' || true); [ -z "$extra" ] || { echo "unexpected top-level folder (README, Project Structure): $extra"; exit 1; }"#
+        check = #"extra=$(git ls-files | cut -s -d/ -f1 | sort -u | grep -v -x -E '\.agents|\.claude|\.github|\.mise|crates|docs|tools' || true); [ -z "$extra" ] || { echo "unexpected top-level folder (README, Project Structure): $extra"; exit 1; }"#
     }
 
     // ── Benchmark kit (tools/bench/README.md: remove the bench-ts-* steps when purging it) ──
@@ -354,6 +353,15 @@ local commit_message_steps = new Mapping<String, Step> {
     }
 }
 
+// Code graphs (tools/graph/README.md) follow every commit, merge and checkout. The step returns at once and never
+// fails git: the update runs in the background.
+local graph_refresh_steps = new Mapping<String, Step> {
+    ["graph-refresh"] {
+        check = "tools/graph/refresh.sh"
+        allow_failure = true
+    }
+}
+
 hooks {
     ["pre-commit"] {
         fix = true
@@ -366,6 +374,9 @@ hooks {
     ["pre-push"] {
         steps = push_steps
     }
+    ["post-commit"] { steps = graph_refresh_steps }
+    ["post-merge"] { steps = graph_refresh_steps }
+    ["post-checkout"] { steps = graph_refresh_steps }
     ["fix"] {
         fix = true
         steps = baseline_steps
