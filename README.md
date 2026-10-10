@@ -92,6 +92,7 @@ docs/                       adr/, experiment/ (methodology, parity, results, rep
 tools/                      developer tooling
   graph/                      code graphs for agents: CRG, Gortex, Graphify (see its README)
   bench/                      the benchmark kit: TS and Rust benchmarks, probes, report, their fixtures and tasks
+  design/                     the design kit: palettes, validation, the app theme, the comparison page
   size/                       the release binary's size budget and its check
   ast-grep/ icon/ mdschema/   lint rules, the app icon's source, document schemas
 ```
@@ -100,6 +101,8 @@ tools/                      developer tooling
   `tools/`, one folder per tool. Test data lives with the crate whose contract it is (`<crate>/tests/fixtures/`).
 - **The benchmark kit** (`tools/bench/`) produces the experiment's measurements and nothing else depends on it; its
   [README](tools/bench/README.md) lists the purge steps.
+- **Product and design** are described at the root: [PRODUCT.md](PRODUCT.md) (what kb is for) and
+  [DESIGN.md](DESIGN.md) (how it looks; read it before any UI change).
 - **Root files** are the configs each tool looks for there. Moving tool configs into `.config/` is a later decision
   (`TODO.md`).
 - **Hidden folders** are owned by tools: `.github/` (CI, ADR 0007) and `.mise/` (the npm and pipx tools' locks that

@@ -45,8 +45,10 @@ checklist", "Interface language"), and the rust-best-practices quick reference.
       tooltip; the footer buttons carry their labels and key hints (`search_view::render_header`, `render_footer`).
 - [x] Status is not told by colour alone: type badges carry a glyph and the type in the metadata; tags carry their
       `#name`; rebuild states have a title and text.
-- [x] Copy is sentence case, with an ellipsis only on commands that ask for more input: "Open in browser",
-      "Copy command snippet", "Rebuild index", "Clear all filters" (`presentation.rs`, `palette.rs`, `filter.rs`).
+- [ ] Copy follows Raycast's Title Case, with an ellipsis only on commands that ask for more input: "Open in Browser",
+      "Copy Command Snippet", "Rebuild Index", "Clear All Filters" ([DESIGN.md, Adaptations](../../DESIGN.md#adaptations);
+      an owner-approved deviation from the GPUI Kit Design Guides). Plan 7 changes the labels, still sentence case
+      (`presentation.rs`, `palette.rs`, `filter.rs`).
 - [x] Errors read as what happened and what to do: "Couldn’t register ⌥K: … Another app may be using it."
 - [x] An app-level Quit command exists: ⌘Q, and "Quit kb" in the action palette (`palette::Quit`).
 - [x] Content remains usable at larger text: the list width is in rems, so it grows with the base font.
