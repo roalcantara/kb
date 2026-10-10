@@ -13,6 +13,7 @@
     "bench/ts/node_modules/**",
     "bench/ts/dist/**",
     "docs/experiment/results/**",
+    "TODO.md",
     "**/*.lock",
     "bench/ts/bun.lock"
   ],

@@ -1,2 +1,6 @@
 [files]
 extend-exclude = ["fixtures/", "target/", "bench/ts/kb", "bench/ts/node_modules/", "*.lock", "docs/experiment/results/"]
+
+[default.extend-words]
+# A status of the todo CLI (TODO.md): French for "in progress".
+cours = "cours"

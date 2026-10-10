@@ -16,6 +16,7 @@ in `docs/superpowers/plans/`.
 - `bench/ts/`: the TypeScript baseline; imports the Raycast repo through the gitignored `bench/ts/kb` symlink
 - `fixtures/`: corpora, queries, goldens
 - `docs/`: ADRs, experiment, specs and plans
+- `TODO.md`: done and pending work, kept with the `todo` CLI (pinned in `mise.toml`; usage in its REF comments)
 
 ## Core engineering rules
 

@@ -175,7 +175,9 @@ local structure_steps = new Mapping<String, Step> {
 local baseline_steps = new Mapping<String, Step> {
     ...structure_steps
     ["newlines"] = (Builtins.newlines) {
-        exclude = binary_excludes + generated
+        // One owner, the generator: the todo CLI writes TODO.md without a trailing newline, and
+        // fixing it by hand only holds until the CLI next writes it.
+        exclude = binary_excludes + generated + List("TODO.md")
     }
     ["trailing-whitespace"] = (Builtins.trailing_whitespace) {
         exclude = binary_excludes + generated
