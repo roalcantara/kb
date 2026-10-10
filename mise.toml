@@ -1,8 +1,6 @@
 min_version = "2026.9.13"
 
 [settings]
-# The Rust toolchain is rust-toolchain.toml's (channel and components), read by mise as well as rustup.
-idiomatic_version_file_enable_tools = ["rust"]
 # mise.lock records every tool's download and checksum for the machines that run this repo: Apple silicon
 # Macs and CI's Linux runners. Run `mise lock` after changing a tool: CI installs with --locked, and fails otherwise.
 lockfile_platforms = ["linux-x64", "macos-arm64"]
@@ -87,17 +85,17 @@ run = "fnox list -P default --sources >/dev/null 2>&1"
 hint = "Run `mise install`; fnox reads password-store (`pass`): see .fnox.toml for the entries it expects."
 
 [env]
-# ── Benchmark kit (tools/bench/README.md: remove this block and [task_config] when purging it) ──
+# ── Benchmark kit (tools/bench/README.md: remove this block, and its line in [task_config], when purging it) ──
 # Where the TS bench finds the Raycast implementation. Read only; nothing here writes to it.
 KB_TS_REPO = "{{ env.HOME }}/Work/raycast/kb"
 # Where the private corpus is copied from. Read only.
 KB_SOURCES = "{{ env.HOME }}/.config/kodexb/sources"
+# ── end of benchmark kit ──
 
 [task_config]
 includes = [
-  "tools/bench/tasks.toml",
-  # The code graph tools (tools/graph/README.md).
-  "tools/graph/tasks.toml",
+  "tools/bench/tasks.toml", # the benchmark kit: remove when purging it
+  "tools/graph/tasks.toml", # the code graph tools (tools/graph/README.md)
 ]
 
 [tools]
@@ -123,6 +121,8 @@ pinact = "5.0.0"
 "pipx:commit-check" = "2.18.2"
 # Installs pipx tools from their locks in .mise/locks (mise needs uv >= 0.12.10 for that).
 uv = "0.12.21"
+# Must match rust-toolchain.toml (rustup reads that file; mise reads this pin).
+rust = "1.99.0"
 # The interpreter the pipx tools run on: mise probes `python` on PATH before installing one (2026.10.7).
 python = "3.13.16"
 pkl = "0.32.1"
