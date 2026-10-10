@@ -3604,6 +3604,7 @@ dependencies = [
  "gpui-kit",
  "kb-domain",
  "serde",
+ "serde_json",
  "tempfile",
  "thiserror 2.0.21",
  "toml 0.9.12+spec-1.1.0",

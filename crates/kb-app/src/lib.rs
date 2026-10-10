@@ -20,16 +20,29 @@ pub mod search_view;
 mod sync_view;
 mod trace;
 
-use gpui_kit::component::Theme;
+use gpui_kit::component::{Theme, ThemeRegistry};
 
 use crate::config::Config;
 
 /// The bundle identifier, shared by the `.app`'s `Info.plist` and GPUI's app identity.
 pub const APP_ID: &str = "dev.roalcantara.kb";
 
-/// Follows the system's light or dark appearance. Every colour the app draws comes from the
-/// theme, so both work; `SearchView` re-syncs whenever the appearance changes.
+/// kb's GPUI Kit theme: DESIGN.md's palette, written by `tools/design/theme.mjs`.
+const THEME: &str = include_str!("../assets/themes/kb.json");
+/// The dark theme's name in [`THEME`].
+const DARK_THEME: &str = "kb Dark";
+
+/// Follows the system's light or dark appearance: kb's palette when dark, GPUI Kit's default
+/// light theme when light. Every colour the app draws comes from the theme, so both work;
+/// `SearchView` re-syncs whenever the appearance changes.
 pub fn init_theme(cx: &mut gpui_kit::App) {
+    let registry = ThemeRegistry::global_mut(cx);
+    // The theme is compiled in and a UI test loads it: should it ever fail, the default dark stays.
+    if registry.load_themes_from_str(THEME).is_ok()
+        && let Some(dark) = registry.themes().get(DARK_THEME).cloned()
+    {
+        Theme::global_mut(cx).dark_theme = dark;
+    }
     Theme::sync_system_appearance(None, cx);
 }
 

@@ -1,33 +1,14 @@
 // Checks each palette in tools/design/palettes.json and writes tools/design/validation.json:
 // WCAG 2.2 contrast for every text role on every surface and for tag text on its pill, and OKLab ΔE (×100)
-// between accents under normal, protan and deutan vision (Machado, Oliveira & Fernandes 2009, severity 1).
+// between accents under normal, protan and deutan vision (Machado, Oliveira & Fernandes 2009, severity 1). Fails when
+// DESIGN.md's palette table drifts from the chosen palette.
 // Usage: node tools/design/validate.mjs
 import { readFileSync, writeFileSync } from 'node:fs'
+import { ACCENTS, contrast, lin, pill, rgb } from './color.mjs'
 
 const dir = new URL('.', import.meta.url).pathname
 const palettes = JSON.parse(readFileSync(`${dir}palettes.json`, 'utf8'))
 
-const ACCENTS = ['blue', 'green', 'orange', 'purple', 'magenta', 'yellow', 'red']
-const PILL_ALPHA = 0.2 // a tag pill is its accent at 20% over the window, as Raycast draws them
-
-const rgb = (h) => {
-  const n = Number.parseInt(h.slice(1, 7), 16)
-  return [(n >> 16) & 255, (n >> 8) & 255, n & 255]
-}
-const toHex = (c) => `#${c.map((v) => Math.round(v).toString(16).padStart(2, '0')).join('')}`
-const mix = (fg, bg, a) => toHex(rgb(fg).map((v, i) => v * a + rgb(bg)[i] * (1 - a)))
-const lin = (v) => {
-  const c = v / 255
-  return c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4
-}
-const luminance = (h) => {
-  const [r, g, b] = rgb(h).map(lin)
-  return 0.2126 * r + 0.7152 * g + 0.0722 * b
-}
-const contrast = (a, b) => {
-  const [x, y] = [luminance(a), luminance(b)].sort((p, q) => q - p)
-  return (x + 0.05) / (y + 0.05)
-}
 const CVD = {
   normal: null,
   protan: [
@@ -75,7 +56,8 @@ const results = palettes.map(({ id, roles: r }) => {
   checks.push(check('textFaint on window', contrast(r.textFaint, r.window), 3))
   checks.push(check('divider on window', contrast(r.divider, r.window), 1.2))
   for (const a of ACCENTS) {
-    checks.push(check(`#${a} on its pill`, contrast(r[a], mix(r[a], r.window, PILL_ALPHA)), 4.5, 3))
+    const { background, text } = pill(r, a)
+    checks.push(check(`#${a} on its pill`, contrast(text, background), 4.5, 3))
   }
   for (const [vision, m] of Object.entries(CVD)) {
     let worst = { value: Infinity }
@@ -98,4 +80,16 @@ const results = palettes.map(({ id, roles: r }) => {
 writeFileSync(`${dir}validation.json`, `${JSON.stringify(results, null, 2)}\n`)
 for (const { id, failed, warned } of results) {
   console.log(`${id.padEnd(22)} ${failed ? `${failed} fail` : 'pass'}${warned ? `, ${warned} warn` : ''}`)
+}
+
+// DESIGN.md repeats the chosen palette's hexes for readers: they must match palettes.json.
+const chosen = palettes.find((p) => p.chosen)
+const design = readFileSync(new URL('../../DESIGN.md', import.meta.url), 'utf8')
+const drift = Object.entries(chosen.roles).filter(([role, hex]) => {
+  const row = design.match(new RegExp(`^\\| \`${role}\`\\s*\\| \`(#[0-9A-Fa-f]{6})\``, 'm'))
+  return row?.[1].toUpperCase() !== hex.toUpperCase()
+})
+if (drift.length) {
+  console.error(`DESIGN.md's palette table differs from ${chosen.id}: ${drift.map(([r, h]) => `${r} ${h}`).join(', ')}`)
+  process.exit(1)
 }

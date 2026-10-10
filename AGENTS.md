@@ -18,6 +18,9 @@ The layout and the rule for each folder: [README, "Project Structure"](README.md
 - `tools/bench/`: the benchmark kit (TS and Rust benchmarks, probes, report); purgeable as a unit
 - `tools/graph/`: code graphs for agents (CRG, Gortex, Graphify); use them before a broad search: tools/graph/README.md
 - `docs/`: ADRs, experiment, specs and plans
+- `PRODUCT.md`: what kb is for, its users and principles; `DESIGN.md`: its visual design. Read DESIGN.md before any
+  UI change
+- `tools/design/`: the design kit: palettes, their validation, the app theme generator, the comparison page
 - `TODO.md`: done and pending work, kept with the `todo` CLI (pinned in `mise.toml`; usage in its REF comments)
 
 ## Core engineering rules

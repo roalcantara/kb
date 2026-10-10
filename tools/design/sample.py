@@ -2,12 +2,12 @@
 """Measure Raycast screenshots into tools/design/raycast.json.
 
 This reads local reference screenshots under tools/reports/*-ray.png and samples:
-- role colours (surfaces by most common colour in a region, text/icon roles by brightest pixel);
-- a few component sizes from contiguous same-colour regions near fixed seed points.
+- surface colours (most common colour in a region) and text colours (brightest pixel);
+- a few component sizes (logical points) from contiguous same-colour regions near fixed seed points.
 
-Note: translucent surfaces (especially `raised`) depend on wallpaper and compositor blending.
-The sampled value is a reading from the captured screenshots and is validated like any candidate
-palette in Task 4.
+Readings, not a palette: Raycast's window is translucent, so its surfaces depend on the wallpaper behind it. Accents,
+the faint text and the raised surface are not sampled: their regions are anti-aliased glyphs or tinted pills, where a
+single pixel misleads. They are reference values for DESIGN.md, never a candidate in palettes.json.
 """
 
 from __future__ import annotations
@@ -26,7 +26,7 @@ REPORTS = ROOT / "tools" / "reports"
 OUT = ROOT / "tools" / "design" / "raycast.json"
 
 
-Mode = Literal["most_common", "brightest", "vivid"]
+Mode = Literal["most_common", "brightest"]
 
 
 @dataclass(frozen=True)
@@ -49,19 +49,9 @@ ROLE_SPECS: tuple[SampleSpec, ...] = (
     SampleSpec("window", "1-list-ray.png", (1500, 500, 1600, 560), "most_common"),
     SampleSpec("header", "1-list-ray.png", (900, 30, 1000, 60), "most_common"),
     SampleSpec("selection", "1-list-ray.png", (1250, 205, 1350, 255), "most_common"),
-    SampleSpec("raised", "1-list-ray.png", (520, 1165, 535, 1215), "most_common"),
     SampleSpec("divider", "7-bookmark-split-ray.png", (760, 400, 770, 600), "brightest"),
     SampleSpec("text", "1-list-ray.png", (150, 210, 235, 250), "brightest"),
     SampleSpec("textMuted", "1-list-ray.png", (265, 210, 780, 250), "brightest"),
-    SampleSpec("textFaint", "1-list-ray.png", (150, 75, 700, 120), "brightest"),
-    # Accents from known type/tag regions.
-    SampleSpec("green", "1-list-ray.png", (68, 205, 115, 255), "vivid"),
-    SampleSpec("purple", "7-bookmark-split-ray.png", (1740, 875, 1900, 905), "vivid"),
-    SampleSpec("blue", "2-list-split-ray.png", (1790, 810, 1910, 850), "vivid"),
-    SampleSpec("red", "5-actions-ray.png", (1450, 680, 1660, 760), "vivid"),
-    SampleSpec("magenta", "5-actions-ray.png", (1460, 760, 1720, 840), "vivid"),
-    SampleSpec("orange", "6-filter-ray.png", (1240, 690, 1500, 760), "vivid"),
-    SampleSpec("yellow", "6-filter-ray.png", (1240, 760, 1500, 835), "vivid"),
 )
 
 SIZE_SPECS: tuple[SizeSpec, ...] = (
@@ -79,14 +69,6 @@ def to_hex(rgb: tuple[int, int, int]) -> str:
 
 def luminance(rgb: tuple[int, int, int]) -> float:
     return 0.2126 * rgb[0] + 0.7152 * rgb[1] + 0.0722 * rgb[2]
-
-
-def saturation(rgb: tuple[int, int, int]) -> float:
-    cmax = max(rgb)
-    cmin = min(rgb)
-    if cmax == 0:
-        return 0.0
-    return (cmax - cmin) / cmax
 
 
 def open_rgb(path: Path) -> Image.Image:
@@ -118,13 +100,11 @@ def scale_point(img: Image.Image, pt: tuple[int, int]) -> tuple[int, int]:
 def sample_role(img: Image.Image, rect: tuple[int, int, int, int], mode: Mode) -> tuple[int, int, int]:
     x1, y1, x2, y2 = rect
     crop = img.crop((x1, y1, x2, y2))
-    pixels = list(crop.getdata())
+    pixels = list(crop.get_flattened_data())
     if not pixels:
         raise ValueError(f"empty crop: {(x1, y1, x2, y2)}")
     if mode == "most_common":
         return Counter(pixels).most_common(1)[0][0]
-    if mode == "vivid":
-        return max(pixels, key=lambda p: saturation(p) * (luminance(p) + 1))
     return max(pixels, key=luminance)
 
 
@@ -161,11 +141,12 @@ def contiguous_bbox(img: Image.Image, seed: tuple[int, int], scope: tuple[int, i
     return (min_x, min_y, max_x + 1, max_y + 1)
 
 
+# Screenshots are Retina captures: two pixels per point. Corner radii are not estimated; a flood fill cannot see them.
 def points_bbox(box: tuple[int, int, int, int]) -> dict[str, float]:
     x1, y1, x2, y2 = box
     w = (x2 - x1) / 2.0
     h = (y2 - y1) / 2.0
-    return {"w": round(w, 2), "h": round(h, 2), "radius_estimate": round(min(w, h) / 2.0, 2)}
+    return {"w": round(w, 2), "h": round(h, 2)}
 
 
 def require_reports() -> None:
@@ -203,7 +184,7 @@ def main() -> None:
         box = contiguous_bbox(picture, seed, scope)
         sizes[spec.name] = points_bbox(box)
 
-    payload = {"roles": roles, "sizes": sizes}
+    payload = {"note": "Readings from local Raycast screenshots, not a palette (tools/design/sample.py).", "roles": roles, "sizes": sizes}
     OUT.parent.mkdir(parents=True, exist_ok=True)
     OUT.write_text(f"{json.dumps(payload, indent=2)}\n", encoding="utf-8")
     print(f"wrote {OUT.relative_to(ROOT)}")

@@ -9,7 +9,7 @@ use std::sync::atomic::AtomicBool;
 use std::time::Duration;
 
 use gpui_kit::WindowAppearance;
-use gpui_kit::component::{ActiveTheme as _, ThemeMode};
+use gpui_kit::component::{ActiveTheme as _, Theme, ThemeMode};
 use gpui_kit::test::TestWindowExt as _;
 use gpui_kit::{
     AnyWindowHandle, App, AppContext as _, Bounds, Entity, Point, TestAppContext, Window, WindowBounds, WindowOptions,
@@ -87,6 +87,19 @@ fn follows_the_system_appearance(cx: &mut gpui_kit::TestAppContext) {
             WindowAppearance::Dark | WindowAppearance::VibrantDark
         );
         assert_eq!(cx.theme().mode, if dark { ThemeMode::Dark } else { ThemeMode::Light });
+    });
+}
+
+#[gpui_kit::test]
+fn draws_dark_mode_in_the_palette_of_design_md(cx: &mut gpui_kit::TestAppContext) {
+    cx.update(|cx| {
+        gpui_kit::init(cx);
+        kb_app::init_theme(cx);
+        Theme::change(ThemeMode::Dark, None, cx);
+        let theme: serde_json::Value = serde_json::from_str(include_str!("../assets/themes/kb.json")).unwrap();
+        let window = theme["themes"][0]["colors"]["background"].as_str().unwrap();
+        let window = u32::from_str_radix(window.trim_start_matches('#'), 16).unwrap();
+        assert_eq!(cx.theme().background, gpui_kit::rgb(window).into());
     });
 }
 
