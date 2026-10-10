@@ -147,7 +147,7 @@ hint = "Run `mise install`; fnox reads password-store (`pass`): see .fnox.toml f
 
 ### Task 5: Refresh after commits, merges and checkouts
 
-- [ ] Create `tools/graph/refresh.sh` (`chmod +x`):
+- [x] Create `tools/graph/refresh.sh` (`chmod +x`):
 
 ```bash
 #!/usr/bin/env bash
@@ -165,35 +165,33 @@ mkdir "$lock" 2>/dev/null || exit 0 # an update is already running
 ) </dev/null >/dev/null 2>&1 &
 ```
 
-- [ ] `hk.pkl`: before `hooks {`, add
+- [x] `hk.pkl`: before `hooks {`, add
+      // Code graphs (tools/graph/README.md) follow every commit, merge and checkout. The step returns at once and never
+      // fails git: the update runs in the background.
+      local graph_refresh_steps = new Mapping<String, Step> {
+      ["graph-refresh"] {
+      check = "tools/graph/refresh.sh"
+      allow_failure = true
+      }
+      }
 
-```pkl
-// Code graphs (tools/graph/README.md) follow every commit, merge and checkout. The step returns at once and never
-// fails git: the update runs in the background.
-local graph_refresh_steps = new Mapping<String, Step> {
-    ["graph-refresh"] {
-        check = "tools/graph/refresh.sh"
-        allow_failure = true
-    }
-}
-```
-
+````
 and inside `hooks { … }`:
 
 ```pkl
 ["post-commit"] { steps = graph_refresh_steps }
 ["post-merge"] { steps = graph_refresh_steps }
 ["post-checkout"] { steps = graph_refresh_steps }
-```
+````
 
-- [ ] `hk install --mise`, then `git config --get-regexp '^hook\.'`. Expected: entries for `post-commit`,
+- [x] `hk install --mise`, then `git config --get-regexp '^hook\.'`. Expected: entries for `post-commit`,
       `post-merge` and `post-checkout` beside the existing hooks. If hk is installed globally (`~/.gitconfig` has
       `hook.hk-*`), the global hooks already cover them; say which in your report.
-- [ ] Check: make a commit (this task's), then within a few seconds `ls tmp/graph-update.lock` may exist and
+- [x] Check: make a commit (this task's), then within a few seconds `ls tmp/graph-update.lock` may exist and
       `tmp/graph-update.log` ends with each tool's update line; `git status --short` stays clean. Then
       `git switch main && git switch -` refreshes again (log rewritten). The commit itself returns in about the time it
       did before.
-- [ ] Commit: `feat(tools): Refresh the code graphs after commits and checkouts`.
+- [x] Commit: `feat(tools): Refresh the code graphs after commits and checkouts`.
 
 ### Task 6: Layout, docs, TODO
 

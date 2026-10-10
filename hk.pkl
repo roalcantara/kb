@@ -353,6 +353,15 @@ local commit_message_steps = new Mapping<String, Step> {
     }
 }
 
+// Code graphs (tools/graph/README.md) follow every commit, merge and checkout. The step returns at once and never
+// fails git: the update runs in the background.
+local graph_refresh_steps = new Mapping<String, Step> {
+    ["graph-refresh"] {
+        check = "tools/graph/refresh.sh"
+        allow_failure = true
+    }
+}
+
 hooks {
     ["pre-commit"] {
         fix = true
@@ -365,6 +374,9 @@ hooks {
     ["pre-push"] {
         steps = push_steps
     }
+    ["post-commit"] { steps = graph_refresh_steps }
+    ["post-merge"] { steps = graph_refresh_steps }
+    ["post-checkout"] { steps = graph_refresh_steps }
     ["fix"] {
         fix = true
         steps = baseline_steps
