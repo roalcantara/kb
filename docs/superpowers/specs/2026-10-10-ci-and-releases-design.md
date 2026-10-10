@@ -31,6 +31,11 @@ run the same mise tasks.
 | `release` | ubuntu   | after `app`                 | `mise run release`: changelog, bump commit, tag, release with the zip  |
 
 A release is created only after the macOS checks pass and the app is built, so no tag exists without its app.
+semantic-release guarantees the same natively when the build runs in its `prepare` step (it tags after `prepare`,
+before `publish`), but only on the runner that builds: running it on macOS for every push to `main` costs macOS minutes
+even when nothing is released. `plan` is that check on Linux, with semantic-release's own `--dry-run`. Considered:
+release-it-style drafts as in `roalcantara/flux` (`draftRelease: true` on Linux, a `workflow_run` publish on macOS that
+un-drafts): it allows a tag before its app and needs an un-draft step.
 Concurrency cancels superseded runs except on `main`. Permissions are read-only except where a job writes.
 
 **D2. mise tasks are the interface.** Workflows call only these; each runs the same locally.

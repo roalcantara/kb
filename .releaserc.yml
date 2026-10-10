@@ -1,0 +1,52 @@
+# semantic-release (docs/adr/0007-releases.md): the version, CHANGELOG.md, the tag and the GitHub Release, from the
+# commits since the last tag. `mise run release` runs it; CI does on every push to main (.github/workflows/ci.yml).
+branches: [main]
+plugins:
+  # feat → minor; fix and perf → patch; ref, docs, chore, test, ci, build, style → no release.
+  - - '@semantic-release/commit-analyzer'
+    - preset: conventionalcommits
+      releaseRules:
+        - { type: perf, release: patch }
+  - - '@semantic-release/release-notes-generator'
+    - preset: conventionalcommits
+      presetConfig:
+        types:
+          - { type: feat, section: Features }
+          - { type: fix, section: Bug Fixes }
+          - { type: perf, section: Performance }
+          - { type: ref, hidden: true }
+          - { type: docs, hidden: true }
+          - { type: chore, hidden: true }
+          - { type: test, hidden: true }
+          - { type: ci, hidden: true }
+          - { type: build, hidden: true }
+          - { type: style, hidden: true }
+  - - '@semantic-release/changelog'
+    - changelogFile: CHANGELOG.md
+      changelogTitle: |-
+        # Changelog
+
+        Every release of kb, written by semantic-release from the commit messages (docs/adr/0007-releases.md).
+  - - '@semantic-release/exec'
+    # verifyRelease runs on --dry-run too: CI's plan job reads the next version from here.
+    - verifyReleaseCmd: '[ -z "$GITHUB_OUTPUT" ] || echo "version=${nextRelease.version}" >> "$GITHUB_OUTPUT"'
+      prepareCmd: 'mise run release:version ${nextRelease.version}'
+  - - '@semantic-release/git'
+    - assets: [CHANGELOG.md, Cargo.toml, Cargo.lock]
+      message: "chore(release): ${nextRelease.version} [skip ci]\n\n${nextRelease.notes}"
+  - - '@semantic-release/github'
+    - assets:
+        - path: target/release-assets/*.zip
+          label: kb for macOS (Apple silicon)
+      # No comments or labels on issues and pull requests, and no issue on failure: the run log says it.
+      successComment: false
+      releasedLabels: false
+      failComment: false
+      failTitle: false
+      releaseBodyTemplate: |-
+        <%= nextRelease.notes %>
+
+        ---
+
+        **Install:** unzip, move `kb.app` to Applications, then open it once with right-click → Open: it is signed ad
+        hoc, not with a Developer ID, so macOS asks first. Press ⌥K to show the panel.

@@ -101,6 +101,48 @@ run = '''
   cargo deny check
 '''
 
+# Releases (docs/adr/0007-releases.md): semantic-release reads .releaserc.yml; CI runs these on push to main.
+[tasks.release]
+description = "semantic-release from the commits since the last tag; `-- --dry-run --no-ci` previews it locally"
+run = '''
+  #!/usr/bin/env bash
+  set -euo pipefail
+  exec npx --yes \
+    -p semantic-release@25.0.9 \
+    -p @semantic-release/changelog@7.0.0 \
+    -p @semantic-release/exec@7.1.0 \
+    -p @semantic-release/git@11.0.1 \
+    -p @semantic-release/github@12.0.10 \
+    -p conventional-changelog-conventionalcommits@10.4.1 \
+    semantic-release "$@"
+'''
+
+[tasks."release:version"]
+description = "Set the workspace version in Cargo.toml and Cargo.lock, so kb.app reports it"
+usage = 'arg "<version>"'
+run = '''
+  #!/usr/bin/env bash
+  set -euo pipefail
+  cargo fetch --locked # before the bump: the lockfile still matches, and the update below needs no network
+  perl -0pi -e 's/(\[workspace\.package\]\n)version = "[^"]*"/${1}version = "$ENV{usage_version}"/' Cargo.toml
+  grep -q "^version = \"${usage_version}\"$" Cargo.toml || { echo "no [workspace.package] version to set"; exit 1; }
+  cargo update --workspace --offline
+'''
+
+[tasks."release:app"]
+description = "Package kb.app at a version and zip it as target/release-assets/kb-<version>-macos-arm64.zip"
+usage = 'arg "<version>"'
+run = '''
+  #!/usr/bin/env bash
+  set -euo pipefail
+  mise run release:version "$usage_version"
+  mise run package
+  out="target/release-assets/kb-$usage_version-macos-arm64.zip"
+  rm -rf target/release-assets && mkdir -p target/release-assets
+  ditto -c -k --keepParent target/packager/kb.app "$out" # ditto keeps the signature and bundle metadata
+  echo "$out"
+'''
+
 [tasks.app]
 description = "Build the panel in release mode and start it; press ⌥K to show it"
 usage = 'flag "--trace" help="log the show and keystroke latencies to stderr"'
