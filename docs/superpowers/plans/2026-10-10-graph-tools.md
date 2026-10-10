@@ -126,7 +126,7 @@ hint = "Run `mise install`; fnox reads password-store (`pass`): see .fnox.toml f
 
 ### Task 4: Agent wiring
 
-- [ ] `.mcp.json`:
+- [x] `.mcp.json`:
 
 ```json
 {
@@ -136,14 +136,14 @@ hint = "Run `mise install`; fnox reads password-store (`pass`): see .fnox.toml f
 }
 ```
 
-- [ ] Copy `~/Work/raycast/kb/.claude/skills/{debug-issue,explore-codebase,refactor-safely,review-changes}/SKILL.md`
+- [x] Copy `~/Work/raycast/kb/.claude/skills/{debug-issue,explore-codebase,refactor-safely,review-changes}/SKILL.md`
       to `.agents/skills/<same>/SKILL.md`, unchanged. Then `mkdir -p .claude && ln -s ../.agents/skills .claude/skills`
       (a relative symlink, committed).
-- [ ] `.claude/settings.json`: copy `~/Work/raycast/kb/.claude/settings.json` unchanged (the `PostToolUse` CRG update
+- [x] `.claude/settings.json`: copy `~/Work/raycast/kb/.claude/settings.json` unchanged (the `PostToolUse` CRG update
       and the `SessionStart` CRG status hooks).
-- [ ] Check: `ls .claude/skills/` lists the four; `jq . .mcp.json .claude/settings.json` parses; in this repo,
+- [x] Check: `ls .claude/skills/` lists the four; `jq . .mcp.json .claude/settings.json` parses; in this repo,
       `mise x -- code-review-graph status` reports the graph built in Task 3.
-- [ ] Commit: `build: Wire the code graphs into agents`.
+- [x] Commit: `build: Wire the code graphs into agents`.
 
 ### Task 5: Refresh after commits, merges and checkouts
 

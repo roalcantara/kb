@@ -1,5 +1,5 @@
 ls:
-  .dir: regex:^([a-z0-9-]+|\.github|\.config)$
+  .dir: regex:^([a-z0-9-]+|\.agents|\.claude|\.github|\.config)$
 
   # Rust modules are snake_case; crate directories kebab-case.
   crates:
