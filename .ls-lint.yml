@@ -35,3 +35,6 @@ ignore:
   - .ls-lint.yml
   - .superpowers
   - .delta
+  - .code-review-graph
+  - graphify-out
+  - .gortex

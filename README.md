@@ -90,6 +90,7 @@ crates/                     Rust code: our crates, and patched third-party ones
   third-party/                patched external crates, outside the workspace (see its README)
 docs/                       adr/, experiment/ (methodology, parity, results, report), superpowers/ (specs, plans)
 tools/                      developer tooling
+  graph/                      code graphs for agents: CRG, Gortex, Graphify (see its README)
   bench/                      the benchmark kit: TS and Rust benchmarks, probes, report, their fixtures and tasks
   size/                       the release binary's size budget and its check
   ast-grep/ icon/ mdschema/   lint rules, the app icon's source, document schemas
@@ -102,7 +103,7 @@ tools/                      developer tooling
 - **Root files** are the configs each tool looks for there. Moving tool configs into `.config/` is a later decision
   (`TODO.md`).
 - **Hidden folders** are owned by tools: `.github/` (CI, ADR 0007) and `.mise/` (the npm and pipx tools' locks that
-  `mise.lock` points to, written by `mise lock`).
+  `mise.lock` points to, written by `mise lock`). `.agents/` and `.claude/` hold agent wiring and skills.
 - **Local state** (`target/`, `tmp/`, code graphs, agent worktrees) is gitignored; generated output goes to `tmp/`.
 
 ## Key Features
@@ -117,6 +118,8 @@ tools/                      developer tooling
 | Command                                 | Does                                                                  |
 | --------------------------------------- | --------------------------------------------------------------------- |
 | `mise run setup`                        | install everything                                                    |
+| `mise run graph setup`                  | initialize the code graphs for agents (CRG, Gortex, Graphify)         |
+| `mise doctor project`                   | verify toolchain, code graph health and secrets                       |
 | `mise run gate`                         | all gates in order; `--fast` runs tests and clippy only               |
 | `mise run fixtures`                     | copy the private corpus, verify its manifest, build the 10× copy      |
 | `mise run goldens`                      | write goldens from the TS engine                                      |

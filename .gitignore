@@ -31,4 +31,5 @@
 # Local state of developer tools: code graphs and agent worktrees, never committed.
 /graphify-out/
 /.code-review-graph/
+/.gortex/
 /.delta/

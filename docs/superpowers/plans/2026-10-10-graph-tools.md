@@ -195,11 +195,11 @@ and inside `hooks { … }`:
 
 ### Task 6: Layout, docs, TODO
 
-- [ ] `hk.pkl` `root-layout`: allow the two new hidden folders —
+- [x] `hk.pkl` `root-layout`: allow the two new hidden folders —
       `grep -v -x -E '\.agents|\.claude|\.github|\.mise|crates|docs|tools'` — and its comment.
-- [ ] `.ls-lint.yml`: the root `.dir` regex becomes `regex:^([a-z0-9-]+|\.agents|\.claude|\.github|\.config)$`.
-- [ ] `.gitignore`, local-state block: add `/.gortex/` beside `/graphify-out/` and `/.code-review-graph/`.
-- [ ] `tools/graph/README.md`: what each tool is for (CRG: MCP graph queries, impact and review; Gortex: daemon-backed
+- [x] `.ls-lint.yml`: the root `.dir` regex becomes `regex:^([a-z0-9-]+|\.agents|\.claude|\.github|\.config)$`.
+- [x] `.gitignore`, local-state block: add `/.gortex/` beside `/graphify-out/` and `/.code-review-graph/`.
+- [x] `tools/graph/README.md`: what each tool is for (CRG: MCP graph queries, impact and review; Gortex: daemon-backed
       queries, `gortex wakeup`/`context` briefings; Graphify: `graphify-out/GRAPH_REPORT.md` and `graph.html`); the
       commands (`mise run graph setup` once; `update`, `build`, `--force` for Graphify's LLM pass, `--dry-run`); what
       refreshes automatically (Claude Code hooks; hk post-commit/merge/checkout → `tmp/graph-update.log`);
@@ -207,18 +207,16 @@ and inside `hooks { … }`:
       `DEEPSEEK_API_KEY` from password-store; keys can also come from the environment); global side effects (spec D6);
       and how to remove it all (the folder, the `includes` line,
       the four pins, the doctor checks, `.fnox.toml`, `.mcp.json`, `.agents/skills`, `.claude/`, the hk hooks).
-- [ ] `README.md` "Project Structure": add `tools/graph/` to the tree and a bullet for `.agents/` and `.claude/` beside
+- [x] `README.md` "Project Structure": add `tools/graph/` to the tree and a bullet for `.agents/` and `.claude/` beside
       the hidden-folders bullet; "Development Workflow" table: `mise run graph setup` and `mise doctor project` rows.
-- [ ] `AGENTS.md` "Repository map": `- tools/graph/: code graphs for agents (CRG, Gortex, Graphify); use them before a
+- [x] `AGENTS.md` "Repository map": `- tools/graph/: code graphs for agents (CRG, Gortex, Graphify); use them before a
       broad search: tools/graph/README.md`.
-- [ ] `TODO.md`, with the `todo` CLI (REF comments at its end): add and mark done a task for this work (tags
+- [x] `TODO.md`, with the `todo` CLI (REF comments at its end): add and mark done a task for this work (tags
       `tools,graph`, position `tools/graph/README.md`); add pending low-priority tasks "Run Graphify's semantic pass
       (`mise run graph build graphify --force`) once API keys are in fnox" and "Decide whether CI should publish a
       graph report".
-- [ ] `dprint fmt && hk check --all && mise run gate`. Expected: all pass.
-- [ ] Commit: `docs: Document the code graph tools`.
-
-### Task 7: Self-review and hand-off
+- [x] `dprint fmt && hk check --all && mise run gate`. Expected: all pass.
+- [x] Commit: `docs: Document the code graph tools`.
 
 - [ ] `git diff main --stat` and read the whole diff: no file from `~/Work/raycast/kb` beyond those named here; no
       generated graph output committed (`git ls-files | grep -E 'graphify-out|\.code-review-graph|\.gortex'` is
