@@ -104,7 +104,7 @@ then add, after `run`, a `usage = '''…'''` copied verbatim from `~/Work/raycas
 
 ### Task 3: Doctor checks
 
-- [ ] Copy `~/Work/raycast/kb/mise.toml` lines 3–75 (`[doctor.checks.graph_crg_installed]` through
+- [x] Copy `~/Work/raycast/kb/mise.toml` lines 3–75 (`[doctor.checks.graph_crg_installed]` through
       `[doctor.checks.graph_graphify_gitignore]`) into kb's `mise.toml`, after `[settings]`, under the comment
       `# Code graph health (tools/graph/README.md): mise doctor project.` Change only:
   - `graph_crg_mcp`'s hint to "`.mcp.json` is committed: restore it with `git checkout -- .mcp.json`.";
@@ -119,10 +119,10 @@ run = "fnox list -P default --sources >/dev/null 2>&1"
 hint = "Run `mise install`; fnox reads password-store (`pass`): see .fnox.toml for the entries it expects."
 ```
 
-- [ ] `mise run graph setup crg && mise run graph setup graphify && mise run graph setup gortex`, then
+- [x] `mise run graph setup crg && mise run graph setup graphify && mise run graph setup gortex`, then
       `mise doctor project`. Expected: every `graph_*` check passes (`graph_fnox_secrets` needs `pass` set up on this machine; report it if not). Note in your final report that `setup gortex`
       tracked the repo and started Gortex's daemon on this machine.
-- [ ] Commit: `build: Add mise doctor checks for the code graphs`.
+- [x] Commit: `build: Add mise doctor checks for the code graphs`.
 
 ### Task 4: Agent wiring
 

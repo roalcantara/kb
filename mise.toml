@@ -7,6 +7,85 @@ idiomatic_version_file_enable_tools = ["rust"]
 # Macs and CI's Linux runners. Run `mise lock` after changing a tool: CI installs with --locked, and fails otherwise.
 lockfile_platforms = ["linux-x64", "macos-arm64"]
 
+# Code graph health (tools/graph/README.md): mise doctor project.
+[doctor.checks.graph_crg_installed]
+description = "code-review-graph is installed and on PATH"
+run = "command -v code-review-graph >/dev/null 2>&1"
+hint = "Run `mise install`."
+timeout = "1s"
+
+[doctor.checks.graph_crg_version]
+description = "code-review-graph matches the pinned version"
+run = '''
+  expected=$(grep -E '"pipx:code-review-graph"\s*=\s*"[^"]+"' mise.toml | sed -E 's/.*"([^"]+)".*/\1/' | head -n1)
+  if [ -z "$expected" ]; then exit 0; fi
+  actual=$(code-review-graph --version 2>/dev/null || true)
+  printf '%s\n' "$actual" | grep -Eq "v?${expected//./\\.}([[:space:]]|$)"
+'''
+hint = "Align the installed CRG version with the one pinned in mise.toml."
+timeout = "3s"
+
+[doctor.checks.graph_crg_repo]
+description = "CRG has initialized its repo graph directory"
+run = "test -d .code-review-graph"
+hint = "Run `mise run graph setup crg` to build the repository graph."
+timeout = "1s"
+
+[doctor.checks.graph_crg_mcp]
+description = "CRG is wired in .mcp.json"
+run = '''
+  test -f .mcp.json && grep -q '"code-review-graph"' .mcp.json
+'''
+hint = "`.mcp.json` is committed: restore it with `git checkout -- .mcp.json`."
+timeout = "1s"
+
+[doctor.checks.graph_crg_gitignore]
+description = "The repo ignores .code-review-graph"
+run = "git check-ignore -q .code-review-graph"
+hint = "Add `.code-review-graph/` to .gitignore."
+timeout = "1s"
+
+[doctor.checks.graph_gortex_installed]
+description = "gortex is installed and on PATH"
+run = "command -v gortex >/dev/null 2>&1"
+hint = "Run `mise install`."
+timeout = "1s"
+
+[doctor.checks.graph_gortex_daemon]
+description = "Gortex daemon is running"
+run = "gortex daemon status >/dev/null 2>&1"
+hint = "Run `mise run graph setup gortex` or `gortex daemon start --detach` to bring the daemon online."
+timeout = "2s"
+
+[doctor.checks.graph_gortex_repo]
+description = "This repo is tracked by Gortex"
+run = 'gortex repos 2>/dev/null | grep -Fq "$PWD"'
+hint = "Run `mise run graph setup gortex` to track the repository."
+timeout = "2s"
+
+[doctor.checks.graph_graphify_installed]
+description = "graphify is installed and on PATH"
+run = "command -v graphify >/dev/null 2>&1"
+hint = "Run `mise install`."
+timeout = "1s"
+
+[doctor.checks.graph_graphify_artifact]
+description = "Graphify output exists for this repo"
+run = "test -f graphify-out/graph.json"
+hint = "Run `mise run graph setup graphify` (code-only, no LLM) or `mise run graph build graphify --force` (full semantic build)."
+timeout = "1s"
+
+[doctor.checks.graph_graphify_gitignore]
+description = "The repo ignores graphify-out"
+run = "git check-ignore -q graphify-out"
+hint = "Add `graphify-out/` to .gitignore."
+timeout = "1s"
+
+[doctor.checks.graph_fnox_secrets]
+description = "fnox resolves the secrets in .fnox.toml (Graphify's --force pass needs an LLM key)"
+run = "fnox list -P default --sources >/dev/null 2>&1"
+hint = "Run `mise install`; fnox reads password-store (`pass`): see .fnox.toml for the entries it expects."
+
 [env]
 # ── Benchmark kit (tools/bench/README.md: remove this block and [task_config] when purging it) ──
 # Where the TS bench finds the Raycast implementation. Read only; nothing here writes to it.
