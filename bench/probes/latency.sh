@@ -60,8 +60,12 @@ for ((run = 1; run <= runs; run++)); do
   "$probe" key 0 cmd # ⌘A, then ⌫: clear the query
   "$probe" key 51
   sleep 0.6
-  "$probe" key 53 # Esc: hide
-  sleep 0.8
+  for _ in 1 2; do # Esc until the window is gone: Raycast goes back to its root search first
+    [ -n "$("$probe" windows "$owner" | grep 'onscreen=true' || true)" ] || break
+    "$probe" key 53
+    sleep 0.4
+  done
+  sleep 0.4
 done
 
 # Nearest-rank percentiles, as everywhere else in the results. A jq program, not shell.
