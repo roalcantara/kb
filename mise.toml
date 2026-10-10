@@ -95,6 +95,7 @@ KB_SOURCES = "{{ env.HOME }}/.config/kodexb/sources"
 [task_config]
 includes = [
   "tools/bench/tasks.toml", # the benchmark kit: remove when purging it
+  "tools/design/tasks.toml", # the design kit (tools/design)
   "tools/graph/tasks.toml", # the code graph tools (tools/graph/README.md)
 ]
 
