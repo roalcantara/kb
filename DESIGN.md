@@ -1,124 +1,176 @@
 # Design system
 
-## Visual theme
+kb's visual design. The reference is Raycast's kb Search extension: kb copies its anatomy, layout and behaviour, and
+departs from it only where [Adaptations](#adaptations) says why. [PRODUCT.md](PRODUCT.md) says what kb is for; this file
+says how it looks. Read it before any UI change.
 
-kb is a quiet, keyboard-first macOS launcher. Its visual reference is the Raycast kb Search extension, not a generic
-dashboard. Keep the main panel calm and flat; use small surface changes, selection, and spacing to establish hierarchy
-before adding borders or card backgrounds. Colour communicates types, tags, and state.
+Values live in one place each, and this file points at them:
 
-## Reference and evidence
+| What                                       | Source of truth                                                                  | Consumer                                                       |
+| ------------------------------------------ | -------------------------------------------------------------------------------- | -------------------------------------------------------------- |
+| Palette roles (hex)                        | [`tools/design/palettes.json`](tools/design/palettes.json), the `chosen` palette | `theme.mjs` → [`kb.json`](crates/kb-app/assets/themes/kb.json) |
+| Derived colours (pills, tints), tag hashes | [`tools/design/color.mjs`](tools/design/color.mjs)                               | `validate.mjs`, `render.mjs`, `theme.mjs`                      |
+| Spacing, sizes, radii, alignment           | [`tools/design/layout.json`](tools/design/layout.json)                           | `render.mjs`; the app (Plan 7)                                 |
+| Validation results                         | [`tools/design/validation.json`](tools/design/validation.json)                   | the comparison page                                            |
 
-Raycast is the single reference system for the component anatomy, layout, and spacing decisions in this document. The
-specification is based on the eight local Raycast captures named in [`tools/design/layout.json`](tools/design/layout.json),
-covering list, split list, detail, actions, filters, and bookmark media. They are private-corpus screenshots and stay in
-gitignored `tools/reports/`; do not copy them into documentation, commits, or generated assets.
+The palette table below repeats the chosen hexes for readers; `validate.mjs` fails when it drifts from `palettes.json`.
+`mise run design:palettes` validates every palette, regenerates the theme and opens the comparison page
+(`tmp/design/palettes.html`).
 
-Raycast does not publish numeric spacing values for its extension UI primitives. Values in `layout.json` are therefore
-measured estimates from those captures, normalized into a 4-point spacing ramp for a coherent implementation. They are
-not claims about Raycast's internal constants. When a capture reveals a specific relationship (for example, search text
-aligned with row titles), preserve that relationship even when the nearest ramp value is imperfect.
+## 1. Visual Theme & Atmosphere
 
-## Palette
+A calm, dark navy launcher. Surfaces are flat and close in tone; hierarchy comes from spacing, a soft inset selection
+and type weight before any border or card. Colour is reserved for meaning: an entry's type, its tags, and state. The
+panel floats over whatever is behind it and never shouts.
 
-The selected palette is **Tokyo Night Storm Flat Separated**, a manually tuned Tokyo Night Storm variant:
+## 2. Color Palette & Roles
 
-| Role        | Value     | Use                                                     |
-| ----------- | --------- | ------------------------------------------------------- |
-| `window`    | `#23273A` | Main panel and list surface                             |
-| `header`    | `#24293E` | Header and popup surface                                |
-| `selection` | `#2A3047` | Selected row or selected popup item                     |
-| `raised`    | `#24293E` | Raised controls where an elevated surface is meaningful |
-| `divider`   | `#353D5A` | Structural boundaries only                              |
-| `text`      | `#CBD4FF` | Primary content                                         |
-| `textMuted` | `#B2BADB` | Descriptions and secondary labels                       |
-| `textFaint` | `#7A86B6` | Placeholders and tertiary hints                         |
-| `blue`      | `#70B9F4` | Cheat type and blue tags                                |
-| `green`     | `#30E1A5` | Command type and green tags                             |
-| `orange`    | `#F5A95D` | Note type and orange tags                               |
-| `purple`    | `#A362F2` | Bookmark type and purple tags                           |
-| `magenta`   | `#E927AB` | Task type and magenta tags                              |
-| `yellow`    | `#D9E753` | Yellow tags                                             |
-| `red`       | `#E04F50` | Red tags                                                |
+**Tokyo Night Storm Flat Separated**: Tokyo Night Storm
+([folke/tokyonight.nvim](https://github.com/folke/tokyonight.nvim/tree/main/extras)), tuned by hand to flatter
+surfaces and accents that stay apart under colour-blind simulation. The owner picked it on 2026-10-10 from the
+candidates in `palettes.json`.
 
-The full set and its validation live in [`tools/design/palettes.json`](tools/design/palettes.json) and
-[`tools/design/validation.json`](tools/design/validation.json). Current automated result: zero failed checks; three
-warnings for purple, magenta, and red tag-text contrast. Do not treat a passing palette check as a substitute for
-checking the actual component on screen.
+| Role        | Hex       | Name         | Job                                                         |
+| ----------- | --------- | ------------ | ----------------------------------------------------------- |
+| `window`    | `#23273A` | Storm navy   | The panel, the list, the detail pane                        |
+| `header`    | `#24293E` | Storm header | The search header and title bar                             |
+| `selection` | `#2A3047` | Selection    | The selected row, the selected popover item                 |
+| `raised`    | `#24293E` | Raised       | Popovers and footer pills                                   |
+| `divider`   | `#353D5A` | Divider      | Pane boundaries, popover and card edges; never between rows |
+| `text`      | `#CBD4FF` | Text         | Titles, values, search text                                 |
+| `textMuted` | `#B2BADB` | Muted text   | Descriptions, labels, shortcut hints                        |
+| `textFaint` | `#7A86B6` | Faint text   | The search placeholder, tertiary hints                      |
+| `blue`      | `#70B9F4` | Blue         | Cheats; tags                                                |
+| `green`     | `#30E1A5` | Green        | Commands; tags                                              |
+| `orange`    | `#F5A95D` | Orange       | Notes; tags                                                 |
+| `purple`    | `#A362F2` | Purple       | Bookmarks; tags                                             |
+| `magenta`   | `#E927AB` | Magenta      | Tasks; tags                                                 |
+| `yellow`    | `#D9E753` | Yellow       | Tags                                                        |
+| `red`       | `#E04F50` | Red          | Tags; the notes' description bar                            |
 
-Surface mapping is intentional: the main list stays opaque and flat; popovers use `header` and are separated by their
-anchored placement, subtle border/shadow, and restrained dimming of the underlying panel. Do not tint the whole main
-header as an arbitrary extra card. Avoid blur and strong, high-contrast outlines.
+- **Type tints** (Raycast's `TYPE_TINTS`): bookmark purple, command green, cheat blue, note orange, task magenta. An
+  unknown type takes an accent by the tag hash of its name.
+- **Tag accents:** a tag's lowercased name, hashed as Raycast does (`acc × 31 + code point`, modulo 100 003), indexes
+  the accents in the order blue, orange, green, purple, magenta, yellow, red. A tag keeps its accent in the list, the
+  metadata card and the detail screen.
+- **Pills:** the accent at 20% over `window`; the text is the accent, lifted toward `text` in 5% steps only as far as
+  4.5:1 needs. Blue, green, orange and yellow keep their pure accent; purple, magenta and red lift slightly.
+- **Validation** (`validation.json`): every text role on every surface meets WCAG 2.2 AA; every pill meets 4.5:1; the
+  seven accents stay at least ΔE 15 apart (OKLab ×100) for normal vision and 8 under protan and deutan simulation.
+  A passing check does not replace looking at the component on screen.
+- **Light appearance:** GPUI Kit's default light theme, until a light palette is chosen (TODO).
 
-## Typography
+## 3. Typography Rules
 
-Use the system UI font. Keep primary result titles regular-weight, descriptions muted, and labels concise. Commands and
-labels use Raycast-style Title Case, an owner-approved deviation from the GPUI Kit Design Guides' sentence case. Use
-consistent type styles per semantic role across screens rather than scaling typography to fit an individual mock-up.
+The system font (SF Pro) throughout; monospace (Menlo) only inside notes code. Sizes are GPUI Kit's text scale; they
+copy the reference's relationships (the search field largest, title and description the same size, metadata and
+chrome a step smaller) rather than pixel readings, which the screenshots cannot give reliably.
 
-## Layout and spacing
+| Element                        | Size     | Weight             | Colour                          |
+| ------------------------------ | -------- | ------------------ | ------------------------------- |
+| Search field                   | 18 (lg)  | Regular            | `text`; placeholder `textFaint` |
+| Row title                      | 14 (sm)  | Regular            | `text`                          |
+| Row description                | 14 (sm)  | Regular            | `textMuted`                     |
+| Tag pill                       | 12 (xs)  | Medium             | pill text                       |
+| Section header (list, popover) | 12 (xs)  | Semibold           | `textMuted`                     |
+| Metadata label / value         | 13       | Regular            | `textMuted` / `text`            |
+| Notes body / headings          | 14 / 16+ | Regular / Semibold | `text`                          |
+| Footer pill, action row        | 13       | Regular            | `textMuted` / `text`            |
+| Keycap                         | 12 (xs)  | Medium             | `text` on `selection`           |
 
-[`tools/design/layout.json`](tools/design/layout.json) is the shared source of layout tokens and alignment rules. Use
-logical points and the named ramp (`tight` 4, `compact` 8, `inset` 12, `standard` 16, `relaxed` 24, `section` 32) rather
-than inventing nearby values per screen. The browser renderer expresses these tokens in CSS points; native GPUI code
-must map them through the framework's rem-based spacing helpers so they scale with the interface. One-point hairlines
-are reserved for boundaries that convey actual structure.
+Commands and labels use Title Case ("Show Details", "Open in Browser", "All Entries"), as Raycast does: an
+owner-approved departure from the GPUI Kit Design Guides' sentence case. Messages and notices stay sentences.
 
-Key cross-screen invariants:
+## 4. Component Stylings
 
-- Search text and result titles share a leading edge. Header controls and row icons share a vertical center line.
-- Rows reserve a stable icon column. A different icon shape must not move the title, description, or tags.
-- A result title and its description align to each other. Tags are trailing accessories and never determine the text
-  column.
-- Use the same content inset for equivalent content in list, split detail, and detail view. Any intentional exception is
-  named in the component tokens.
-- Popovers align to the control that opened them; their internal content uses the same spacing ramp as the main panel.
-- Use whitespace to group content. Add a divider only at a real pane or section boundary, not between every row.
-- Keep selection inset from the list edges with a soft radius. Keep tag pills compact and less rounded than full capsule
-  controls.
+- **Header:** no divider below it. The leading control (search glyph, or the back chevron on the detail screen) sits
+  on the row-icon axis; the search text starts where row titles start. The filter button on the right carries a funnel
+  icon and the current filter ("All Entries"), and shows its open state with a chevron.
+- **List row:** a fixed icon column with the type tint; the title; the muted description on the same line; trailing
+  accessories: at most three tag pills, then `+N`, then the link count with a link icon. The selection is an inset,
+  rounded `selection` fill, never a full-width bar.
+- **Tag pill:** filled (no outline), `#name` in pill text on the pill fill. **Tag image** (D4): a tag with a known
+  image (`#linux` → penguin) shows the image instead, its name in the tooltip.
+- **Split pane** (D3): the list takes about ⅓ of the width, the detail pane ⅔; one `divider` line between them.
+- **Metadata card:** rows with the label left (`textMuted`) and the value right-aligned (`text`); alternate rows a
+  shade lighter; Type and Tags as pills; Source with a file icon; URLs with an open-link ↗ icon.
+- **Notes:** the description as a quote with a `red` bar; bookmark thumbnails above the metadata (split) or first
+  (detail).
+- **Detail screen:** the header shows only the back chevron; content starts with the notes, without a title block.
+- **Footer:** two floating pills over the panel's bottom edge: the entry on the left; the primary action and Actions on
+  the right, one keycap per key (`⌘` `K`, not `⌘K`).
+- **Actions popover:** anchored above the footer's Actions button and opening upwards; the Return action first, then
+  the primary action; each row shows its shortcut as keycaps; "Copy…" opens a submenu; the search field at the bottom.
+- **Filter dropdown:** anchored under the filter button; a "Filters" section with the count and Clear All Filters while
+  any is active; types and tags with ✓ / ○; it stays open while picking.
 
-The token set covers every captured screen:
+## 5. Layout Principles
 
-| Screen                                 | Shared parts exercised                                |
-| -------------------------------------- | ----------------------------------------------------- |
-| List                                   | Panel, header, results, tags, footer                  |
-| List with split pane; selection moving | Split ratio, result rows, tags, metadata              |
-| Detail                                 | Panel, back-only header, detail content, footer       |
-| Actions                                | Anchored popover, action rows, footer                 |
-| Filters                                | Anchored popover, filter control, result rows, footer |
-| Bookmark split and detail              | Split ratio, metadata, media and detail content       |
+- **Window** (D5): compact 860 × 520 points, and expanded to about 85% of the screen; ⌘⇧F toggles between them and
+  the panel stays centred. The window is resizable in both.
+- **Spacing:** the 4-point ramp of `layout.json` (`tight` 4, `compact` 8, `inset` 12, `standard` 16, `relaxed` 24,
+  `section` 32). Native code maps points through GPUI's rem helpers so the layout scales with the interface.
+- **Geometry** (`layout.json` `components`): header 56 high; rows 50; selection inset 8 with radius 12; panel radius
+  28; popover radius 16. The comparison page refuses to render if the header control leaves the row-icon axis or the
+  search text leaves the title edge.
+- Group with whitespace; add a divider only at a real pane or section boundary.
+- Equivalent content uses the same inset in the list, the split pane, the detail screen and popovers.
 
-The split layout gives about one-third of the width to results and two-thirds to detail. Detail content starts with notes;
-media follows the reference's content-first placement. Actions open above their footer anchor, and filters open below the
-filter control. Those are component behaviors, not exceptions to the shared spacing system.
+## 6. Depth & Elevation
 
-## Components and elevation
+Flat surfaces, no blur (D1). Popovers and footer pills sit on `raised` with a one-point edge (`divider` at 58% over
+`raised`) and a soft two-layer shadow. `raised` shares `header`'s tone, so their separation comes from that edge, the
+shadow and their placement against the control that opened them, not from a lighter fill: the owner's pick (variant E
+on the comparison page) over a lighter popover tone.
 
-- **Header:** one search field; the back control is centered on the row-icon axis; no decorative bottom divider. Detail
-  view shows only the back control.
-- **Result row:** stable icon column, regular title, muted description, trailing tags; selected row uses an inset
-  background rather than a full-width stripe.
-- **Tags:** subdued tinted fill, modest corner radius, compact internal padding. Preserve the leading `#` label so
-  meaning is not conveyed by hue alone.
-- **Footer:** two floating controls with distinct keycaps for each key.
-- **Metadata:** grouped rows with labels and values aligned consistently; tags and type use their semantic accents.
-- **Popovers:** same-tone header and body as specified by the chosen Variant E treatment. Separation comes from anchor
-  placement, a quiet edge, and shadow—not a dramatically different fill or thick outline.
-- **Split pane:** a single quiet separator marks the actual pane boundary.
+## Adaptations
 
-## Adaptations from Raycast
+Where kb departs from Raycast, and why.
 
-| Adaptation                                  | Reason                                                                             |
-| ------------------------------------------- | ---------------------------------------------------------------------------------- |
-| Opaque surfaces instead of blur             | Simpler, predictable rendering; keeps the experiment focused on palette and layout |
-| Variant E popup surface                     | Makes popup vs. panel legible without a radically different color                  |
-| Tokyo Night Storm tuned accents             | Better tag/type distinction while retaining the selected dark palette              |
-| Title Case labels                           | Owner-approved match to Raycast                                                    |
-| ⌘D split-pane toggle and ⌘P filter shortcut | Existing kb interaction choices                                                    |
-| Resizable window                            | kb-specific behavior                                                               |
+| Adaptation                                | Raycast                     | Reason                                                                    |
+| ----------------------------------------- | --------------------------- | ------------------------------------------------------------------------- |
+| Opaque surfaces, no blur                  | Translucent, blurred window | D1: the colours matter, not the material; blur costs GPU memory (tier 2)  |
+| Popovers separated by edge and shadow     | Lighter translucent popover | Same-tone surfaces without blur need an edge to read as overlays          |
+| Pill text lifted to 4.5:1                 | Pure accent text            | WCAG AA for 12-point text (PRODUCT.md)                                    |
+| ⌘D toggles the split pane                 | → / ←                       | → and ← move the search cursor in GPUI's input                            |
+| ⌘P opens the filter dropdown              | ⌘P                          | Same key, kept explicit                                                   |
+| Two window sizes, toggled by ⌘⇧F          | One fixed size              | D5: kb is not bound by Raycast's window                                   |
+| Title Case over the guide's sentence case | Title Case                  | Matches Raycast; owner-approved deviation from the GPUI Kit Design Guides |
 
-## Screenshot coverage and maintenance
+## Evidence
 
-The capture-to-component map is recorded in `tools/design/layout.json`. Before changing shared spacing or component
-geometry, inspect all relevant references in `tools/reports/`, not just the list screenshot. The captures stay local;
-record only numeric measurements and screen/component names in tracked files. Update the shared tokens first, then update
-every consumer in the same change so list, split, detail, action, and filter screens remain consistent.
+The reference is eight local captures of Raycast's kb Search (list, split pane, detail, actions, filters, bookmark
+media), mapped to components in `layout.json` `screenCoverage`. They show the private corpus, so they stay in the
+gitignored `tools/reports/`; tracked files record only measurements and screen names. Raycast publishes no numeric
+spacing for its extension UI: `layout.json` values are estimates from the captures, normalised to the ramp, and
+[`raycast.json`](tools/design/raycast.json) holds the few colour and size readings `sample.py` can take reliably.
+
+## Appendix: findings → rules
+
+Each finding of the UI comparison report (local, `tools/reports/ui.md`) and the rule that settles it.
+
+| Finding | Rule                                                        |
+| ------- | ----------------------------------------------------------- |
+| UI-01   | §1, §2 palette, §6 (no blur); panel radius §5               |
+| UI-02   | §4 Header (no divider; funnel icon)                         |
+| UI-03   | §4 List row (inset selection)                               |
+| UI-04   | §3 (regular titles; muted description)                      |
+| UI-05   | §2 Pills; §4 Tag pill                                       |
+| UI-06   | §4 Tag image (D4)                                           |
+| UI-07   | §4 Footer                                                   |
+| UI-08   | §4 Split pane (D3)                                          |
+| UI-09   | §4 Metadata card                                            |
+| UI-10   | §4 Notes (red bar)                                          |
+| UI-11   | §4 Detail screen (back chevron only)                        |
+| UI-12   | §4 Detail screen (no title block)                           |
+| UI-13   | §4 Actions popover (anchored); §6                           |
+| UI-14   | §4 Actions popover (keycaps)                                |
+| UI-15   | §4 Actions popover (order)                                  |
+| UI-16   | §4 Actions popover (search at the bottom; Copy… submenu)    |
+| UI-17   | §4 Filter dropdown (anchored; open state)                   |
+| UI-18   | §4 Filter dropdown (stays open; ✓ / ○)                      |
+| UI-19   | §4 Filter dropdown (Filters section)                        |
+| UI-20   | §4 Notes (thumbnails)                                       |
+| UI-21   | §4 List row (type icon; per-site icons with the tag images) |
+| UI-22   | §4 Metadata card (↗ on URLs)                                |
+| UI-23   | §4 Notes, Detail screen                                     |
