@@ -53,7 +53,8 @@ connection its app keeps open. Both turn every row back into an entry, re-readin
   Monitor shows as Memory. It counts the GPU memory a window holds, which RSS leaves out, so it is reported beside RSS
   for a GPU-drawn app; RSS stays the spec's criterion.
 - kb runs as the packaged `.app` (`mise run package`) over `fixtures/private`, through a home whose
-  `~/.config/kb/config.toml` points there. Its pattern is `kb\.app/Contents/MacOS/kb`.
+  `~/.config/kb/config.toml` points there: `mise run bench:home` builds it in `tmp/bench-home` and syncs its index with
+  `kb --sync`. Every kb probe uses it unless `KB_HOME` names another. Its pattern is `kb\.app/Contents/MacOS/kb`.
 - Cold-start CPU: `bench/probes/cpu-ts.sh` and `bench/probes/cpu-rs.sh`, five runs each. Each run stops Raycast (`killall`: it refuses
   AppleScript's quit), relaunches it, opens kb Search by deeplink, waits 10 s for both processes to go idle, and
   sums the CPU time (`ps` TIME) the matching processes have used since launch.
@@ -81,9 +82,32 @@ Accessibility permission; nothing needs Screen Recording.
   The keystroke figure includes the 150 ms debounce; `settle` is from the debounce firing to the frame.
 - **Raycast keystroke → updated list** has no signal the probe reads and no trace. It is measured by hand: record the
   screen at 120 fps while typing the last letter of a query, and count frames from the key's echo in the field to the
-  list's change. Not part of the automated run.
-- Raycast's hotkey is ⌘Space, its root search. For the kb command itself, assign it a hotkey in Raycast and pass it as
-  `HOTKEY="<keycode> <mods>"`.
+  list's change, for ten runs at least. `bench/probes/manual-keystroke.sh docs/experiment/results 120 <frames>...`
+  records them as `tier3-raycast-keystroke-manual-<stamp>.json`, which the report reads.
+- **Raycast's hotkey.** The latency run opens the kb command by its own hotkey, not Raycast's root search: assign kb
+  Search a hotkey in Raycast and set it in the gitignored `mise.local.toml` as
+  `[env] KB_RAYCAST_HOTKEY = "<keycode> <mods>"` — a macOS virtual keycode (K = 40, Space = 49) and modifiers joined
+  by `+`, e.g. `"40 opt+shift"`. The run fails without it.
+
+## Maintainability
+
+`bench/probes/maint.sh` (`mise run bench:maint`) counts, for kb search in each implementation: lines of code (tokei),
+test files and tests, direct and transitive dependencies, dependency depth (`cargo tree`; for TypeScript `npm ls` over
+the whole Raycast repo, which it cannot scope), line coverage (`cargo llvm-cov`; TypeScript's is not measured: the
+Raycast repo has no coverage provider and nothing here writes to it), duplicated lines (jscpd, run from `tmp/`), clippy
+warnings, and cold and incremental build time. Every number has its scope in the result's `note`.
+
+## Session
+
+Tiers 2 and 3 are measured in one sitting, so both apps see the same machine state.
+
+1. Owner: AC power, heavy apps closed; the terminal has Accessibility permission; Raycast is running with the kb
+   extension (as under `ray develop`); `KB_RAYCAST_HOTKEY` is set.
+2. `mise run bench:session`: preflight, `bench:home`, size, maintainability, memory, CPU, then latency and ⌘↩, for kb
+   and Raycast. It stops at the first failure.
+3. Owner: the manual keystroke run (Tier 3), recorded with `manual-keystroke.sh`.
+4. Commit the results, then `mise run report`: never `xtask report --verified` by hand, which would claim gates that
+   did not run. Uncommitted results make the report cite a `-dirty` commit.
 
 ## Baseline history
 

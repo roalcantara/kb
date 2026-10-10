@@ -26,13 +26,14 @@ them and no synonyms. Locations marked _(Plan N)_ do not exist yet.
 
 ## Experiment
 
-| Term       | Meaning                                                                                               | Lives in                                    |
-| ---------- | ----------------------------------------------------------------------------------------------------- | ------------------------------------------- |
-| Corpus     | A set of source files a run measures: `sample` (committed), `private` and `private-10x` (local only). | `fixtures/`, `bench/ts/corpus.ts`           |
-| Golden     | An output of the TypeScript engine the Rust engine must reproduce.                                    | `fixtures/*-goldens/`                       |
-| Tier       | A measurement depth: 1 engine, 2 footprint, 3 perceived latency.                                      | `docs/experiment/methodology.md`            |
-| Result     | One run's JSON, in the shared schema, under `docs/experiment/results/`.                               | `bench/ts/bench.ts`                         |
-| Parity row | One user-visible behaviour of the Raycast command and its status in the port.                         | `docs/experiment/parity.md`                 |
-| Task       | One of the five scripted jobs whose keystrokes and time are compared on both apps (T1–T5).            | `docs/experiment/parity.md`                 |
-| Probe      | A script that measures a running app from outside; `probe` is the CGEvent driver they share.          | `bench/probes/`                             |
-| Report     | The generated comparison of both implementations against the success criteria.                        | `crates/xtask`, `docs/experiment/report.md` |
+| Term       | Meaning                                                                                                   | Lives in                                    |
+| ---------- | --------------------------------------------------------------------------------------------------------- | ------------------------------------------- |
+| Corpus     | A set of source files a run measures: `sample` (committed), `private` and `private-10x` (local only).     | `fixtures/`, `bench/ts/corpus.ts`           |
+| Golden     | An output of the TypeScript engine the Rust engine must reproduce.                                        | `fixtures/*-goldens/`                       |
+| Tier       | A measurement depth: 1 engine, 2 footprint, 3 perceived latency.                                          | `docs/experiment/methodology.md`            |
+| Result     | One run's JSON, in the shared schema, under `docs/experiment/results/`.                                   | `bench/ts/bench.ts`                         |
+| Parity row | One user-visible behaviour of the Raycast command and its status in the port.                             | `docs/experiment/parity.md`                 |
+| Task       | One of the five scripted jobs whose keystrokes and time are compared on both apps (T1–T5).                | `docs/experiment/parity.md`                 |
+| Probe      | A script that measures a running app from outside; `probe` is the CGEvent driver they share.              | `bench/probes/`                             |
+| Report     | The generated comparison of both implementations against the success criteria.                            | `crates/xtask`, `docs/experiment/report.md` |
+| Findings   | The hand-written reading of the report: why a criterion failed or went unmeasured, and what would fix it. | `docs/experiment/findings.md`               |

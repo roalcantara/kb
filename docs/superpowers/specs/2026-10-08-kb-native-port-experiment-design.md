@@ -286,6 +286,12 @@ matrix:
    Missing row with its justification.
 6. Verdict.
 
+**Amendment (2026-10-10).** Item 1's charts and item 3's comparison with fallow's health are dropped: the tables carry
+the same numbers, and fallow has no Rust counterpart. Item 3 reports dependency depth, Rust line coverage (TypeScript's
+is not measured: the Raycast repo has no coverage provider and is never written to), jscpd duplication and the clippy
+warning count. Failed or unmeasured criteria are explained in the hand-written `docs/experiment/findings.md`, linked
+from the report. Design: `docs/superpowers/specs/2026-10-10-kb-native-05-measurement-and-report-design.md`.
+
 **Success criteria.** The port is worth pursuing only if it meets every one of these; otherwise the report says
 which criterion failed and why:
 

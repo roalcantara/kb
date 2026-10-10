@@ -60,7 +60,7 @@ Half 1, MVP compliance and packaging, and the measurement infrastructure. The fu
 - Modify: `crates/kb-app/src/main.rs` (whole file)
 - Test: `crates/kb-app/src/cli.rs` (`#[cfg(test)]`), `crates/kb-app/tests/sync_cli.rs`
 
-- [ ] **Step 1: Write the failing unit tests**
+- [x] **Step 1: Write the failing unit tests**
 
 Create `crates/kb-app/src/cli.rs` with only the tests and empty stubs, so it compiles and fails:
 
@@ -173,12 +173,12 @@ pub mod cli;
 pub mod config;
 ```
 
-- [ ] **Step 2: Run the tests to verify they fail**
+- [x] **Step 2: Run the tests to verify they fail**
 
 Run: `cargo nextest run -p kb-app cli::`
 Expected: FAIL, 5 tests panicking with "not implemented".
 
-- [ ] **Step 3: Implement `parse` and `sync`**
+- [x] **Step 3: Implement `parse` and `sync`**
 
 Replace the two stubs and the imports in `crates/kb-app/src/cli.rs`:
 
@@ -240,12 +240,12 @@ pub fn sync(config: &Config, out: &mut impl Write) -> Result<(), SyncError> {
 }
 ```
 
-- [ ] **Step 4: Run the unit tests to verify they pass**
+- [x] **Step 4: Run the unit tests to verify they pass**
 
 Run: `cargo nextest run -p kb-app cli::`
 Expected: PASS, 5 tests.
 
-- [ ] **Step 5: Write the failing integration test**
+- [x] **Step 5: Write the failing integration test**
 
 Create `crates/kb-app/tests/sync_cli.rs`:
 
@@ -300,13 +300,13 @@ fn fails_when_the_sources_directory_is_missing() {
 }
 ```
 
-- [ ] **Step 6: Run it to verify it fails**
+- [x] **Step 6: Run it to verify it fails**
 
 Run: `cargo nextest run -p kb-app --test sync_cli`
 Expected: FAIL — `main` ignores `--sync` and starts the panel, so the process does not exit with the expected
 output. If it hangs, stop it after the nextest slow-test timeout; that is the failure.
 
-- [ ] **Step 7: Dispatch on the mode in `main`**
+- [x] **Step 7: Dispatch on the mode in `main`**
 
 Replace `crates/kb-app/src/main.rs`:
 
@@ -363,12 +363,12 @@ fn fail(error: impl Display) -> ExitCode {
 }
 ```
 
-- [ ] **Step 8: Run the integration test and the fast gate**
+- [x] **Step 8: Run the integration test and the fast gate**
 
 Run: `cargo nextest run -p kb-app --test sync_cli && mise run gate --fast`
 Expected: 2 passed; then every test passes and clippy reports nothing.
 
-- [ ] **Step 9: Commit**
+- [x] **Step 9: Commit**
 
 ```bash
 git add crates/kb-app/src/cli.rs crates/kb-app/src/lib.rs crates/kb-app/src/main.rs crates/kb-app/tests/sync_cli.rs
@@ -385,7 +385,7 @@ git commit -m "feat(app): Add kb --sync to rebuild the index without a window"
 - Create: `bench/probes/kb-home.sh`
 - Modify: `bench/probes/memory.sh`, `bench/probes/latency.sh`, `bench/probes/action.sh`, `bench/probes/cpu-rs.sh`
 
-- [ ] **Step 1: Add the task**
+- [x] **Step 1: Add the task**
 
 In `mise.toml`, after `[tasks.install]`:
 
@@ -404,30 +404,35 @@ run = '''
 '''
 ```
 
-- [ ] **Step 2: Run it**
+- [x] **Step 2: Run it**
 
 Run: `mise run bench:home`
 Expected: "private corpus verified; private-10x rebuilt", then
 `kb: indexed <n> entries from 68 files (0 failed) in <ms> ms into …/tmp/bench-home/Library/Application Support/kb-native/kb.db`.
 If `fixtures/private` is missing, run `mise run fixtures --refresh` first (owner: it reads `$KB_SOURCES`).
 
-- [ ] **Step 3: Add the shared helper**
+- [x] **Step 3: Add the shared helper**
 
-Create `bench/probes/kb-home.sh`:
+Create `bench/probes/kb-home.sh` (then `chmod +x`). It prints the home rather than being sourced: shellcheck cannot see
+a variable a sourced file sets (SC2154).
 
 ```bash
-# Sourced by the kb probes. Sets kb_home, the home kb runs under: $KB_HOME, else tmp/bench-home
-# (mise run bench:home), so kb reads fixtures/private like the runs it is compared with. Stops
-# when that home holds no index.
-# shellcheck shell=bash
-kb_home=${KB_HOME:-$PWD/tmp/bench-home}
-[ -f "$kb_home/Library/Application Support/kb-native/kb.db" ] || {
-  echo "no kb index under $kb_home; run mise run bench:home"
+#!/usr/bin/env bash
+# Prints the home the kb probes run kb under: $KB_HOME, else tmp/bench-home (mise run
+# bench:home), so kb reads fixtures/private like the runs it is compared with. Fails when that
+# home holds no index.
+# Usage: kb_home=$(bench/probes/kb-home.sh)
+set -euo pipefail
+
+home=${KB_HOME:-$PWD/tmp/bench-home}
+[ -f "$home/Library/Application Support/kb-native/kb.db" ] || {
+  echo "no kb index under $home; run mise run bench:home" >&2
   exit 1
 }
+echo "$home"
 ```
 
-- [ ] **Step 4: Use it in the four kb probes**
+- [x] **Step 4: Use it in the four kb probes**
 
 `bench/probes/memory.sh`, in the `kb)` branch, replace
 
@@ -438,68 +443,38 @@ open ${KB_HOME:+--env "HOME=$KB_HOME"} "$app_path"
 with
 
 ```bash
-# shellcheck source=/dev/null
-. "$here/kb-home.sh"
+kb_home=$("$here/kb-home.sh")
 open --env "HOME=$kb_home" "$app_path"
 ```
 
-`bench/probes/latency.sh`, in the `kb)` branch, replace
+`bench/probes/latency.sh`, in the `kb)` branch, replace `HOME=${KB_HOME:-$HOME} "$binary" --trace 2>>"$trace" &` with
 
 ```bash
-HOME=${KB_HOME:-$HOME} "$binary" --trace 2>>"$trace" &
-```
-
-with
-
-```bash
-# shellcheck source=/dev/null
-. "$(dirname "$0")/kb-home.sh"
+kb_home=$("$(dirname "$0")/kb-home.sh")
 HOME=$kb_home "$binary" --trace 2>>"$trace" &
 ```
 
-`bench/probes/action.sh`, in the `kb)` branch, replace
+`bench/probes/action.sh`, in the `kb)` branch, replace `HOME=${KB_HOME:-$HOME} "$binary" 2>/dev/null &` with
 
 ```bash
-HOME=${KB_HOME:-$HOME} "$binary" 2>/dev/null &
-```
-
-with
-
-```bash
-# shellcheck source=/dev/null
-. "$(dirname "$0")/kb-home.sh"
+kb_home=$("$(dirname "$0")/kb-home.sh")
 HOME=$kb_home "$binary" 2>/dev/null &
 ```
 
 `bench/probes/cpu-rs.sh`, after the `[ -d "$app" ] && [ -x "$probe" ] || {…}` check, add
+`kb_home=$("$(dirname "$0")/kb-home.sh")`, and replace `open ${KB_HOME:+--env "HOME=$KB_HOME"} "$app"` with
+`open --env "HOME=$kb_home" "$app"`.
 
-```bash
-# shellcheck source=/dev/null
-. "$(dirname "$0")/kb-home.sh"
-```
+In the usage comment of each of the four, change `[KB_HOME=<home>]` to `[KB_HOME=<home>, default tmp/bench-home]`
+(and drop cpu-rs's trailing `(KB_HOME: a home for the run)`).
 
-and replace
-
-```bash
-open ${KB_HOME:+--env "HOME=$KB_HOME"} "$app"
-```
-
-with
-
-```bash
-open --env "HOME=$kb_home" "$app"
-```
-
-In the usage comment of each of the four, change `[KB_HOME=<home>]` to
-`[KB_HOME=<home>, default tmp/bench-home]`.
-
-- [ ] **Step 5: Check the scripts**
+- [x] **Step 5: Check the scripts**
 
 Run: `hk check --all && KB_HOME=/nonexistent bench/probes/cpu-rs.sh /tmp 1 1; echo "exit $?"`
 Expected: hk passes (shellcheck, shfmt); the probe prints either "need target/packager/kb.app …" (not packaged yet) or
 "no kb index under /nonexistent; run mise run bench:home", and `exit 1`.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add mise.toml bench/probes/kb-home.sh bench/probes/memory.sh bench/probes/latency.sh bench/probes/action.sh bench/probes/cpu-rs.sh
@@ -516,7 +491,7 @@ git commit -m "feat(bench): Run the kb probes under a synced bench home"
 - Modify: `bench/probes/latency.sh` (header comment, `raycast)` branch)
 - Modify: `crates/xtask/src/report.rs` (`perceived`, the hotkey note)
 
-- [ ] **Step 1: Ignore the local mise file**
+- [x] **Step 1: Ignore the local mise file**
 
 Append to `.gitignore`:
 
@@ -525,7 +500,7 @@ Append to `.gitignore`:
 /mise.local.toml
 ```
 
-- [ ] **Step 2: Require the hotkey**
+- [x] **Step 2: Require the hotkey**
 
 In `bench/probes/latency.sh`, replace the two header lines
 
@@ -558,7 +533,7 @@ with
 read -r code mods <<<"$KB_RAYCAST_HOTKEY"
 ```
 
-- [ ] **Step 3: Update the report's note**
+- [x] **Step 3: Update the report's note**
 
 In `crates/xtask/src/report.rs`, `perceived`, replace
 
@@ -574,13 +549,13 @@ with
  `KB_RAYCAST_HOTKEY` to compare the two commands"
 ```
 
-- [ ] **Step 4: Check**
+- [x] **Step 4: Check**
 
 Run: `hk check --all && env -u KB_RAYCAST_HOTKEY bench/probes/latency.sh raycast /tmp 1; echo "exit $?"`
 Expected: hk passes; the probe prints "need tmp/bin/probe; run mise run probes" or the `KB_RAYCAST_HOTKEY` message,
 and `exit 1`.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add .gitignore bench/probes/latency.sh crates/xtask/src/report.rs
@@ -596,7 +571,7 @@ git commit -m "feat(bench): Require kb Search's Raycast hotkey for the latency r
 - Create: `bench/probes/manual-keystroke.sh`
 - Modify: `crates/xtask/src/report.rs` (`perceived`; tests)
 
-- [ ] **Step 1: Write the failing xtask tests**
+- [x] **Step 1: Write the failing xtask tests**
 
 In `crates/xtask/src/report.rs`, `mod tests`, add `use std::fs;` under `use super::*;` and append:
 
@@ -611,32 +586,36 @@ In `crates/xtask/src/report.rs`, `mod tests`, add `use std::fs;` under `use supe
         (dir, results)
     }
 
+    /// The tier 3 table's keystroke row, rendered from `files`. Shared: jscpd's threshold is 0.
+    fn keystroke_row(files: &[(&str, &str)]) -> String {
+        let (_dir, results) = results_with(files);
+        let (out, _) = perceived(&results).unwrap();
+        let row = out.lines().find(|l| l.starts_with("| Keystroke → updated list"));
+        row.unwrap().to_owned()
+    }
+
     #[test]
     fn shows_the_manual_raycast_keystroke_run() {
-        let (_dir, results) = results_with(&[(
+        let row = keystroke_row(&[(
             "tier3-raycast-keystroke-manual-20261010T120000Z.json",
             r#"{"stats": {"p25": 25.0, "p50": 33.3, "p75": 41.7}}"#,
         )]);
-        let (out, _) = perceived(&results).unwrap();
-        let row = out.lines().find(|l| l.starts_with("| Keystroke → updated list")).unwrap();
         assert!(row.contains("| 33.3 (25.0–41.7) |"), "{row}");
     }
 
     #[test]
     fn says_when_the_manual_keystroke_run_is_missing() {
-        let (_dir, results) = results_with(&[]);
-        let (out, _) = perceived(&results).unwrap();
-        let row = out.lines().find(|l| l.starts_with("| Keystroke → updated list")).unwrap();
+        let row = keystroke_row(&[]);
         assert!(row.contains("| manual: not recorded |"), "{row}");
     }
 ```
 
-- [ ] **Step 2: Run them to verify they fail**
+- [x] **Step 2: Run them to verify they fail**
 
 Run: `cargo nextest run -p xtask keystroke`
 Expected: FAIL — both rows still read "manual (methodology)".
 
-- [ ] **Step 3: Read the manual run in `perceived`**
+- [x] **Step 3: Read the manual run in `perceived`**
 
 In `perceived`, after the `kb_action, raycast_action` binding add:
 
@@ -667,12 +646,12 @@ vec![
 ],
 ```
 
-- [ ] **Step 4: Run them to verify they pass**
+- [x] **Step 4: Run them to verify they pass**
 
 Run: `cargo nextest run -p xtask`
 Expected: PASS, every xtask test.
 
-- [ ] **Step 5: Add the recording script**
+- [x] **Step 5: Add the recording script**
 
 Create `bench/probes/manual-keystroke.sh` (then `chmod +x`):
 
@@ -705,14 +684,14 @@ jq -r '"keystroke-manual: p50 \(.stats.p50) ms (IQR \(.stats.p25)–\(.stats.p75
   "$results/tier3-raycast-keystroke-manual-$stamp.json"
 ```
 
-- [ ] **Step 6: Check it**
+- [x] **Step 6: Check it**
 
 Run: `d=$(mktemp -d) && bench/probes/manual-keystroke.sh "$d" 120 3 4 5 4 && jq -c '.stats' "$d"/*.json && hk check --all`
-Expected: `keystroke-manual: p50 33.333333333333336 ms (IQR 33.333333333333336–41.666666666666664, n 4)`, then
-`{"n":4,"min":25,"p25":33.333333333333336,"p50":33.333333333333336,"p75":41.666666666666664,"max":41.666666666666664}`;
+Expected: `keystroke-manual: p50 33.333333333333336 ms (IQR 25–33.333333333333336, n 4)`, then
+`{"n":4,"min":25,"p25":25,"p50":33.333333333333336,"p75":33.333333333333336,"max":41.666666666666664}`;
 hk passes.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add bench/probes/manual-keystroke.sh crates/xtask/src/report.rs
@@ -728,7 +707,7 @@ git commit -m "feat(report): Record and show Raycast's manual keystroke timing"
 - Modify: `bench/probes/maint.sh` (both halves)
 - Modify: `crates/xtask/src/report.rs` (`maintainability`; tests)
 
-- [ ] **Step 1: Write the failing xtask test**
+- [x] **Step 1: Write the failing xtask test**
 
 Append to `mod tests` in `crates/xtask/src/report.rs` (it uses `results_with` from Task 4):
 
@@ -755,12 +734,12 @@ fn renders_depth_coverage_duplication_and_lint() {
 }
 ```
 
-- [ ] **Step 2: Run it to verify it fails**
+- [x] **Step 2: Run it to verify it fails**
 
 Run: `cargo nextest run -p xtask renders_depth`
 Expected: FAIL — no "Dependency depth" row.
 
-- [ ] **Step 3: Add the rows**
+- [x] **Step 3: Add the rows**
 
 In `maintainability`, after the `seconds` closure add:
 
@@ -798,12 +777,12 @@ vec![
 ],
 ```
 
-- [ ] **Step 4: Run the tests to verify they pass**
+- [x] **Step 4: Run the tests to verify they pass**
 
 Run: `cargo nextest run -p xtask`
 Expected: PASS.
 
-- [ ] **Step 5: Measure them in `maint.sh`**
+- [x] **Step 5: Measure them in `maint.sh`**
 
 In `bench/probes/maint.sh`, after the `code()` function add:
 
@@ -825,10 +804,11 @@ In the TypeScript half, after `ts_direct=…` add:
 
 ```bash
 # npm reads the installed tree and writes nothing. It cannot scope a Bun workspace to one
-# package, so this is the depth of the whole Raycast repo's tree.
-ts_depth=$(npm ls --all --json --prefix "$ts" 2>/dev/null |
-  jq 'def d: if ((.dependencies // {}) | length) == 0 then 0 else 1 + ([.dependencies[] | d] | max) end; d' ||
-  echo null)
+# package, so this is the depth of the whole Raycast repo's tree. npm exits non-zero over
+# packages Bun hoists differently, yet still prints the tree; null if it prints nothing.
+ts_depth=$( (npm ls --all --json --prefix "$ts" 2>/dev/null || true) |
+  jq 'def d: if ((.dependencies // {}) | length) == 0 then 0 else 1 + ([.dependencies[] | d] | max) end; d')
+ts_depth=${ts_depth:-null}
 ```
 
 and change its `jq -n` call: add `--argjson depth "$ts_depth" --argjson dupes "$(dupes typescript,tsx "${ts_paths[@]}")"`
@@ -866,14 +846,15 @@ and append to its `note`: ` Coverage: lines of kb-domain and kb-app under cargo 
 `dupes` runs from `tmp/`, so every path it gets must be absolute: `$ts` already is; the Rust paths are prefixed
 with `$PWD/` above.
 
-- [ ] **Step 6: Run it**
+- [x] **Step 6: Run it**
 
 Run: `bench/probes/maint.sh tmp --no-build`
-Expected: two compact JSON lines; `deps.depth` is 10 (or close) for ts and a small integer for rust, `coverage.lines`
+Expected (2026-10-10: rust depth 15, coverage 86.5%, duplication 0%, clippy 0; ts depth 10, duplication 1.3%):
+two compact JSON lines; `deps.depth` is 10 (or close) for ts and a small integer for rust, `coverage.lines`
 a percentage for rust and `null` for ts, both `duplication.percent` numbers, rust `lint.clippyWarnings` 0. Then
 `rm tmp/maint-*.json` (these are not session results).
 
-- [ ] **Step 7: Gate and commit**
+- [x] **Step 7: Gate and commit**
 
 Run: `hk check --all && mise run gate --fast`
 Expected: pass.
@@ -892,7 +873,7 @@ git commit -m "feat(report): Add dependency depth, coverage, duplication and lin
 - Modify: `crates/xtask/src/report.rs` (`Inputs`, `render`; tests)
 - Modify: `crates/xtask/src/main.rs` (`run`)
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Append to `mod tests` in `crates/xtask/src/report.rs`:
 
@@ -919,12 +900,12 @@ Append to `mod tests` in `crates/xtask/src/report.rs`:
     }
 ```
 
-- [ ] **Step 2: Run it to verify it fails**
+- [x] **Step 2: Run it to verify it fails**
 
 Run: `cargo nextest run -p xtask links_the_findings`
 Expected: FAIL to compile: `Inputs` has no field `findings`.
 
-- [ ] **Step 3: Add the field and the link**
+- [x] **Step 3: Add the field and the link**
 
 In `Inputs`, after `verified`:
 
@@ -949,12 +930,12 @@ In `crates/xtask/src/main.rs`, `run`, add to the `Inputs { … }` literal after 
 findings: experiment.join("findings.md").is_file(),
 ```
 
-- [ ] **Step 4: Run the tests and the fast gate**
+- [x] **Step 4: Run the tests and the fast gate**
 
 Run: `cargo nextest run -p xtask && mise run gate --fast`
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add crates/xtask/src/report.rs crates/xtask/src/main.rs
@@ -970,7 +951,7 @@ git commit -m "feat(report): Link the findings note from the verdict"
 - Create: `bench/probes/preflight.sh`
 - Modify: `mise.toml` (new tasks after `[tasks."bench:maint"]`)
 
-- [ ] **Step 1: Add the preflight**
+- [x] **Step 1: Add the preflight**
 
 Create `bench/probes/preflight.sh` (then `chmod +x`):
 
@@ -999,7 +980,7 @@ printf 'missing: %s\n' "${missing[@]}"
 exit 1
 ```
 
-- [ ] **Step 2: Add the tasks**
+- [x] **Step 2: Add the tasks**
 
 In `mise.toml`, after `[tasks."bench:maint"]`:
 
@@ -1049,12 +1030,12 @@ run = '''
 '''
 ```
 
-- [ ] **Step 3: Check**
+- [x] **Step 3: Check**
 
 Run: `hk check --all && mise tasks | grep -E 'bench:(cpu|size|session|home)' && env -u KB_RAYCAST_HOTKEY bench/probes/preflight.sh; echo "exit $?"`
 Expected: hk passes; four tasks listed; preflight lists at least the `KB_RAYCAST_HOTKEY` miss and `exit 1`.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add bench/probes/preflight.sh mise.toml
@@ -1072,7 +1053,7 @@ git commit -m "feat(bench): Add cpu, size and session tasks with a preflight"
 - Modify: `CONTEXT.md` (Experiment table)
 - Modify: `README.md` (Development Workflow)
 
-- [ ] **Step 1: Methodology**
+- [x] **Step 1: Methodology**
 
 In "Tier 2 — footprint", replace the bullet beginning "kb runs as the packaged `.app`" with:
 
@@ -1120,7 +1101,7 @@ Tiers 2 and 3 are measured in one sitting, so both apps see the same machine sta
    did not run. Uncommitted results make the report cite a `-dirty` commit.
 ```
 
-- [ ] **Step 2: Amend the experiment spec**
+- [x] **Step 2: Amend the experiment spec**
 
 In `docs/superpowers/specs/2026-10-08-kb-native-port-experiment-design.md`, `## Report`, after the numbered list
 (before "**Success criteria.**"), add:
@@ -1133,7 +1114,7 @@ warning count. Failed or unmeasured criteria are explained in the hand-written `
 from the report. Design: `docs/superpowers/specs/2026-10-10-kb-native-05-measurement-and-report-design.md`.
 ```
 
-- [ ] **Step 3: CONTEXT and README**
+- [x] **Step 3: CONTEXT and README**
 
 In `CONTEXT.md`, Experiment table, after the "Report" row add:
 
@@ -1141,14 +1122,15 @@ In `CONTEXT.md`, Experiment table, after the "Report" row add:
 | Findings | The hand-written reading of the report: why a criterion failed or went unmeasured, and what would fix it. | `docs/experiment/findings.md` |
 ```
 
-In `README.md`, `## Development Workflow`, add a paragraph:
+In `README.md`, `## Development Workflow`, add rows to the command table for `bench:home`, `bench:size <app>`,
+`bench:cpu <app>` and `bench:session`, and before the "Commits follow…" line add a paragraph:
 
 ```markdown
 Measuring both apps is one sitting: set up what `docs/experiment/methodology.md` ("Session") asks, run
 `mise run bench:session`, record the manual keystroke run, commit the results, then `mise run report`.
 ```
 
-- [ ] **Step 4: Format, check and commit**
+- [x] **Step 4: Format, check and commit**
 
 Run: `dprint fmt && hk check --all`
 Expected: pass (dprint realigns the CONTEXT table).
@@ -1158,7 +1140,7 @@ git add docs/experiment/methodology.md docs/superpowers/specs/2026-10-08-kb-nati
 git commit -m "docs: Describe the measurement session and amend the report scope"
 ```
 
-- [ ] **Step 5: Full gate**
+- [x] **Step 5: Full gate**
 
 Run: `mise run gate`
 Expected: every step passes. Hand over to the owner for Task 9.
