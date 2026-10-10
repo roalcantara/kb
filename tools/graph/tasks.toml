@@ -1,0 +1,59 @@
+# The code graph tools (tools/graph/README.md), included from the root mise.toml. An included file is a flat list of
+# tasks: each [header] is a task name, with no [tasks.] prefix.
+
+[graph]
+description = "Manage the code graphs agents use: code-review-graph (CRG), Gortex and Graphify"
+run = "bun tools/graph/graph.ts"
+usage = '''
+  arg "<action>" {
+    help "Graph action to run"
+    long_help """
+      install: register MCP/server wiring and install the selected tool(s)
+      setup: repo-scoped initialization such as tracking repos or preparing output dirs
+      build: rebuild calculator or graph artefacts for the selected tool(s)
+      update: refresh or reload existing graph tooling without re-running a full setup
+    """
+    choices "install" "setup" "build" "update"
+  }
+  arg "[tool]" {
+    help "Tool to scope the action to"
+    long_help """
+      all: run against every graph tool in the repo stack
+      crg: code-review-graph
+      gortex: repo graph daemon and repo tracking
+      graphify: Graphify output generation in graphify-out/
+    """
+    default "all"
+    choices "all" "crg" "gortex" "graphify"
+  }
+  flag "--timeout <seconds>" {
+    help "Seconds to allow per command"
+    default "60"
+  }
+  flag "--dry-run" {
+    help "Print planned actions without mutating the repo or installed tools"
+  }
+  flag "--fix" {
+    help "Attempt to repair wiring or repository state, then re-diagnose"
+  }
+  flag "--force" {
+    help "Graphify only: run the LLM semantic pass (extract + community labels) instead of the code-only update"
+    long_help """
+      Without --force, graphify runs `graphify update .` (AST only, no LLM, no API key).
+      With --force, graphify runs `graphify extract .` then `graphify label .` through
+      `fnox exec`, trying each --backend in order until one succeeds:
+        update --force: incremental semantic extraction of new/changed files
+        build --force:  full re-scan (`extract --force`; expensive)
+        setup --force:  full extraction only when graphify-out/graph.json is missing
+    """
+  }
+  flag "--backend <backends>" {
+    help "Comma-separated graphify LLM backends to try in order (used with --force)"
+    long_help "Any of gemini|kimi|claude|openai|deepseek|ollama. Keys resolve via fnox (.fnox.toml) or the environment."
+    default "deepseek,gemini"
+  }
+  flag "--llm-timeout <seconds>" {
+    help "Seconds to allow per graphify LLM command (used with --force)"
+    default "1800"
+  }
+'''

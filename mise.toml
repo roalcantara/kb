@@ -15,8 +15,11 @@ KB_TS_REPO = "{{ env.HOME }}/Work/raycast/kb"
 KB_SOURCES = "{{ env.HOME }}/.config/kodexb/sources"
 
 [task_config]
-includes = ["tools/bench/tasks.toml"]
-# ── end of benchmark kit ──
+includes = [
+  "tools/bench/tasks.toml",
+  # The code graph tools (tools/graph/README.md).
+  "tools/graph/tasks.toml",
+]
 
 [tools]
 jactionlint = "1.8.2"

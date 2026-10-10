@@ -41,7 +41,7 @@ Graphify 0.9.79.
 
 ### Task 1: Pin the tools
 
-- [ ] In `mise.toml` `[tools]`, add (keep the table's alphabetical-ish grouping; `mise fmt` decides):
+- [x] In `mise.toml` `[tools]`, add (keep the table's alphabetical-ish grouping; `mise fmt` decides):
 
 ```toml
 # Code graphs for agents (tools/graph/README.md)
@@ -54,24 +54,24 @@ python = "3.13.16"
 fnox = "1.39.0"
 ```
 
-- [ ] Copy `~/Work/raycast/kb/.fnox.toml` to the repo root unchanged: it names `pass` entries
+- [x] Copy `~/Work/raycast/kb/.fnox.toml` to the repo root unchanged: it names `pass` entries
       (`tokens/github.com`, `tokens/DEEPSEEK_API_KEY`), never secret values. In `.gitignore`, under a
       `# fnox: local overrides, never committed.` comment, add `/fnox.local.toml` and `/.fnox.local.toml`.
 
-- [ ] `mise install` then `GITHUB_TOKEN=$(gh auth token) mise lock`. Expected: `✓ Lockfile written`, and
+- [x] `mise install` then `GITHUB_TOKEN=$(gh auth token) mise lock`. Expected: `✓ Lockfile written`, and
       `.mise/locks/` gains `pipx-code-review-graph` and `pipx-graphifyy` folders.
-- [ ] `.github/workflows/ci.yml`: extend `MISE_DISABLE_TOOLS` to
+- [x] `.github/workflows/ci.yml`: extend `MISE_DISABLE_TOOLS` to
       `tokei,cargo:https://github.com/RayanBO/todo/,github:zzet/gortex,pipx:code-review-graph,pipx:graphifyy,fnox,pipx:commit-check,python`, and
       its comment to "Tools in mise.toml that no CI job runs".
-- [ ] Check fnox: `fnox list -P default --sources` lists `GITHUB_TOKEN` and `DEEPSEEK_API_KEY`;
+- [x] Check fnox: `fnox list -P default --sources` lists `GITHUB_TOKEN` and `DEEPSEEK_API_KEY`;
       `fnox exec -- sh -c 'test -n "$DEEPSEEK_API_KEY"' && echo resolved`. If `pass` has no such entry on this machine,
       report it and go on: the key is only needed for `--force`.
-- [ ] `mise fmt && taplo fmt mise.toml && hk check --all`. Expected: pass (gitleaks too: `.fnox.toml` holds no secret).
-- [ ] Commit: `build: Pin the code graph tools and fnox in mise`.
+- [x] `mise fmt && taplo fmt mise.toml && hk check --all`. Expected: pass (gitleaks too: `.fnox.toml` holds no secret).
+- [x] Commit: `build: Pin the code graph tools and fnox in mise`.
 
 ### Task 2: The `graph` task
 
-- [ ] Create `tools/graph/tasks.toml`:
+- [x] Create `tools/graph/tasks.toml`:
 
 ```toml
 # The code graph tools (tools/graph/README.md), included from the root mise.toml. An included file is a flat list of
@@ -85,8 +85,7 @@ run = "bun tools/graph/graph.ts"
 then add, after `run`, a `usage = '''…'''` copied verbatim from `~/Work/raycast/kb/mise.toml`, the `usage` value of
 `[tasks.graph]` (from `usage = '''` to its closing `'''`, about lines 239–289).
 
-- [ ] Create `tools/graph/graph.ts` from the same task's `run = '''…'''` body (from `#!/usr/bin/env bun` to the line
-      before the closing `'''`, about lines 291–519), dedented by two spaces, with these changes and no others:
+- [x] Create `tools/graph/graph.ts` from the same task's `run = '''…'''` body (from `#!/usr/bin/env bun` to the line
   1. First lines, after the shebang:
      `// mise run graph (tools/graph/tasks.toml): install, set up, build or update the code graphs.`
      `// Ported from the kb Raycast repo; mise passes the arguments as usage_* environment variables.`
@@ -96,12 +95,12 @@ then add, after `run`, a `usage = '''…'''` copied verbatim from `~/Work/raycas
      `gortex not found (ignored)`; else run `gortex daemon status` read-only and quiet; when it succeeds, run
      `gortex daemon reload` (quiet) and print `gortex reloaded`; otherwise print
      `gortex daemon not running — skipped (mise run graph setup gortex starts it)`.
-- [ ] In `mise.toml` `[task_config] includes`, add `"tools/graph/tasks.toml"` after the benchmark kit's entry, outside
+- [x] In `mise.toml` `[task_config] includes`, add `"tools/graph/tasks.toml"` after the benchmark kit's entry, outside
       the kit's marked block, with the comment `# The code graph tools (tools/graph/README.md).`
-- [ ] Check: `mise tasks | grep '^graph'` lists it; `mise run graph update --dry-run` prints one `would run` per tool
+- [x] Check: `mise tasks | grep '^graph'` lists it; `mise run graph update --dry-run` prints one `would run` per tool
       (or `… not found (ignored)`); `mise run graph install --dry-run` prints the CRG message from change 2;
       `mise run graph update crg` exits 0.
-- [ ] Commit: `feat(tools): Add the graph task for agents' code graphs`.
+- [x] Commit: `feat(tools): Add the graph task for agents' code graphs`.
 
 ### Task 3: Doctor checks
 
