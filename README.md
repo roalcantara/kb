@@ -2,7 +2,7 @@
 
 ## Project Name and Description
 
-kb native is an experiment: a native macOS port of the [kb](https://github.com/roalcantara/kb) Raycast extension's
+kb native is an experiment: a native macOS port of the [kb](https://github.com/roalcantara/kb-raycast) Raycast extension's
 knowledge-base search, written in Rust on [GPUI Kit](https://gpui-kit.com), and measured against the original. Its
 deliverable is a report that says, with numbers, whether a native port is worth having once Raycast's extension
 size and runtime limits are out of the way.
