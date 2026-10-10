@@ -2,7 +2,7 @@
 # Tier 2, memory: RSS (rss.sh) and physical footprint (footprint.sh) in three scenarios — idle
 # with the window hidden, search open, and after 100 scripted queries — for one app. Raycast is
 # sampled twice per scenario: the whole app (all) and its extension host (worker).
-# Usage: [KB_HOME=<home>] [SECONDS_PER=30] memory.sh kb|raycast <results-dir>
+# Usage: [KB_HOME=<home>, default tmp/bench-home] [SECONDS_PER=30] memory.sh kb|raycast <results-dir>
 set -euo pipefail
 
 app=$1
@@ -27,7 +27,8 @@ kb)
   }
   pkill -x kb || true
   while pgrep -x kb >/dev/null; do sleep 0.2; done
-  open ${KB_HOME:+--env "HOME=$KB_HOME"} "$app_path"
+  kb_home=$("$here/kb-home.sh")
+  open --env "HOME=$kb_home" "$app_path"
   sleep 4
   show() { "$probe" key 40 opt; }
   hide() { "$probe" key 53; }

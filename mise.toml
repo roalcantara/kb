@@ -225,6 +225,19 @@ run = '''
   echo "installed ~/Applications/kb.app; open it, then press ⌥K"
 '''
 
+[tasks."bench:home"]
+description = "Build tmp/bench-home: a home whose kb config points at fixtures/private, with its index synced"
+run = '''
+  #!/usr/bin/env bash
+  set -euo pipefail
+  mise run fixtures
+  cargo build --release --locked -p kb-app
+  home="$PWD/tmp/bench-home"
+  mkdir -p "$home/.config/kb"
+  printf 'sources_path = "%s"\n' "$PWD/fixtures/private" >"$home/.config/kb/config.toml"
+  HOME="$home" target/release/kb --sync
+'''
+
 [tasks."bench:memory"]
 description = "Tier 2: RSS and physical footprint of kb or Raycast, idle, open and after 100 queries"
 depends = ["probes"]

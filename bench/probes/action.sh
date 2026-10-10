@@ -3,7 +3,7 @@
 # search, type a query whose first result is a command, wait past the debounce, then time ⌘↩ →
 # the clipboard changing with `probe copy`. kb opens by its hotkey; Raycast's kb command by its
 # deeplink, since how it opens does not change what ⌘↩ costs.
-# Usage: [KB_HOME=<home>] [QUERY=kubectl] action.sh kb|raycast <results-dir> [runs]
+# Usage: [KB_HOME=<home>, default tmp/bench-home] [QUERY=kubectl] action.sh kb|raycast <results-dir> [runs]
 set -euo pipefail
 
 app=$1
@@ -27,7 +27,8 @@ kb)
   }
   pkill -x kb || true
   while pgrep -x kb >/dev/null; do sleep 0.2; done
-  HOME=${KB_HOME:-$HOME} "$binary" 2>/dev/null &
+  kb_home=$("$(dirname "$0")/kb-home.sh")
+  HOME=$kb_home "$binary" 2>/dev/null &
   sleep 4
   "$probe" key 53
   sleep 1

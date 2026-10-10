@@ -4,7 +4,7 @@
 # `kb --trace` also reports show and keystroke → updated list from inside, as both ends of its
 # drawn..presented range (src/trace.rs). Raycast exposes no equivalent, so its keystroke latency
 # is the manual screen-recording step in docs/experiment/methodology.md.
-# Usage: [KB_HOME=<home>] [HOTKEY="49 cmd"] latency.sh kb|raycast <results-dir> [runs]
+# Usage: [KB_HOME=<home>, default tmp/bench-home] [HOTKEY="49 cmd"] latency.sh kb|raycast <results-dir> [runs]
 #   HOTKEY: Raycast's hotkey as "<keycode> <mods>"; default ⌘Space, its root search.
 set -euo pipefail
 
@@ -30,7 +30,8 @@ kb)
   trace=$(mktemp)
   pkill -x kb || true
   while pgrep -x kb >/dev/null; do sleep 0.2; done
-  HOME=${KB_HOME:-$HOME} "$binary" --trace 2>>"$trace" &
+  kb_home=$("$(dirname "$0")/kb-home.sh")
+  HOME=$kb_home "$binary" --trace 2>>"$trace" &
   sleep 4
   "$probe" key 53 # it opens shown; hide it so every round starts hidden
   sleep 1
