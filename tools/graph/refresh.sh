@@ -17,7 +17,9 @@ if [ "${1:-}" = --worker ]; then
   while :; do
     while [ -f "$pending" ]; do
       rm -f "$pending"
-      mise run graph update >tmp/graph-update.log 2>&1 || true
+      # Never install tools from the background: a mise install of Rust re-syncs the toolchain through rustup, and a
+      # `cargo build` running meanwhile fails ("cargo ... is not applicable to the toolchain"). `mise install` does it.
+      MISE_EXEC_AUTO_INSTALL=0 MISE_TASK_RUN_AUTO_INSTALL=0 mise run graph update >tmp/graph-update.log 2>&1 || true
     done
     rm -rf "$lock"
     [ -f "$pending" ] || exit 0         # nothing arrived while releasing

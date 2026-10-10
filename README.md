@@ -69,7 +69,7 @@ touched.
 
 ```bash
 mise run gate         # every quality gate, stopping at the first failure
-mise run app          # build and start the panel from the terminal; --trace logs its latencies
+mise run app          # build and start the panel from the terminal (then ⌥K); --trace logs its latencies
 ```
 
 `mise run package` builds `target/packager/kb.app` and signs it ad hoc, which is enough for this machine. To give it
