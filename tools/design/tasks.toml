@@ -2,8 +2,8 @@
 
 ["design:sample"]
 description = "Measure colours and sizes from the local Raycast screenshots (tools/reports) into tools/design/raycast.json"
-run = "uv run -q --with pillow python -I tools/design/sample.py"
+run = "uv run -q --with pillow python -I tools/design/sample.py && dprint fmt tools/design/raycast.json"
 
 ["design:palettes"]
 description = "Validate the candidate palettes and open the comparison page (tmp/design/palettes.html)"
-run = "node tools/design/validate.mjs && node tools/design/render.mjs && open tmp/design/palettes.html"
+run = "node tools/design/validate.mjs && dprint fmt tools/design/validation.json && node tools/design/render.mjs && open tmp/design/palettes.html"
