@@ -15,7 +15,7 @@ timeout = "1s"
 [doctor.checks.graph_crg_version]
 description = "code-review-graph matches the pinned version"
 run = '''
-  expected=$(grep -E '"pipx:code-review-graph"\s*=\s*"[^"]+"' mise.toml | sed -E 's/.*"([^"]+)".*/\1/' | head -n1)
+  expected=$(grep -E '"pipx:code-review-graph"[[:space:]]*=[[:space:]]*"[^"]+"' mise.toml | sed -E 's/.*"([^"]+)".*/\1/' | head -n1)
   if [ -z "$expected" ]; then exit 0; fi
   actual=$(code-review-graph --version 2>/dev/null || true)
   printf '%s\n' "$actual" | grep -Eq "v?${expected//./\\.}([[:space:]]|$)"

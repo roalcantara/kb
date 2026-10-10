@@ -21,7 +21,7 @@ mise run graph setup
 # Incremental update: refresh changed files (AST-only, fast, no LLM required)
 mise run graph update
 
-# Full rebuild: rebuild calculators or graph artifacts from scratch
+# Rebuild: CRG from scratch, Graphify code-only (from scratch only with --force), Gortex reloaded
 mise run graph build
 
 # Semantic LLM pass (Graphify only): runs extraction and community labelling via LLM
@@ -52,7 +52,7 @@ Following spec decision D6, global state modifications outside this repository a
 
 - `mise run graph install` configures agent configuration files in user home directories (e.g. MCP registration, agent skills).
 - `mise run graph setup gortex` registers this repository with Gortex (`gortex track`) and starts its background daemon.
-- `mise run graph update` (run by git hooks) never starts the Gortex daemon; it reloads the daemon only if already running, and skips it otherwise. CRG installs with `--no-instructions`, keeping `CLAUDE.md` untouched.
+- `mise run graph update` (run by git hooks) never starts the Gortex daemon; it reloads the daemon only if already running, and skips it otherwise. CRG needs no install: its wiring (`.mcp.json`, `.agents/skills`, `.claude/settings.json`) is committed, so `CLAUDE.md` stays untouched.
 
 ## Removal
 

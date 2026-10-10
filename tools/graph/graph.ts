@@ -126,20 +126,24 @@ const required = (label: string, result: { ok: boolean; timedOut: boolean; code:
   process.exitCode = 1
 }
 // The daemon is machine-wide: only `setup gortex` starts it (spec D6); update and build reload it when it runs.
-const gortexReload = () => {
+// `strict`: a failed reload fails the task (build); the background update reports it and goes on.
+const gortexReload = (strict: boolean) => {
   const status = runCommand('gortex', ['daemon', 'status'], { quiet: true, readOnly: true })
   if (!status.ok) {
     say('gortex daemon not running — skipped (mise run graph setup gortex starts it)')
     return
   }
-  runCommand('gortex', ['daemon', 'reload'], { quiet: true })
-  say('gortex reloaded')
+  const reload = runCommand('gortex', ['daemon', 'reload'], { quiet: true })
+  if (reload.ok) say('gortex reloaded')
+  else if (strict) required('gortex daemon reload', reload)
+  else say(`gortex reload ${reload.timedOut ? 'timed out' : 'failed'} (ignored)`)
 }
 const gortexDaemonUp = () => {
   const status = runCommand('gortex', ['daemon', 'status'], { quiet: true, readOnly: true })
   const command = status.ok ? ['gortex', 'daemon', 'reload'] : ['gortex', 'daemon', 'start', '--detach']
-  const result = runCommand(command[0], command.slice(1), { quiet: true })
-  return result.ok || result.timedOut
+  runCommand(command[0], command.slice(1), { quiet: true })
+  // A start that timed out may not have started anything: the daemon's own status decides.
+  return dryRun || runCommand('gortex', ['daemon', 'status'], { quiet: true, readOnly: true }).ok
 }
 const formatUpdateStatus = (
   tool: string,
@@ -182,14 +186,14 @@ const runGraphAction = (selected: Target[], mode: Action) => {
           console.log('  would run: gortex install')
           return
         }
-        runCommand('gortex', ['install'], { timeoutMs, quiet: false })
+        required('gortex install', runCommand('gortex', ['install'], { timeoutMs }))
       },
       graphify: () => {
         if (dryRun) {
           console.log('  would run: graphify install --platform claude')
           return
         }
-        runCommand('graphify', ['install', '--platform', 'claude'], { timeoutMs, quiet: false })
+        required('graphify install', runCommand('graphify', ['install', '--platform', 'claude'], { timeoutMs }))
       }
     },
     setup: {
@@ -205,7 +209,7 @@ const runGraphAction = (selected: Target[], mode: Action) => {
     },
     build: {
       crg: () => required('code-review-graph build', runCommand('code-review-graph', ['build'], { timeoutMs })),
-      gortex: () => gortexReload(),
+      gortex: () => gortexReload(true),
       graphify: () => graphifyRefresh('build')
     },
     update: {
@@ -224,7 +228,7 @@ const runGraphAction = (selected: Target[], mode: Action) => {
           say('gortex not found (ignored)')
           return
         }
-        gortexReload()
+        gortexReload(false)
       },
       graphify: () => {
         if (!exists(TOOL_META.graphify.bin)) {
