@@ -40,8 +40,10 @@ struct Fixture {
 }
 
 fn fixture() -> Fixture {
-    let corpus = dir("KB_CORPUS", "fixtures/sample").canonicalize().expect("corpus");
-    let goldens = dir("KB_GOLDENS", "fixtures/sample-goldens");
+    let corpus = dir("KB_CORPUS", "crates/kb-domain/tests/fixtures/sample")
+        .canonicalize()
+        .expect("corpus");
+    let goldens = dir("KB_GOLDENS", "crates/kb-domain/tests/fixtures/sample-goldens");
     let database = tempfile::tempdir().expect("tempdir");
     let summary =
         sync_knowledge_base(&corpus, &database.path().join("kb.db"), &AtomicBool::new(false), |_| {}).expect("sync");

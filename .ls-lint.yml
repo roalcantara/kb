@@ -21,7 +21,8 @@ ignore:
   - .vscode
   - target
   - tmp
-  - fixtures
+  - crates/kb-domain/tests/fixtures
+  - tools/bench/fixtures
   - bench/ts/kb
   - bench/ts/node_modules
   - bench/ts/dist

@@ -24,7 +24,7 @@ fn sync_under(home: &Path, sources: &Path) -> Output {
 fn syncs_the_configured_sources_into_the_data_directory() {
     let home = tempfile::tempdir().unwrap();
     let sample = Path::new(env!("CARGO_MANIFEST_DIR"))
-        .join("../../fixtures/sample")
+        .join("../kb-domain/tests/fixtures/sample")
         .canonicalize()
         .unwrap();
 

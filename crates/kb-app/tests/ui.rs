@@ -23,7 +23,7 @@ use kb_app::search_view::SearchView;
 /// A config whose sources are the sample corpus and whose index is already built.
 fn sample_config(home: &Path) -> Config {
     let sample = Path::new(env!("CARGO_MANIFEST_DIR"))
-        .join("../../fixtures/sample")
+        .join("../kb-domain/tests/fixtures/sample")
         .canonicalize()
         .unwrap();
     let preferences = home.join(".config/kb/config.toml");
