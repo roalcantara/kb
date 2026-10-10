@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs'
 import type { SearchQuery } from './kb/src/search'
 
-/** One entry of fixtures/queries.json. */
+/** One entry of tools/bench/fixtures/queries.json. */
 export interface BenchQuery {
   readonly id: string
   readonly text: string

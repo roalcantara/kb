@@ -1,6 +1,6 @@
-//! Repository tasks written in Rust, run through mise.
+//! The benchmark kit's report generator (tools/bench/README.md).
 //!
-//! `cargo run -p xtask -- report [--verified]` writes `docs/experiment/report.md` from the
+//! `cargo run -p kb-report -- report [--verified]` writes `docs/experiment/report.md` from the
 //! results, the parity matrix and the compliance checklist. `mise run report` runs the gate and
 //! golden parity first and passes `--verified` only when both pass.
 
@@ -27,7 +27,7 @@ pub enum Error {
     #[error("{0}: {1}")]
     Json(PathBuf, serde_json::Error),
     /// The command line asks for something this tool does not do.
-    #[error("usage: xtask report [--verified]")]
+    #[error("usage: kb-report report [--verified]")]
     Usage,
 }
 
@@ -41,7 +41,7 @@ fn main() -> ExitCode {
     match run() {
         Ok(()) => ExitCode::SUCCESS,
         Err(error) => {
-            eprintln!("xtask: {error}");
+            eprintln!("kb-report: {error}");
             ExitCode::FAILURE
         }
     }
@@ -54,7 +54,7 @@ fn run() -> Result<(), Error> {
         ["report", "--verified"] => true,
         _ => return Err(Error::Usage),
     };
-    let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
+    let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../..");
     let experiment = root.join("docs/experiment");
     let read = |name: &str| {
         let path = experiment.join(name);

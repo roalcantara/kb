@@ -1,4 +1,4 @@
-//! Tier 1: benchmarks `kb-domain` on a corpus and writes one result in the schema `bench/ts`
+//! Tier 1: benchmarks `kb-domain` on a corpus and writes one result in the schema `tools/bench/ts`
 //! writes, so `xtask report` can compare the two engines case by case.
 //!
 //! `mise run bench:rs <corpus>` verifies the corpus first and passes its digest.

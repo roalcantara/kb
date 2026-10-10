@@ -3,5 +3,5 @@ useDefault = true
 
 [allowlist]
 description = "Build output and the linked Raycast repo"
-# fixtures/private* is gitignored, and deliberately not allowlisted: if it is ever staged, gitleaks must see it.
-paths = ['''^target/''', '''^bench/ts/kb''']
+# tools/bench/fixtures/private* is gitignored, and deliberately not allowlisted: if it is ever staged, gitleaks must see it.
+paths = ['''^target/''', '''^tools/bench/ts/kb''']

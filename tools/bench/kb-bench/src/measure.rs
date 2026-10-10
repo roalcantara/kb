@@ -1,4 +1,4 @@
-//! Timing one case, as `bench/ts/measure.ts` does.
+//! Timing one case, as `tools/bench/ts/measure.ts` does.
 
 use std::hint::black_box;
 use std::time::Instant;

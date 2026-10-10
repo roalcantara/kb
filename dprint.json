@@ -10,14 +10,14 @@
     "tmp/**",
     "crates/kb-domain/tests/fixtures/**",
     "tools/bench/fixtures/**",
-    "bench/ts/kb",
-    "bench/ts/node_modules/**",
-    "bench/ts/dist/**",
+    "tools/bench/ts/kb",
+    "tools/bench/ts/node_modules/**",
+    "tools/bench/ts/dist/**",
     "docs/experiment/results/**",
     "TODO.md",
     "crates/third-party/block/**",
     "**/*.lock",
-    "bench/ts/bun.lock"
+    "tools/bench/ts/bun.lock"
   ],
   "plugins": [
     "npm:@dprint/json@0.25.2",

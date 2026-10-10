@@ -1,6 +1,6 @@
 [package]
-name = "kb-bench"
-description = "Tier 1 engine benchmarks of kb-domain, written in the same results schema as bench/ts."
+name = "kb-report"
+description = "The benchmark kit's report: turns the experiment results into docs/experiment/report.md."
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true
@@ -9,10 +9,10 @@ publish.workspace = true
 repository.workspace = true
 
 [dependencies]
-kb-domain.workspace = true
-rusqlite.workspace = true
-serde.workspace = true
 serde_json.workspace = true
+thiserror.workspace = true
+
+[dev-dependencies]
 tempfile.workspace = true
 
 [lints]

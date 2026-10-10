@@ -1,0 +1,213 @@
+# The benchmark kit's tasks (tools/bench/README.md), included from the root mise.toml. An included
+# file is a flat list of tasks: each [header] is a task name, with no [tasks.] prefix.
+
+["bench:setup"]
+description = "Link the TS engine and install the TS bench's dependencies"
+depends = ["bench:link"]
+run = "bun install --cwd tools/bench/ts --frozen-lockfile"
+
+[fixtures]
+description = "Copy the private corpus from $KB_SOURCES (--refresh), verify it against tools/bench/fixtures/private.sha256, and build the 10x copy"
+usage = 'flag "--refresh" help="recopy from $KB_SOURCES and rewrite the manifest"'
+run = '''
+  #!/usr/bin/env bash
+  set -euo pipefail
+
+  manifest() { (cd tools/bench/fixtures/private && find . -type f \( -name '*.yml' -o -name '*.yaml' \) -print0 | LC_ALL=C sort -z | xargs -0 shasum -a 256); }
+
+  if [ "${usage_refresh:-false}" = "true" ]; then
+    rm -rf tools/bench/fixtures/private
+    mkdir -p tools/bench/fixtures/private
+    # -L: the sources directory is a symlink, and so may be its folders.
+    rsync -aL --include='*/' --include='*.yml' --include='*.yaml' --exclude='*' --prune-empty-dirs \
+      "$KB_SOURCES/" tools/bench/fixtures/private/
+    manifest > tools/bench/fixtures/private.sha256
+    echo "copied $(wc -l < tools/bench/fixtures/private.sha256 | tr -d ' ') files; review and commit tools/bench/fixtures/private.sha256"
+  fi
+
+  if ! diff -q <(manifest) tools/bench/fixtures/private.sha256 >/dev/null; then
+    echo "tools/bench/fixtures/private does not match tools/bench/fixtures/private.sha256"
+    echo "    -> run 'mise run fixtures --refresh' to take a new snapshot, or restore the old one"
+    exit 1
+  fi
+
+  rm -rf tools/bench/fixtures/private-10x
+  for i in 0 1 2 3 4 5 6 7 8 9; do
+    mkdir -p "tools/bench/fixtures/private-10x/copy-$i"
+    cp -R tools/bench/fixtures/private/. "tools/bench/fixtures/private-10x/copy-$i/"
+  done
+  echo "private corpus verified; private-10x rebuilt"
+'''
+
+["bench:link"]
+description = "Point tools/bench/ts/kb at the Raycast repo's packages/domain/kb (read only)"
+run = '''
+  #!/usr/bin/env bash
+  set -euo pipefail
+  target="$KB_TS_REPO/packages/domain/kb"
+  [ -d "$target/src" ] || { echo "no TS engine at $target; set KB_TS_REPO"; exit 1; }
+  ln -sfn "$target" tools/bench/ts/kb
+  echo "tools/bench/ts/kb -> $target @ $(git -C "$KB_TS_REPO" rev-parse --short HEAD)"
+'''
+
+["bench:ts"]
+description = "Tier 1: benchmark the TS engine on a corpus under Node 22 (Raycast's runtime) and Bun"
+depends = ["bench:link"]
+usage = 'arg "<corpus>" help="sample, private or private-10x"'
+run = '''
+  #!/usr/bin/env bash
+  set -euo pipefail
+  corpus="${usage_corpus}"
+  stamp=$(date -u +%Y%m%dT%H%M%SZ)
+  bun run --cwd tools/bench/ts build
+  node22=$(mise where node@22.22.2)/bin/node
+  "$node22" tools/bench/ts/dist/bench.mjs --fixtures tools/bench/fixtures --corpus "$corpus" \
+    --out "docs/experiment/results/tier1-ts-node22-$corpus-$stamp.json"
+  bun tools/bench/ts/bench.ts --fixtures tools/bench/fixtures --corpus "$corpus" \
+    --out "docs/experiment/results/tier1-ts-bun-$corpus-$stamp.json"
+'''
+
+[goldens]
+description = "Write goldens from the TS engine under Node 22 into tools/bench/fixtures/<corpus>-goldens"
+depends = ["bench:link"]
+usage = 'arg "<corpus>" help="sample or private"'
+run = '''
+  #!/usr/bin/env bash
+  set -euo pipefail
+  bun run --cwd tools/bench/ts build
+  "$(mise where node@22.22.2)/bin/node" tools/bench/ts/dist/goldens.mjs \
+    --fixtures tools/bench/fixtures --corpus "${usage_corpus}" --out "tools/bench/fixtures/${usage_corpus}-goldens"
+'''
+
+[parity]
+description = "Golden parity of kb-domain on the private corpus (local only: the corpus and its goldens are gitignored)"
+run = '''
+  #!/usr/bin/env bash
+  set -euo pipefail
+  mise run fixtures
+  # Goldens take a second to write; regenerating them every run means a refreshed corpus is never
+  # compared with the goldens of the one before it.
+  mise run goldens private
+  KB_CORPUS=tools/bench/fixtures/private KB_GOLDENS=tools/bench/fixtures/private-goldens cargo test -p kb-domain --test goldens
+'''
+
+["bench:rs"]
+description = "Tier 1: benchmark kb-domain on a corpus (release build), in the schema tools/bench/ts writes"
+usage = 'arg "<corpus>" help="sample, private or private-10x"'
+run = '''
+  #!/usr/bin/env bash
+  set -euo pipefail
+  corpus="${usage_corpus}"
+  if [ "$corpus" = sample ]; then
+    digest=$( (cd tools/bench/fixtures/sample && find . -type f \( -name '*.yml' -o -name '*.yaml' \) -print0 | LC_ALL=C sort -z | xargs -0 shasum -a 256) | shasum -a 256 | cut -d' ' -f1)
+    files=$(find tools/bench/fixtures/sample -type f \( -name '*.yml' -o -name '*.yaml' \) | wc -l | tr -d ' ')
+  else
+    mise run fixtures
+    digest=$(shasum -a 256 tools/bench/fixtures/private.sha256 | cut -d' ' -f1)
+    files=$(wc -l < tools/bench/fixtures/private.sha256 | tr -d ' ')
+  fi
+  cargo build --release --locked -p kb-bench
+  target/release/kb-bench --fixtures tools/bench/fixtures --corpus "$corpus" --digest "$digest" --files "$files" \
+    --out "docs/experiment/results/tier1-rust-$corpus-$(date -u +%Y%m%dT%H%M%SZ).json"
+'''
+
+[probes]
+description = "Build the CGEvent driver (tmp/bin/probe) the tier 2 and tier 3 probes use"
+sources = ["tools/bench/probes/probe.swift"]
+outputs = ["tmp/bin/probe"]
+run = "mkdir -p tmp/bin && swiftc -O -o tmp/bin/probe tools/bench/probes/probe.swift"
+
+["bench:home"]
+description = "Build tmp/bench-home: a home whose kb config points at tools/bench/fixtures/private, with its index synced"
+run = '''
+  #!/usr/bin/env bash
+  set -euo pipefail
+  mise run fixtures
+  cargo build --release --locked -p kb-app
+  home="$PWD/tmp/bench-home"
+  mkdir -p "$home/.config/kb"
+  printf 'sources_path = "%s"\n' "$PWD/tools/bench/fixtures/private" >"$home/.config/kb/config.toml"
+  HOME="$home" target/release/kb --sync
+'''
+
+["bench:memory"]
+description = "Tier 2: RSS and physical footprint of kb or Raycast, idle, open and after 100 queries"
+depends = ["probes"]
+usage = 'arg "<app>" help="kb or raycast"'
+run = '''
+  #!/usr/bin/env bash
+  set -euo pipefail
+  if [ "${usage_app}" = kb ]; then mise run package; fi
+  tools/bench/probes/memory.sh "${usage_app}" docs/experiment/results
+'''
+
+["bench:e2e"]
+description = "Tier 3: hotkey → window, keystroke → list (kb's trace) and ⌘↩ → clipboard, for kb or Raycast"
+depends = ["probes"]
+usage = 'arg "<app>" help="kb or raycast"'
+run = '''
+  #!/usr/bin/env bash
+  set -euo pipefail
+  if [ "${usage_app}" = kb ]; then mise run package; fi
+  tools/bench/probes/latency.sh "${usage_app}" docs/experiment/results
+  tools/bench/probes/action.sh "${usage_app}" docs/experiment/results
+'''
+
+["bench:maint"]
+description = "Maintainability: lines of code, dependencies, tests and build times of both implementations"
+run = "tools/bench/probes/maint.sh docs/experiment/results"
+
+["bench:cpu"]
+description = "Tier 2: cold-start CPU time of kb or Raycast, five runs"
+depends = ["probes"]
+usage = 'arg "<app>" help="kb or raycast"'
+run = '''
+  #!/usr/bin/env bash
+  set -euo pipefail
+  case "${usage_app}" in
+  kb) mise run package && tools/bench/probes/cpu-rs.sh docs/experiment/results ;;
+  raycast) tools/bench/probes/cpu-ts.sh docs/experiment/results ;;
+  *) echo "usage: mise run bench:cpu kb|raycast"; exit 2 ;;
+  esac
+'''
+
+["bench:size"]
+description = "Tier 2: artifact size, kb's stripped binary or Raycast's kb bundle"
+usage = 'arg "<app>" help="kb or raycast"'
+run = '''
+  #!/usr/bin/env bash
+  set -euo pipefail
+  case "${usage_app}" in
+  kb) cargo build --release --locked -p kb-app && tools/size/size.sh "docs/experiment/results/tier2-rust-size-$(date -u +%Y%m%dT%H%M%SZ).json" ;;
+  raycast) tools/bench/probes/size-ts.sh "docs/experiment/results/tier2-ts-size-$(date -u +%Y%m%dT%H%M%SZ).json" ;;
+  *) echo "usage: mise run bench:size kb|raycast"; exit 2 ;;
+  esac
+'''
+
+["bench:session"]
+description = "Every tier 2 and 3 measurement and maintainability, in order, for both apps (methodology, Session)"
+depends = ["probes"]
+run = '''
+  #!/usr/bin/env bash
+  set -euo pipefail
+  tools/bench/probes/preflight.sh
+  mise run bench:home
+  for app in kb raycast; do mise run bench:size "$app"; done
+  mise run bench:maint
+  for app in kb raycast; do mise run bench:memory "$app"; done
+  # cpu-ts relaunches Raycast: after memory, so its idle figure is not a fresh launch.
+  for app in kb raycast; do mise run bench:cpu "$app"; done
+  for app in kb raycast; do mise run bench:e2e "$app"; done
+  echo "session done: record the manual keystroke run, commit the results, then mise run report"
+'''
+
+[report]
+description = "Run the gate and golden parity, then write docs/experiment/report.md from the results"
+run = '''
+  #!/usr/bin/env bash
+  set -euo pipefail
+  mise run gate
+  mise run parity
+  cargo run --quiet --locked -p kb-report -- report --verified
+  dprint fmt docs/experiment/report.md
+'''

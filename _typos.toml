@@ -3,8 +3,8 @@ extend-exclude = [
   "crates/kb-domain/tests/fixtures/",
   "tools/bench/fixtures/",
   "target/",
-  "bench/ts/kb",
-  "bench/ts/node_modules/",
+  "tools/bench/ts/kb",
+  "tools/bench/ts/node_modules/",
   "*.lock",
   "docs/experiment/results/",
 ]

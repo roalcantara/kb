@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # Prints the home the kb probes run kb under: $KB_HOME, else tmp/bench-home (mise run
-# bench:home), so kb reads fixtures/private like the runs it is compared with. Fails when that
+# bench:home), so kb reads tools/bench/fixtures/private like the runs it is compared with. Fails when that
 # home holds no index.
-# Usage: kb_home=$(bench/probes/kb-home.sh)
+# Usage: kb_home=$(tools/bench/probes/kb-home.sh)
 set -euo pipefail
 
 home=${KB_HOME:-$PWD/tmp/bench-home}

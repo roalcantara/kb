@@ -1,4 +1,4 @@
-//! Nearest-rank statistics, as `bench/ts/stats.ts` computes them.
+//! Nearest-rank statistics, as `tools/bench/ts/stats.ts` computes them.
 
 use serde::Serialize;
 

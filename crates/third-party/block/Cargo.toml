@@ -21,3 +21,9 @@ exclude = [
 [dev-dependencies.objc_test_utils]
 version = "0.0"
 path = "test_utils"
+
+# Patched for kb (crates/third-party/README.md): the 2016 source writes `extern fn` without an ABI,
+# which current Rust warns about 46 times. The ABI is "C" either way; silenced here so the source
+# keeps its one-line fix only.
+[lints.rust]
+missing_abi = "allow"

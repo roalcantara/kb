@@ -5,15 +5,16 @@
 *.db-wal
 *.db-shm
 
-# Private corpora and everything derived from them; only fixtures/private.sha256 is committed.
-# Any fixtures/private* directory: private/, private-10x/, private-goldens/ and whatever comes next.
-/fixtures/private*
-!/fixtures/private.sha256
-
+# ── Benchmark kit (tools/bench/README.md: remove this block when purging it) ──
+# Private corpora and everything derived from them; only private.sha256 is committed.
+# Any tools/bench/fixtures/private* directory: private/, private-10x/, private-goldens/ and whatever comes next.
+/tools/bench/fixtures/private*
+!/tools/bench/fixtures/private.sha256
 # The TS bench links to the Raycast repo and bundles locally.
-/bench/ts/kb
-/bench/ts/node_modules/
-/bench/ts/dist/
+/tools/bench/ts/kb
+/tools/bench/ts/node_modules/
+/tools/bench/ts/dist/
+# ── end of benchmark kit ──
 
 .DS_Store
 

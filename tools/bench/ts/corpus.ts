@@ -57,7 +57,9 @@ export function resolveCorpus(name: string, fixturesDir: string): Corpus {
   const copies = corpusName === 'private' ? [root] : COPIES.map(copy => join(root, copy))
   for (const dir of [join(fixturesDir, 'private'), ...copies]) {
     if (!existsSync(dir) || manifestOf(dir) !== expected) {
-      throw new Error(`${relative(fixturesDir, dir)} does not match fixtures/private.sha256; run \`mise run fixtures\``)
+      throw new Error(
+        `${relative(fixturesDir, dir)} does not match tools/bench/fixtures/private.sha256; run \`mise run fixtures\``
+      )
     }
   }
   return { name: corpusName, root, digest: sha256(expected), files }

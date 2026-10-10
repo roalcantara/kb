@@ -1,4 +1,4 @@
-//! `fixtures/queries.json`, shared with `bench/ts/query.ts`.
+//! `tools/bench/fixtures/queries.json`, shared with `tools/bench/ts/query.ts`.
 
 use kb_domain::search::{FilterState, PAGE_SIZE, SearchQuery};
 use serde::Deserialize;

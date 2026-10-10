@@ -1,4 +1,4 @@
-//! Where and with what a result was produced, as `bench/ts/env.ts` records it.
+//! Where and with what a result was produced, as `tools/bench/ts/env.ts` records it.
 
 use std::process::Command;
 
