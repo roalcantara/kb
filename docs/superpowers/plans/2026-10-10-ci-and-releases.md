@@ -27,24 +27,24 @@ through `npx` from a mise task; macOS only for a release.
 
 ### Task 1: CI tasks
 
-- [ ] Add `ci`, `ci:lint`, `ci:test` to `mise.toml`.
-- [ ] Run `mise run ci:lint` and `mise run ci:test` locally. Expected: both pass. Commit.
+- [x] Add `ci`, `ci:lint`, `ci:test` to `mise.toml`.
+- [x] Run `mise run ci:lint` and `mise run ci:test` locally. Expected: both pass. Commit.
 
 ### Task 2: Release tasks and config
 
-- [ ] Add `release`, `release:version`, `release:app`; write `.releaserc.yml` and `CHANGELOG.md`.
-- [ ] Check `mise run release:version 9.9.9` changes only the workspace version (then restore); `mise run release:app`
+- [x] Add `release`, `release:version`, `release:app`; write `.releaserc.yml` and `CHANGELOG.md`.
+- [x] Check `mise run release:version 9.9.9` changes only the workspace version (then restore); `mise run release:app`
       writes `dist/kb-<version>-macos-arm64.zip` that unzips to a signed `kb.app`; `.gitignore` covers `dist/`.
-- [ ] Commit.
+- [x] Commit.
 
 ### Task 3: Workflow
 
-- [ ] Write `.github/workflows/ci.yml`; `pinact run` pins the actions; `actionlint` and `zizmor` pass.
-- [ ] Commit; push the branch. Expected: `lint` and `test` pass on GitHub; `plan`, `app`, `release` skipped.
+- [x] Write `.github/workflows/ci.yml`; `pinact run` pins the actions; `actionlint` and `zizmor` pass.
+- [x] Commit; push the branch. Expected: `lint` and `test` pass on GitHub; `plan`, `app`, `release` skipped.
 
 ### Task 4: Docs, seed tag, merge
 
-- [ ] README "Releases"; ADR 0007; `TODO.md` (done task; Pages, Linux build, notarization, universal binary).
+- [x] README "Releases"; ADR 0007; `TODO.md` (done task; Pages, Linux build, notarization, universal binary).
 - [ ] Tag `v0.1.0` on `main`'s current head and push it; merge the branch into `main`; push. Expected: `plan` reports
       no release (only non-releasing commit types since the tag); `app` and `release` skipped.
-- [ ] Local `mise run release -- --dry-run --no-ci` lists the commits analysed since `v0.1.0`.
+- [x] Local `mise run release -- --dry-run --no-ci` lists the commits analysed since `v0.1.0`.

@@ -154,7 +154,7 @@
   - **Position**: "file:///Users/roalcantara/Work/rust/kb/tools/bench/README.md#L1:1"
   - **Tags**: bench, decision
 
-- [x] jyHv **-** CI and releases: lint and test on Linux for every PR and push to main; semantic-release cuts releases with CHANGELOG.md and kb.app (ADR 0007)
+- [x] jyHv **-** CI and releases: lint and test on Linux for every PR and push to main; semantic-release cuts releases with CHANGELOG.md and kb.app (ADR 0007); tools installed from mise.lock
   - **Priority**: medium
   - **Created**: 2026-10-10 04:46
   - **Position**: "file:///Users/roalcantara/Work/rust/kb/.github/workflows/ci.yml#L1:1"
