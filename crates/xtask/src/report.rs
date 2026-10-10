@@ -21,6 +21,8 @@ pub struct Inputs {
     /// Whether every gate and golden parity passed on that commit just before the report was
     /// written (`mise run report` runs them first and stops if one fails).
     pub verified: bool,
+    /// Whether `docs/experiment/findings.md`, the hand-written reading of the report, exists.
+    pub findings: bool,
 }
 
 /// One success criterion of the spec and how this run meets it.
@@ -60,6 +62,10 @@ pub fn render(inputs: &Inputs) -> Result<String, Error> {
         inputs.commit
     );
     out += &verdict(&criteria);
+    if inputs.findings {
+        out += "Why a criterion failed or went unmeasured, what would fix it, and what else the runs \
+                showed: [findings.md](findings.md).\n\n";
+    }
     out += &body;
     Ok(out)
 }
@@ -719,5 +725,26 @@ mod tests {
         assert!(out.contains("| Line coverage | — | 81.2% |"), "{out}");
         assert!(out.contains("| Duplicated lines (jscpd) | 2.5% | 0.4% |"), "{out}");
         assert!(out.contains("| Clippy warnings | — | 0 |"), "{out}");
+    }
+
+    fn inputs(findings: bool) -> (tempfile::TempDir, Inputs) {
+        let (dir, results) = results_with(&[]);
+        let inputs = Inputs {
+            results,
+            parity: String::new(),
+            compliance: String::new(),
+            commit: "abc1234".into(),
+            verified: false,
+            findings,
+        };
+        (dir, inputs)
+    }
+
+    #[test]
+    fn links_the_findings_only_when_they_exist() {
+        let (_with_dir, with) = inputs(true);
+        assert!(render(&with).unwrap().contains("[findings.md](findings.md)"));
+        let (_without_dir, without) = inputs(false);
+        assert!(!render(&without).unwrap().contains("findings.md"));
     }
 }

@@ -66,6 +66,7 @@ fn run() -> Result<(), Error> {
         compliance: read("compliance.md")?,
         commit: commit(&root),
         verified,
+        findings: experiment.join("findings.md").is_file(),
     };
     let out = experiment.join("report.md");
     fs::write(&out, report::render(&inputs)?).map_err(|e| Error::io(&out, e))?;
