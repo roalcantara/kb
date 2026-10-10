@@ -351,6 +351,23 @@ checksum = "sha256:316d50a32c3726a80ab39c6d12141b70080498973c5e8a9b068b12cde78b1
 url = "https://github.com/crate-ci/typos/releases/download/v1.51.1/typos-v1.51.1-aarch64-apple-darwin.tar.gz"
 url_api = "https://api.github.com/repos/crate-ci/typos/releases/assets/616656668"
 
+[[tools.uv]]
+version = "0.12.21"
+backend = "aqua:astral-sh/uv"
+specifiers = ["0.12.21"]
+
+[tools.uv."platforms.linux-x64"]
+checksum = "sha256:23f02075b652bb1df64178cfae41b5caf160822e720e2663568f3f5d63bc52c0"
+url = "https://github.com/astral-sh/uv/releases/download/0.12.21/uv-x86_64-unknown-linux-gnu.tar.gz"
+url_api = "https://api.github.com/repos/astral-sh/uv/releases/assets/599238020"
+provenance = "github-attestations"
+
+[tools.uv."platforms.macos-arm64"]
+checksum = "sha256:b88bda573e566ef9bced66b155fe0408626fbbc053aee1c30ba686f0728c9447"
+url = "https://github.com/astral-sh/uv/releases/download/0.12.21/uv-aarch64-apple-darwin.tar.gz"
+url_api = "https://api.github.com/repos/astral-sh/uv/releases/assets/599237829"
+provenance = "github-attestations"
+
 [[tools.zizmor]]
 version = "1.30.1"
 backend = "aqua:zizmorcore/zizmor"
