@@ -2,7 +2,10 @@
 
 Every release of kb, written by semantic-release from the commit messages (docs/adr/0007-releases.md).
 
-## [0.2.0](https://github.com/roalcantara/kb/compare/v0.1.0...v0.2.0) (2026-10-10)
+## [0.2.1](https://github.com/roalcantara/kb/compare/v0.1.0...v0.2.1) (2026-10-10)
+
+Prepared by semantic-release as 0.2.0, published by hand as 0.2.1: GitHub reserves the tag `v0.2.0` (an immutable
+release once used it), so 0.2.0 was never published.
 
 ### Features
 
