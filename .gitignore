@@ -19,3 +19,6 @@
 
 # Brainstorming prototypes and temporary visual assets
 /.superpowers/
+
+# Machine-local settings, such as KB_RAYCAST_HOTKEY (docs/experiment/methodology.md).
+/mise.local.toml

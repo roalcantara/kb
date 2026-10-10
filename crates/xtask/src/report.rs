@@ -250,8 +250,8 @@ fn perceived(results: &Results) -> Result<(String, Option<f64>), Error> {
             "Raycast's hotkey (`{}`) opens {}. Sources: `{}`, `{}`, and the action runs.\n",
             raycast.text(&["hotkey"]).unwrap_or("?"),
             if raycast.text(&["hotkey"]) == Some("49 cmd") {
-                "its root search, not the kb command: assign a hotkey to kb Search and pass it as \
-                 `HOTKEY` to compare the two commands"
+                "its root search, not the kb command: assign a hotkey to kb Search and set it as \
+                 `KB_RAYCAST_HOTKEY` to compare the two commands"
             } else {
                 "the kb Search command"
             },
