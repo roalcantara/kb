@@ -19,6 +19,8 @@ permissions: {}
 env:
   CI: true
   CARGO_TERM_COLOR: always
+  # Tools in mise.toml that no CI job runs, and that have no prebuilt Linux binary to install quickly.
+  MISE_DISABLE_TOOLS: tokei,cargo:https://github.com/RayanBO/todo/
 
 jobs:
   lint:
@@ -31,8 +33,10 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - uses: ./.github/actions/setup
+      - uses: $/.github/actions/setup
       - run: mise run ci:lint
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # pinact verifies pins through the GitHub API (60 calls/hour without)
 
   test:
     name: Test (kb-domain)
@@ -44,7 +48,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - uses: ./.github/actions/setup
+      - uses: $/.github/actions/setup
         with:
           rust-cache: "true"
       - run: mise run ci:test
@@ -64,7 +68,7 @@ jobs:
         with:
           fetch-depth: 0 # semantic-release reads every tag and commit
           persist-credentials: false
-      - uses: ./.github/actions/setup
+      - uses: $/.github/actions/setup
       - id: plan # .releaserc.yml's verifyReleaseCmd writes `version` here when there is one
         run: mise run release -- --dry-run
         env:
@@ -82,7 +86,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - uses: ./.github/actions/setup
+      - uses: $/.github/actions/setup
         with:
           rust-cache: "true"
       - run: mise run gate --fast # the app's tests and clippy; lint and the engine ran on Linux
@@ -108,7 +112,7 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: false # semantic-release pushes with GITHUB_TOKEN itself
-      - uses: ./.github/actions/setup
+      - uses: $/.github/actions/setup
       - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           name: kb-macos

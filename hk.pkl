@@ -207,7 +207,11 @@ local baseline_steps = new Mapping<String, Step> {
     ["mise"] = Builtins.mise
     ["dprint"] = Builtins.dprint
     ["shellcheck"] = Builtins.shellcheck
-    ["actionlint"] = Builtins.actionlint
+    // jactionlint: the maintained fork of actionlint (mise deprecates actionlint); hk has no builtin for it yet.
+    ["actionlint"] {
+        glob = List(".github/workflows/*.yml", ".github/workflows/*.yaml")
+        check = "jactionlint {{files}}"
+    }
     ["pinact"] = Builtins.pinact
     ["typos"] = (Builtins.typos) {
         exclude = binary_excludes + generated + List("*.lock")
