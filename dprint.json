@@ -14,6 +14,7 @@
     "bench/ts/dist/**",
     "docs/experiment/results/**",
     "TODO.md",
+    "vendor/block/**",
     "**/*.lock",
     "bench/ts/bun.lock"
   ],

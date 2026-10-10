@@ -3,7 +3,7 @@ import "package://github.com/jdx/hk/releases/download/v2.0.1/hk@2.0.1#/Builtins.
 
 min_hk_version = "2.0.1"
 
-exclude = List("target", ".git", "tmp", "bench/ts/kb", "bench/ts/node_modules", "bench/ts/dist")
+exclude = List("target", ".git", "tmp", "bench/ts/kb", "bench/ts/node_modules", "bench/ts/dist", "vendor/block")
 display_skip_reasons = List()
 terminal_progress = false
 fail_fast = false
