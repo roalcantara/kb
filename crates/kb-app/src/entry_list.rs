@@ -174,7 +174,6 @@ impl EntryList {
                     .child(
                         div()
                             .flex_none()
-                            .font_weight(FontWeight::SEMIBOLD)
                             .text_color(cx.theme().foreground)
                             .child(entry.title.clone()),
                     )

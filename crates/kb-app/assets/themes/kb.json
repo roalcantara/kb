@@ -1,0 +1,53 @@
+{
+  "name": "kb",
+  "author": "kb",
+  "themes": [
+    {
+      "name": "kb Dark",
+      "mode": "dark",
+      "colors": {
+        "accent.background": "#2A3047",
+        "accent.foreground": "#CBD4FF",
+        "background": "#23273A",
+        "base.blue": "#70B9F4",
+        "base.blue.light": "#32445F",
+        "base.cyan": "#70B9F4",
+        "base.cyan.light": "#32445F",
+        "base.green": "#30E1A5",
+        "base.green.light": "#264C4F",
+        "base.magenta": "#E927AB",
+        "base.magenta.light": "#4B2751",
+        "base.red": "#E04F50",
+        "base.red.light": "#492F3E",
+        "base.yellow": "#D9E753",
+        "base.yellow.light": "#474D3F",
+        "border": "#353D5A",
+        "caret": "#CBD4FF",
+        "description_list_label.background": "#24293E",
+        "description_list_label.foreground": "#B2BADB",
+        "foreground": "#CBD4FF",
+        "input.border": "#353D5A",
+        "link.foreground": "#70B9F4",
+        "list.active.background": "#2A3047",
+        "list.active.border": "#353D5A",
+        "list.background": "#23273A",
+        "list.even.background": "#23273A",
+        "list.head.background": "#23273A",
+        "muted.background": "#24293E",
+        "muted.foreground": "#B2BADB",
+        "popover.background": "#24293E",
+        "popover.foreground": "#CBD4FF",
+        "ring": "#70B9F4",
+        "secondary.active.background": "#2A3047",
+        "secondary.background": "#24293E",
+        "secondary.foreground": "#CBD4FF",
+        "secondary.hover.background": "#2A3047",
+        "selection.background": "#3E5A7B",
+        "table.background": "#23273A",
+        "title_bar.background": "#24293E",
+        "title_bar.border": "#353D5A",
+        "window.border": "#353D5A"
+      }
+    }
+  ]
+}

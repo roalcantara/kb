@@ -1,9 +1,14 @@
-# The design kit (tools/design): measure Raycast, validate candidate palettes, render the comparison page.
+# The design kit (tools/design): measure Raycast, validate the palettes, generate the app theme, render the comparison
+# page.
 
 ["design:sample"]
 description = "Measure colours and sizes from the local Raycast screenshots (tools/reports) into tools/design/raycast.json"
 run = "uv run -q --with pillow python -I tools/design/sample.py && dprint fmt tools/design/raycast.json"
 
 ["design:palettes"]
-description = "Validate the candidate palettes and open the comparison page (tmp/design/palettes.html)"
-run = "node tools/design/validate.mjs && dprint fmt tools/design/validation.json && node tools/design/render.mjs && open tmp/design/palettes.html"
+description = "Validate the palettes, regenerate the app theme from the chosen one, and open the comparison page (tmp/design/palettes.html)"
+run = [
+  "node tools/design/validate.mjs && dprint fmt tools/design/validation.json",
+  "node tools/design/theme.mjs && dprint fmt crates/kb-app/assets/themes/kb.json",
+  "node tools/design/render.mjs && open tmp/design/palettes.html",
+]
