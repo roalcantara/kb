@@ -132,7 +132,7 @@
 - [ ] EsTc **-** Drop the vendored block 0.1.6 patch once GPUI Kit no longer depends on block (objc2/block2 migration)
   - **Priority**: low
   - **Created**: 2026-10-10 02:42
-  - **Position**: "file:///Users/roalcantara/Work/rust/kb/vendor/README.md#L1:1"
+  - **Position**: "file:///Users/roalcantara/Work/rust/kb/crates/third-party/README.md#L1:1"
   - **Tags**: deps, upstream
 
 # Actors

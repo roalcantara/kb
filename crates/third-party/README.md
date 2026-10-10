@@ -1,4 +1,4 @@
-# Vendored crates
+# Third-party crates
 
 Third-party crates patched for kb through `[patch.crates-io]` in the workspace `Cargo.toml`. Each is the published
 release with the smallest change that fixes it; drop it as soon as an upstream release does.

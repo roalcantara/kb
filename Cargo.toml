@@ -1,8 +1,8 @@
 [workspace]
 resolver = "3"
 members = ["crates/kb-domain", "crates/kb-bench", "crates/kb-app", "crates/xtask"]
-# Patched third-party crates (vendor/README.md): dependencies, not members, so the workspace lints skip them.
-exclude = ["vendor"]
+# Patched third-party crates (crates/third-party/README.md): dependencies, not members, so the workspace lints skip them.
+exclude = ["crates/third-party"]
 
 [workspace.package]
 version = "0.1.0"
@@ -67,6 +67,6 @@ strip = true
 debug = false
 
 # block 0.1.6, under GPUI Kit's macOS layers, declares a static of an uninhabited type, which
-# future Rust rejects. Its one-line fix, until GPUI Kit moves off it (vendor/README.md).
+# future Rust rejects. Its one-line fix, until GPUI Kit moves off it (crates/third-party/README.md).
 [patch.crates-io]
-block = { path = "vendor/block" }
+block = { path = "crates/third-party/block" }

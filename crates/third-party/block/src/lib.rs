@@ -54,7 +54,7 @@ use std::ops::{Deref, DerefMut};
 use std::os::raw::{c_int, c_ulong, c_void};
 use std::ptr;
 
-// Patched for kb (vendor/README.md): an opaque, inhabited type. `enum Class { }` is
+// Patched for kb (crates/third-party/README.md): an opaque, inhabited type. `enum Class { }` is
 // uninhabited, and a static of an uninhabited type is being phased out (rust-lang/rust#74840).
 #[repr(C)]
 struct Class {
