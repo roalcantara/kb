@@ -265,6 +265,50 @@ run = '''
 description = "Maintainability: lines of code, dependencies, tests and build times of both implementations"
 run = "bench/probes/maint.sh docs/experiment/results"
 
+[tasks."bench:cpu"]
+description = "Tier 2: cold-start CPU time of kb or Raycast, five runs"
+depends = ["probes"]
+usage = 'arg "<app>" help="kb or raycast"'
+run = '''
+  #!/usr/bin/env bash
+  set -euo pipefail
+  case "${usage_app}" in
+  kb) mise run package && bench/probes/cpu-rs.sh docs/experiment/results ;;
+  raycast) bench/probes/cpu-ts.sh docs/experiment/results ;;
+  *) echo "usage: mise run bench:cpu kb|raycast"; exit 2 ;;
+  esac
+'''
+
+[tasks."bench:size"]
+description = "Tier 2: artifact size, kb's stripped binary or Raycast's kb bundle"
+usage = 'arg "<app>" help="kb or raycast"'
+run = '''
+  #!/usr/bin/env bash
+  set -euo pipefail
+  case "${usage_app}" in
+  kb) mise run size ;;
+  raycast) bench/probes/size-ts.sh "docs/experiment/results/tier2-ts-size-$(date -u +%Y%m%dT%H%M%SZ).json" ;;
+  *) echo "usage: mise run bench:size kb|raycast"; exit 2 ;;
+  esac
+'''
+
+[tasks."bench:session"]
+description = "Every tier 2 and 3 measurement and maintainability, in order, for both apps (methodology, Session)"
+depends = ["probes"]
+run = '''
+  #!/usr/bin/env bash
+  set -euo pipefail
+  bench/probes/preflight.sh
+  mise run bench:home
+  for app in kb raycast; do mise run bench:size "$app"; done
+  mise run bench:maint
+  for app in kb raycast; do mise run bench:memory "$app"; done
+  # cpu-ts relaunches Raycast: after memory, so its idle figure is not a fresh launch.
+  for app in kb raycast; do mise run bench:cpu "$app"; done
+  for app in kb raycast; do mise run bench:e2e "$app"; done
+  echo "session done: record the manual keystroke run, commit the results, then mise run report"
+'''
+
 [tasks.report]
 description = "Run the gate and golden parity, then write docs/experiment/report.md from the results"
 run = '''
