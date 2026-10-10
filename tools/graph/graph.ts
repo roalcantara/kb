@@ -5,8 +5,20 @@ import { spawnSync } from 'node:child_process'
 import { existsSync, mkdirSync } from 'node:fs'
 import { join } from 'node:path'
 
-const action = (process.env.usage_action ?? '').trim()
-const requestedTool = (process.env.usage_tool ?? 'all').trim()
+const ACTIONS = ['install', 'setup', 'build', 'update'] as const
+const TOOLS = ['all', 'crg', 'gortex', 'graphify'] as const
+type Action = (typeof ACTIONS)[number]
+type Tool = (typeof TOOLS)[number]
+const isAction = (value: string): value is Action => (ACTIONS as readonly string[]).includes(value)
+const isTool = (value: string): value is Tool => (TOOLS as readonly string[]).includes(value)
+const rawAction = (process.env.usage_action ?? '').trim()
+const rawTool = (process.env.usage_tool ?? 'all').trim()
+if (!isAction(rawAction) || !isTool(rawTool)) {
+  console.error(`usage: mise run graph <${ACTIONS.join('|')}> [${TOOLS.join('|')}]`)
+  process.exit(2)
+}
+const action: Action = rawAction
+const requestedTool: Tool = rawTool
 const dryRun = (process.env.usage_dry_run ?? 'false') === 'true'
 const fix = (process.env.usage_fix ?? 'false') === 'true'
 const force = (process.env.usage_force ?? 'false') === 'true'
@@ -29,9 +41,8 @@ const ACTION_LABELS = {
   build: 'full rebuild',
   update: 'incremental update'
 } as const
-const targets = requestedTool === 'all'
-  ? Object.keys(TOOL_META) as Array<keyof typeof TOOL_META>
-  : [requestedTool as keyof typeof TOOL_META]
+type Target = keyof typeof TOOL_META
+const targets: Target[] = requestedTool === 'all' ? ['crg', 'gortex', 'graphify'] : [requestedTool]
 
 const say = (message: string) => console.log(`  ${message}`)
 const head = (message: string) => console.log(`\n${message}`)
@@ -67,9 +78,13 @@ const streamCommand = (command: string, args: string[], streamTimeoutMs: number)
   const result = spawnSync(command, args, { cwd: repo, env: process.env, timeout: streamTimeoutMs, stdio: 'inherit' })
   return { ok: result.error == null && result.status === 0, code: result.status ?? 1 }
 }
-// Resolve graphify's API keys from fnox (gopass) when available; fall back to the plain environment.
-const withSecrets = (args: string[]): [string, string[]] =>
-  exists('fnox') ? ['fnox', ['exec', '--', 'graphify', ...args]] : ['graphify', args]
+// Resolve graphify's API keys through fnox (.fnox.toml, password-store) when it can resolve them; otherwise the keys
+// come from the plain environment.
+let fnoxUsable: boolean | undefined
+const withSecrets = (args: string[]): [string, string[]] => {
+  fnoxUsable ??= exists('fnox') && runCommand('fnox', ['exec', '--', 'true'], { quiet: true, readOnly: true }).ok
+  return fnoxUsable ? ['fnox', ['exec', '--', 'graphify', ...args]] : ['graphify', args]
+}
 const runBackendChain = (step: string, args: string[]) => {
   for (const backend of backends) {
     const [command, argv] = withSecrets([...args, '--backend', backend])
@@ -96,6 +111,7 @@ const graphifyRefresh = (mode: 'setup' | 'build' | 'update') => {
     mkdirSync(join(repo, 'graphify-out'), { recursive: true })
     const result = runCommand('graphify', ['update', '.'], { timeoutMs, quiet: false })
     formatUpdateStatus('graphify', result, 'no code changes')
+    if (mode !== 'update') required('graphify update', result)
     if (result.ok) say('docs and community labels refresh only with --force (LLM)')
     return
   }
@@ -103,13 +119,33 @@ const graphifyRefresh = (mode: 'setup' | 'build' | 'update') => {
   // Plain `label` (not --missing-only): after a re-cluster, stale names are hub labels, which --missing-only keeps.
   if (extracted) runBackendChain('label', ['label', '.'])
 }
+// Setup and build fail the task when their command fails, so `setup crg && setup graphify` stops at the first failure.
+const required = (label: string, result: { ok: boolean; timedOut: boolean; code: number }) => {
+  if (result.ok) return
+  say(`${label} ${result.timedOut ? 'timed out (raise --timeout)' : `failed (exit ${result.code})`}`)
+  process.exitCode = 1
+}
+// The daemon is machine-wide: only `setup gortex` starts it (spec D6); update and build reload it when it runs.
+const gortexReload = () => {
+  const status = runCommand('gortex', ['daemon', 'status'], { quiet: true, readOnly: true })
+  if (!status.ok) {
+    say('gortex daemon not running — skipped (mise run graph setup gortex starts it)')
+    return
+  }
+  runCommand('gortex', ['daemon', 'reload'], { quiet: true })
+  say('gortex reloaded')
+}
 const gortexDaemonUp = () => {
   const status = runCommand('gortex', ['daemon', 'status'], { quiet: true, readOnly: true })
   const command = status.ok ? ['gortex', 'daemon', 'reload'] : ['gortex', 'daemon', 'start', '--detach']
   const result = runCommand(command[0], command.slice(1), { quiet: true })
   return result.ok || result.timedOut
 }
-const formatUpdateStatus = (tool: string, result: { ok: boolean; timedOut: boolean }, skippedHint: string) => {
+const formatUpdateStatus = (
+  tool: string,
+  result: { ok: boolean; timedOut: boolean; stdout: string; stderr: string },
+  skippedHint: string
+) => {
   const output = `${result.stdout}\n${result.stderr}`.toLowerCase()
   if (result.ok) {
     if (
@@ -129,20 +165,13 @@ const formatUpdateStatus = (tool: string, result: { ok: boolean; timedOut: boole
   }
   say(`${tool} update failed (ignored)`)
 }
-const repairTargets = (selected: string[]) => {
-  head('repairing graph state')
-  if (selected.includes('gortex')) gortexDaemonUp()
-  for (const tool of selected) {
-    if (tool !== 'gortex') {
-      runGraphAction(tool as keyof typeof TOOL_META, 'setup')
-    }
-  }
-  head('re-checking graph health')
+// --fix repairs by running setup first (which may track the repo and start Gortex's daemon); `mise doctor project`
+// then shows what is still wrong.
+const repairTargets = (selected: Target[]) => {
+  head('repairing graph state: setup')
+  runGraphAction(selected, 'setup')
 }
-const runGraphAction = (target: keyof typeof TOOL_META | 'all', mode: 'install' | 'setup' | 'build' | 'update') => {
-  const selected = target === 'all'
-    ? Object.keys(TOOL_META) as Array<keyof typeof TOOL_META>
-    : [target as keyof typeof TOOL_META]
+const runGraphAction = (selected: Target[], mode: Action) => {
   const actions = {
     install: {
       crg: () => {
@@ -164,16 +193,19 @@ const runGraphAction = (target: keyof typeof TOOL_META | 'all', mode: 'install' 
       }
     },
     setup: {
-      crg: () => runCommand('code-review-graph', ['build'], { timeoutMs, quiet: false }),
+      crg: () => required('code-review-graph build', runCommand('code-review-graph', ['build'], { timeoutMs })),
       gortex: () => {
-        runCommand('gortex', ['track', repo], { timeoutMs, quiet: false })
-        gortexDaemonUp()
+        required('gortex track', runCommand('gortex', ['track', repo], { timeoutMs }))
+        if (!gortexDaemonUp()) {
+          say('gortex daemon did not start')
+          process.exitCode = 1
+        }
       },
       graphify: () => graphifyRefresh('setup')
     },
     build: {
-      crg: () => runCommand('code-review-graph', ['build'], { timeoutMs, quiet: false }),
-      gortex: () => gortexDaemonUp(),
+      crg: () => required('code-review-graph build', runCommand('code-review-graph', ['build'], { timeoutMs })),
+      gortex: () => gortexReload(),
       graphify: () => graphifyRefresh('build')
     },
     update: {
@@ -192,13 +224,7 @@ const runGraphAction = (target: keyof typeof TOOL_META | 'all', mode: 'install' 
           say('gortex not found (ignored)')
           return
         }
-        const status = runCommand('gortex', ['daemon', 'status'], { quiet: true, readOnly: true })
-        if (status.ok) {
-          runCommand('gortex', ['daemon', 'reload'], { quiet: true })
-          say('gortex reloaded')
-        } else {
-          say('gortex daemon not running — skipped (mise run graph setup gortex starts it)')
-        }
+        gortexReload()
       },
       graphify: () => {
         if (!exists(TOOL_META.graphify.bin)) {
@@ -208,20 +234,17 @@ const runGraphAction = (target: keyof typeof TOOL_META | 'all', mode: 'install' 
         graphifyRefresh('update')
       }
     }
-  } satisfies Record<string, Partial<Record<keyof typeof TOOL_META, () => void>>>
+  } satisfies Record<Action, Record<Target, () => void>>
 
   for (const tool of selected) {
     head(`${tool}: ${ACTION_LABELS[mode]}`)
-    actions[mode]?.[tool]?.()
+    actions[mode][tool]()
   }
 }
 
 try {
-  if (fix) {
-    repairTargets(targets)
-  }
-
-  runGraphAction(requestedTool, action)
+  if (fix) repairTargets(targets)
+  if (!(fix && action === 'setup')) runGraphAction(targets, action)
 } catch (error) {
   const message = error instanceof Error ? error.message : String(error)
   console.error(message)

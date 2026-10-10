@@ -86,6 +86,7 @@ then add, after `run`, a `usage = '''…'''` copied verbatim from `~/Work/raycas
 `[tasks.graph]` (from `usage = '''` to its closing `'''`, about lines 239–289).
 
 - [x] Create `tools/graph/graph.ts` from the same task's `run = '''…'''` body (from `#!/usr/bin/env bun` to the line
+      before the closing `'''`, about lines 291–519), dedented by two spaces, with these changes and no others:
   1. First lines, after the shebang:
      `// mise run graph (tools/graph/tasks.toml): install, set up, build or update the code graphs.`
      `// Ported from the kb Raycast repo; mise passes the arguments as usage_* environment variables.`
@@ -166,23 +167,25 @@ mkdir "$lock" 2>/dev/null || exit 0 # an update is already running
 ```
 
 - [x] `hk.pkl`: before `hooks {`, add
-      // Code graphs (tools/graph/README.md) follow every commit, merge and checkout. The step returns at once and never
-      // fails git: the update runs in the background.
-      local graph_refresh_steps = new Mapping<String, Step> {
-      ["graph-refresh"] {
-      check = "tools/graph/refresh.sh"
-      allow_failure = true
-      }
-      }
 
-````
+```pkl
+// Code graphs (tools/graph/README.md) follow every commit, merge and checkout. The step returns at once and never
+// fails git: the update runs in the background.
+local graph_refresh_steps = new Mapping<String, Step> {
+    ["graph-refresh"] {
+        check = "tools/graph/refresh.sh"
+        allow_failure = true
+    }
+}
+```
+
 and inside `hooks { … }`:
 
 ```pkl
 ["post-commit"] { steps = graph_refresh_steps }
 ["post-merge"] { steps = graph_refresh_steps }
 ["post-checkout"] { steps = graph_refresh_steps }
-````
+```
 
 - [x] `hk install --mise`, then `git config --get-regexp '^hook\.'`. Expected: entries for `post-commit`,
       `post-merge` and `post-checkout` beside the existing hooks. If hk is installed globally (`~/.gitconfig` has
@@ -218,9 +221,11 @@ and inside `hooks { … }`:
 - [x] `dprint fmt && hk check --all && mise run gate`. Expected: all pass.
 - [x] Commit: `docs: Document the code graph tools`.
 
-- [ ] `git diff main --stat` and read the whole diff: no file from `~/Work/raycast/kb` beyond those named here; no
+### Task 7: Self-review and hand-off
+
+- [x] `git diff main --stat` and read the whole diff: no file from `~/Work/raycast/kb` beyond those named here; no
       generated graph output committed (`git ls-files | grep -E 'graphify-out|\.code-review-graph|\.gortex'` is
       empty); `git log main..` has at least one `feat`.
-- [ ] `git push -u origin feat/graph-tools`. Do not open the pull request.
-- [ ] Report: commits, check results (doctor output, refresh log tail, gate), the hk install mode, global side effects
+- [x] `git push -u origin feat/graph-tools`. Do not open the pull request.
+- [x] Report: commits, check results (doctor output, refresh log tail, gate), the hk install mode, global side effects
       on this machine, and anything that deviated from this plan.

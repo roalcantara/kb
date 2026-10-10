@@ -202,6 +202,12 @@
   - **Position**: "file:///Users/roalcantara/Work/rust/kb/tools/graph/README.md#L1:1"
   - **Tags**: graph, tools
 
+- [ ] qlkb **-** Type-check tools/graph/graph.ts in hk: it needs TypeScript and Bun's types outside the benchmark kit (checked once with the kit's tsc, strict, 2026-10-10)
+  - **Priority**: low
+  - **Created**: 2026-10-10 07:17
+  - **Position**: "file:///Users/roalcantara/Work/rust/kb/tools/graph/graph.ts#L1:1"
+  - **Tags**: graph, quality, tools
+
 # Actors
 
 # Comments
