@@ -1149,6 +1149,11 @@ Expected: every step passes. Hand over to the owner for Task 9.
 
 ### Task 9: Measurement session (owner at the machine)
 
+> **Paused 2026-10-10.** The first session (`44fedfa`) is archived in
+> `docs/experiment/results/archive/2026-10-10-pre-polish/`, with why: kb opened with the split pane (fixed, `1cc355b`),
+> Raycast's queries went to its root search (fixed, `18be397`), and kb's interface gets a visual polish first. Resume
+> here after that polish, deciding first how Raycast's memory run starts (`TODO.md`).
+
 **Files:** results only, under `docs/experiment/results/`.
 
 - [ ] **Step 1: Prepare**

@@ -1,0 +1,31 @@
+{
+  "schema": 1,
+  "metric": "maintainability",
+  "implementation": "rust",
+  "date": "2026-10-10T04:43:04Z",
+  "repoCommit": "44fedfa",
+  "loc": {
+    "code": 4168,
+    "tests": 536
+  },
+  "deps": {
+    "direct": 13,
+    "total": 460,
+    "depth": 15
+  },
+  "tests": 79,
+  "coverage": {
+    "lines": 86.51352352723231
+  },
+  "duplication": {
+    "percent": 0.0
+  },
+  "lint": {
+    "clippyWarnings": 0
+  },
+  "build": {
+    "coldSeconds": 151,
+    "incrementalSeconds": 1
+  },
+  "note": "the unit tests inline in src (#[cfg(test)]) count as code, not as test lines. Cold build: release with fat LTO, from an empty target directory; incremental: dev, after touching one file. Coverage: lines of kb-domain and kb-app under cargo llvm-cov (doctests excluded)."
+}

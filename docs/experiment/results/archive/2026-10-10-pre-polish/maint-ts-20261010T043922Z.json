@@ -1,0 +1,31 @@
+{
+  "schema": 1,
+  "metric": "maintainability",
+  "implementation": "ts",
+  "date": "2026-10-10T04:39:22Z",
+  "repoCommit": "8aa510c",
+  "loc": {
+    "code": 4881,
+    "tests": 2604
+  },
+  "deps": {
+    "direct": 5,
+    "total": null,
+    "depth": 10
+  },
+  "tests": 228,
+  "coverage": {
+    "lines": null
+  },
+  "duplication": {
+    "percent": 1.2771603914413667
+  },
+  "lint": {
+    "clippyWarnings": null
+  },
+  "build": {
+    "coldSeconds": null,
+    "incrementalSeconds": null
+  },
+  "note": "dependencies: direct are the runtime dependencies of apps/kb (every command) and packages/domain/kb; transitive is not measured: esbuild inlines most of them into the bundle and Raycast supplies its API, so no count compares with cargo tree. Build not timed: ray build writes into the installed extension. Depth: the whole repo npm tree. Coverage not measured: the Raycast repo has no Vitest coverage provider, and nothing here writes to it. No clippy counterpart."
+}

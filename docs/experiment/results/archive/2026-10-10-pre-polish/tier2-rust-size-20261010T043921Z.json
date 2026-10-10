@@ -1,0 +1,12 @@
+{
+  "schema": 1,
+  "tier": 2,
+  "metric": "artifact-size",
+  "unit": "bytes",
+  "implementation": "rust",
+  "date": "2026-10-10T04:39:21Z",
+  "repoCommit": "44fedfa154935c44879dc54133cb7b6d2e9c9b27",
+  "bundle": "release binary, stripped, LTO",
+  "bytes": 29234560,
+  "budget": 30650000
+}
