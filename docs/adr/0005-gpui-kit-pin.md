@@ -19,7 +19,7 @@ things follow from that tree and need a decision rather than a workaround.
 - `deny.toml` allows two more permissive licenses in the tree (0BSD, bzip2-1.0.6) and ignores five
   unmaintained-crate advisories GPUI Kit pulls in (`instant`, `paste`, `rustls-pemfile`, `ttf-parser`,
   `rustybuzz`), each with its reason. They are reviewed again on every upgrade.
-- The release binary has a size budget, `tools/size-budget`: the first release build (29,184,624 bytes) plus 5 %.
+- The release binary has a size budget, `tools/size/budget`: the first release build (29,184,624 bytes) plus 5 %.
   The `size-budget` hk step fails above it; raising it is an owner decision.
 
 ## Consequences

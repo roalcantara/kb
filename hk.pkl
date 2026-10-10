@@ -303,10 +303,10 @@ local release_steps = new Mapping<String, Step> {
         check = "cargo deny check"
     }
     // "Small" is one of the experiment's goals, so the release binary has a budget
-    // (tools/size-budget: the first release build plus 5 %). Raising it is an owner decision.
+    // (tools/size/budget: the first release build plus 5 %). Raising it is an owner decision.
     ["size-budget"] {
         profiles = List("release")
-        check = "cargo build --release --locked -p kb-app && bench/probes/size-rs.sh"
+        check = "cargo build --release --locked -p kb-app && tools/size/size.sh"
     }
     ["zizmor"] = (Builtins.zizmor) {
         profiles = List("release")

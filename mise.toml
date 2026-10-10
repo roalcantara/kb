@@ -188,13 +188,8 @@ run = '''
 '''
 
 [tasks.size]
-description = "Build the release binary, check it against tools/size-budget, and record it under docs/experiment/results"
-run = '''
-  #!/usr/bin/env bash
-  set -euo pipefail
-  cargo build --release --locked -p kb-app
-  bench/probes/size-rs.sh "docs/experiment/results/tier2-rust-size-$(date -u +%Y%m%dT%H%M%SZ).json"
-'''
+description = "Build the release binary and check it against tools/size/budget"
+run = "cargo build --release --locked -p kb-app && tools/size/size.sh"
 
 [tasks.probes]
 description = "Build the CGEvent driver (tmp/bin/probe) the tier 2 and tier 3 probes use"
@@ -287,7 +282,7 @@ run = '''
   #!/usr/bin/env bash
   set -euo pipefail
   case "${usage_app}" in
-  kb) mise run size ;;
+  kb) cargo build --release --locked -p kb-app && tools/size/size.sh "docs/experiment/results/tier2-rust-size-$(date -u +%Y%m%dT%H%M%SZ).json" ;;
   raycast) bench/probes/size-ts.sh "docs/experiment/results/tier2-ts-size-$(date -u +%Y%m%dT%H%M%SZ).json" ;;
   *) echo "usage: mise run bench:size kb|raycast"; exit 2 ;;
   esac

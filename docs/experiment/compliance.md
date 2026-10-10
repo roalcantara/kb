@@ -80,6 +80,6 @@ checklist", "Interface language"), and the rust-best-practices quick reference.
 - [x] Tool versions pinned in `mise.toml`, including the packager and the line counter.
 - [x] Dependencies audited by `cargo deny`; exceptions recorded with reasons (ADR 0005).
 - [x] Every hk step of the Raycast repo has its counterpart or a recorded reason (`hk.pkl`).
-- [x] The release binary stays within its size budget (`tools/size-budget`, `mise run size`).
+- [x] The release binary stays within its size budget (`tools/size/budget`, `mise run size`).
 - [x] A signed, installable `.app` is built by one task (`mise run package`); the bundle id is shared with the app
       identity (`kb_app::APP_ID`).
