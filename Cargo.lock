@@ -3596,7 +3596,7 @@ dependencies = [
 
 [[package]]
 name = "kb-app"
-version = "0.2.1"
+version = "0.3.0"
 dependencies = [
  "dirs 6.0.0",
  "futures",
@@ -3612,7 +3612,7 @@ dependencies = [
 
 [[package]]
 name = "kb-bench"
-version = "0.2.1"
+version = "0.3.0"
 dependencies = [
  "kb-domain",
  "rusqlite",
@@ -3623,7 +3623,7 @@ dependencies = [
 
 [[package]]
 name = "kb-domain"
-version = "0.2.1"
+version = "0.3.0"
 dependencies = [
  "base64",
  "indexmap",
@@ -3638,7 +3638,7 @@ dependencies = [
 
 [[package]]
 name = "kb-report"
-version = "0.2.1"
+version = "0.3.0"
 dependencies = [
  "serde_json",
  "tempfile",
