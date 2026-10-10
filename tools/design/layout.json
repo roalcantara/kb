@@ -31,7 +31,7 @@
     "panel": { "outerInset": 8, "cornerRadius": 28 },
     "header": {
       "height": 56,
-      "horizontalInset": 32,
+      "horizontalInset": 24,
       "controlGap": 12,
       "searchTextStart": "aligned with result-title start",
       "divider": false
