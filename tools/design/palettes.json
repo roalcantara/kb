@@ -1,0 +1,168 @@
+[
+  {
+    "id": "raycast",
+    "name": "Raycast sample",
+    "source": "tools/design/raycast.json",
+    "roles": {
+      "window": "#1E2532",
+      "header": "#1E2235",
+      "selection": "#272D47",
+      "raised": "#404853",
+      "divider": "#373D43",
+      "text": "#F6FCFD",
+      "textMuted": "#A6B4BF",
+      "textFaint": "#F2FDFD",
+      "blue": "#629EF8",
+      "green": "#9DFB9B",
+      "orange": "#9DFC9B",
+      "purple": "#8F7EF1",
+      "magenta": "#32403C",
+      "yellow": "#9EFC9C",
+      "red": "#42504D"
+    }
+  },
+  {
+    "id": "catppuccin-mocha",
+    "name": "Catppuccin Mocha",
+    "source": "https://catppuccin.com/palette",
+    "roles": {
+      "window": "#1E1E2E",
+      "header": "#181825",
+      "selection": "#313244",
+      "raised": "#45475A",
+      "divider": "#313244",
+      "text": "#CDD6F4",
+      "textMuted": "#A6ADC8",
+      "textFaint": "#7F849C",
+      "blue": "#89B4FA",
+      "green": "#A6E3A1",
+      "orange": "#FAB387",
+      "purple": "#CBA6F7",
+      "magenta": "#F5C2E7",
+      "yellow": "#F9E2AF",
+      "red": "#F38BA8"
+    }
+  },
+  {
+    "id": "catppuccin-macchiato",
+    "name": "Catppuccin Macchiato",
+    "source": "https://catppuccin.com/palette",
+    "roles": {
+      "window": "#24273A",
+      "header": "#1E2030",
+      "selection": "#363A4F",
+      "raised": "#494D64",
+      "divider": "#363A4F",
+      "text": "#CAD3F5",
+      "textMuted": "#A5ADCB",
+      "textFaint": "#8087A2",
+      "blue": "#8AADF4",
+      "green": "#A6DA95",
+      "orange": "#F5A97F",
+      "purple": "#C6A0F6",
+      "magenta": "#F5BDE6",
+      "yellow": "#EED49F",
+      "red": "#ED8796"
+    }
+  },
+  {
+    "id": "tokyo-night-storm",
+    "name": "Tokyo Night Storm",
+    "source": "https://github.com/folke/tokyonight.nvim/tree/main/extras",
+    "roles": {
+      "window": "#24283B",
+      "header": "#1F2335",
+      "selection": "#292E42",
+      "raised": "#1F2335",
+      "divider": "#3B4261",
+      "text": "#C0CAF5",
+      "textMuted": "#A9B1D6",
+      "textFaint": "#565F89",
+      "blue": "#7AA2F7",
+      "green": "#9ECE6A",
+      "orange": "#FF9E64",
+      "purple": "#9D7CD8",
+      "magenta": "#BB9AF7",
+      "yellow": "#E0AF68",
+      "red": "#F7768E"
+    }
+  },
+  {
+    "id": "github-dimmed",
+    "name": "GitHub Dark Dimmed",
+    "source": "https://primer.style/foundations/color",
+    "roles": {
+      "window": "#22272E",
+      "header": "#1C2128",
+      "selection": "#3C434D",
+      "raised": "#2D333B",
+      "divider": "#444C56",
+      "text": "#ADBAC7",
+      "textMuted": "#768390",
+      "textFaint": "#636E7B",
+      "blue": "#539BF5",
+      "green": "#57AB5A",
+      "orange": "#C69026",
+      "purple": "#986EE2",
+      "magenta": "#BF4B8A",
+      "yellow": "#966600",
+      "red": "#E5534B"
+    },
+    "notes": [
+      "selection uses neutral.muted blended over canvas.default (~40% alpha): #3C434D.",
+      "yellow uses attention.fg from the same scale."
+    ]
+  },
+  {
+    "id": "nord",
+    "name": "Nord",
+    "source": "https://www.nordtheme.com/docs/colors-and-palettes",
+    "roles": {
+      "window": "#2E3440",
+      "header": "#3B4252",
+      "selection": "#434C5E",
+      "raised": "#3B4252",
+      "divider": "#4C566A",
+      "text": "#ECEFF4",
+      "textMuted": "#D8DEE9",
+      "textFaint": "#768194",
+      "blue": "#88C0D0",
+      "green": "#A3BE8C",
+      "orange": "#D08770",
+      "purple": "#B48EAD",
+      "magenta": "#C49FC0",
+      "yellow": "#EBCB8B",
+      "red": "#BF616A"
+    },
+    "notes": [
+      "textFaint brightened from nord3 to keep at least 3:1 contrast on nord0.",
+      "magenta uses a lightened north15 to separate it from purple."
+    ]
+  },
+  {
+    "id": "radix-slate-indigo",
+    "name": "Radix Slate + Indigo",
+    "source": "https://www.radix-ui.com/colors",
+    "roles": {
+      "window": "#18191B",
+      "header": "#111113",
+      "selection": "#2B2D31",
+      "raised": "#212225",
+      "divider": "#4B4D51",
+      "text": "#EDEEF0",
+      "textMuted": "#B0B4BA",
+      "textFaint": "#7C7F85",
+      "blue": "#0090FF",
+      "green": "#46A758",
+      "orange": "#F76808",
+      "purple": "#6E56CF",
+      "magenta": "#AB4ABA",
+      "yellow": "#AB6400",
+      "red": "#E5484D"
+    },
+    "notes": [
+      "selection uses indigo4 from Indigo Dark.",
+      "surfaces and neutrals use Slate Dark."
+    ]
+  }
+]
