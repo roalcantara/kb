@@ -19,8 +19,9 @@ permissions: {}
 env:
   CI: true
   CARGO_TERM_COLOR: always
-  # Tools in mise.toml that no CI job runs, and that have no prebuilt Linux binary to install quickly.
-  MISE_DISABLE_TOOLS: tokei,cargo:https://github.com/RayanBO/todo/
+  # Tools in mise.toml that no CI job runs: local developer tools (the code graphs, fnox, the todo CLI), the benchmark
+  # kit's tokei, and commit-check with the Python it runs on (only the local commit-msg and branch hooks use it).
+  MISE_DISABLE_TOOLS: tokei,cargo:https://github.com/RayanBO/todo/,github:zzet/gortex,pipx:code-review-graph,pipx:graphifyy,fnox,pipx:commit-check,python
 
 jobs:
   lint:

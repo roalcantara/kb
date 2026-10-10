@@ -48,6 +48,8 @@ Graphify 0.9.79.
 "github:zzet/gortex" = "0.64.7"
 "pipx:code-review-graph" = "2.3.9"
 "pipx:graphifyy" = "0.9.79"
+# The interpreter the pipx tools run on: mise probes `python` on PATH before installing one (2026.10.7).
+python = "3.13.16"
 # Secrets for Graphify's LLM pass (and GITHUB_TOKEN), resolved from password-store (.fnox.toml)
 fnox = "1.39.0"
 ```
@@ -59,7 +61,7 @@ fnox = "1.39.0"
 - [ ] `mise install` then `GITHUB_TOKEN=$(gh auth token) mise lock`. Expected: `✓ Lockfile written`, and
       `.mise/locks/` gains `pipx-code-review-graph` and `pipx-graphifyy` folders.
 - [ ] `.github/workflows/ci.yml`: extend `MISE_DISABLE_TOOLS` to
-      `tokei,cargo:https://github.com/RayanBO/todo/,github:zzet/gortex,pipx:code-review-graph,pipx:graphifyy,fnox`, and
+      `tokei,cargo:https://github.com/RayanBO/todo/,github:zzet/gortex,pipx:code-review-graph,pipx:graphifyy,fnox,pipx:commit-check,python`, and
       its comment to "Tools in mise.toml that no CI job runs".
 - [ ] Check fnox: `fnox list -P default --sources` lists `GITHUB_TOKEN` and `DEEPSEEK_API_KEY`;
       `fnox exec -- sh -c 'test -n "$DEEPSEEK_API_KEY"' && echo resolved`. If `pass` has no such entry on this machine,

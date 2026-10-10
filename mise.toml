@@ -41,6 +41,8 @@ pinact = "5.0.0"
 "pipx:commit-check" = "2.18.2"
 # Installs pipx tools from their locks in .mise/locks (mise needs uv >= 0.12.10 for that).
 uv = "0.12.21"
+# The interpreter the pipx tools run on: mise probes `python` on PATH before installing one (2026.10.7).
+python = "3.13.16"
 pkl = "0.32.1"
 shellcheck = "0.11.0"
 shfmt = "3.14.1"
@@ -50,6 +52,13 @@ typos = "1.51.1"
 zizmor = "1.30.1"
 "npm:quick-commitlint" = { version = "0.1.2", allow_low_downloads = true }
 node = ["26.11.1", "22.22.2"]
+
+# Code graphs for agents (tools/graph/README.md)
+"github:zzet/gortex" = "0.64.7"
+"pipx:code-review-graph" = "2.3.9"
+"pipx:graphifyy" = "0.9.79"
+# Secrets for Graphify's LLM pass (and GITHUB_TOKEN), resolved from password-store (.fnox.toml)
+fnox = "1.39.0"
 
 [tasks.setup]
 description = "Install tools, fetch crates and the git hooks; the benchmark kit has its own (bench:setup)"
