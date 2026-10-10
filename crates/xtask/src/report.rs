@@ -403,6 +403,7 @@ fn maintainability(results: &Results) -> Result<String, Error> {
     };
     let number = |run: &Run, path: &[&str]| run.number(path).map_or_else(|| "—".into(), |n| format!("{n}"));
     let seconds = |run: &Run, path: &[&str]| run.number(path).map_or_else(|| "—".into(), |s| format!("{s:.0} s"));
+    let share = |run: &Run, path: &[&str]| run.number(path).map_or_else(|| "—".into(), |p| format!("{p:.1}%"));
     let rows = vec![
         vec![
             "Lines of code, tests included (tokei)".to_owned(),
@@ -424,7 +425,27 @@ fn maintainability(results: &Results) -> Result<String, Error> {
             number(&ts, &["deps", "total"]),
             number(&rust, &["deps", "total"]),
         ],
+        vec![
+            "Dependency depth".to_owned(),
+            number(&ts, &["deps", "depth"]),
+            number(&rust, &["deps", "depth"]),
+        ],
         vec!["Tests".to_owned(), number(&ts, &["tests"]), number(&rust, &["tests"])],
+        vec![
+            "Line coverage".to_owned(),
+            share(&ts, &["coverage", "lines"]),
+            share(&rust, &["coverage", "lines"]),
+        ],
+        vec![
+            "Duplicated lines (jscpd)".to_owned(),
+            share(&ts, &["duplication", "percent"]),
+            share(&rust, &["duplication", "percent"]),
+        ],
+        vec![
+            "Clippy warnings".to_owned(),
+            number(&ts, &["lint", "clippyWarnings"]),
+            number(&rust, &["lint", "clippyWarnings"]),
+        ],
         vec![
             "Build, cold (release)".to_owned(),
             seconds(&ts, &["build", "coldSeconds"]),
@@ -677,5 +698,26 @@ mod tests {
     fn says_when_the_manual_keystroke_run_is_missing() {
         let row = keystroke_row(&[]);
         assert!(row.contains("| manual: not recorded |"), "{row}");
+    }
+
+    #[test]
+    fn renders_depth_coverage_duplication_and_lint() {
+        let (_dir, results) = results_with(&[
+            (
+                "maint-ts-20261010T120000Z.json",
+                r#"{"deps": {"depth": 10}, "coverage": {"lines": null}, "duplication": {"percent": 2.5},
+                    "lint": {"clippyWarnings": null}}"#,
+            ),
+            (
+                "maint-rust-20261010T120000Z.json",
+                r#"{"deps": {"depth": 7}, "coverage": {"lines": 81.24}, "duplication": {"percent": 0.4},
+                    "lint": {"clippyWarnings": 0}}"#,
+            ),
+        ]);
+        let out = maintainability(&results).unwrap();
+        assert!(out.contains("| Dependency depth | 10 | 7 |"), "{out}");
+        assert!(out.contains("| Line coverage | — | 81.2% |"), "{out}");
+        assert!(out.contains("| Duplicated lines (jscpd) | 2.5% | 0.4% |"), "{out}");
+        assert!(out.contains("| Clippy warnings | — | 0 |"), "{out}");
     }
 }
