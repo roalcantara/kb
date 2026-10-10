@@ -72,7 +72,7 @@
   - **Tags**: bench, results
 
 - [ ] hU1X **-** Visual polish: bring kb's colours, typography and spacing up to Raycast's, with a spec, a plan, side-by-side screenshots and the GPUI Kit Design Guides
-  - **Comments**: lh5P
+  - **Comments**: lh5P,dW09
   - **Priority**: high
   - **Created**: 2026-10-10 02:29
   - **Tags**: next, parity, ui
@@ -208,6 +208,24 @@
   - **Position**: "file:///Users/roalcantara/Work/rust/kb/tools/graph/graph.ts#L1:1"
   - **Tags**: graph, quality, tools
 
+- [ ] dN8d **-** Plan 6: design foundation: measure Raycast, pick a validated palette (comparison page), PRODUCT.md, DESIGN.md, apply the theme
+  - **Priority**: high
+  - **Created**: 2026-10-10 10:30
+  - **Position**: "file:///Users/roalcantara/Work/rust/kb/docs/superpowers/plans/2026-10-10-kb-native-06-design-foundation.md#L1:1"
+  - **Tags**: design, next, ui
+
+- [ ] eWka **-** Plan 7: components from DESIGN.md: anchored overlays, rows, split pane, footer, detail, media, ⌘⇧F size toggle; parity A01 and S12
+  - **Priority**: high
+  - **Created**: 2026-10-10 10:30
+  - **Position**: "file:///Users/roalcantara/Work/rust/kb/docs/superpowers/specs/2026-10-10-ui-polish-design.md#L1:1"
+  - **Tags**: design, ui
+
+- [ ] QTjG **-** A light palette in DESIGN.md (kb follows the system appearance; Plan 6 designs dark only)
+  - **Priority**: low
+  - **Created**: 2026-10-10 10:30
+  - **Position**: "file:///Users/roalcantara/Work/rust/kb/docs/superpowers/specs/2026-10-10-ui-polish-design.md#L1:1"
+  - **Tags**: design, ui
+
 # Actors
 
 # Comments
@@ -254,4 +272,7 @@
 
 - toCs **-** GitHub Free publishes Pages only from public repositories (checked 2026-10-10). Then: a deploy job in .github/workflows/ci.yml after release (actions/upload-pages-artifact + actions/deploy-pages), from a static page in docs/.
   - **Task**: zfJD
+
+- dW09 **-** Superseded by Plan 6 (design foundation) and Plan 7 (components): docs/superpowers/specs/2026-10-10-ui-polish-design.md.
+  - **Task**: hU1X
 
