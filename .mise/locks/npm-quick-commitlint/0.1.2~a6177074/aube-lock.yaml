@@ -1,0 +1,23 @@
+lockfileVersion: '9.0'
+
+settings:
+  autoInstallPeers: true
+  excludeLinksFromLockfile: false
+
+importers:
+
+  .:
+    dependencies:
+      quick-commitlint:
+        specifier: 0.1.2
+        version: 0.1.2
+
+packages:
+
+  quick-commitlint@0.1.2:
+    resolution: {integrity: sha512-89BpUiOHmgECKtnA3X1PK+VoOWkbQyV0odwEtSxgOh4ZNfEGrqYaa1HcLVoImYcf/Fs8pwy67e0b8QjqPx861g==}
+    hasBin: true
+
+snapshots:
+
+  quick-commitlint@0.1.2: {}

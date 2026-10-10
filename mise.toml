@@ -3,6 +3,9 @@ min_version = "2026.9.13"
 [settings]
 # The Rust toolchain is rust-toolchain.toml's (channel and components), read by mise as well as rustup.
 idiomatic_version_file_enable_tools = ["rust"]
+# mise.lock records every tool's download and checksum for the machines that run this repo: Apple silicon
+# Macs and CI's Linux runners. Run `mise lock` after changing a tool: CI installs with --locked, and fails otherwise.
+lockfile_platforms = ["linux-x64", "macos-arm64"]
 
 [env]
 # ── Benchmark kit (tools/bench/README.md: remove this block and [task_config] when purging it) ──

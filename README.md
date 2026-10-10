@@ -101,6 +101,8 @@ tools/                      developer tooling
   [README](tools/bench/README.md) lists the purge steps.
 - **Root files** are the configs each tool looks for there. Moving tool configs into `.config/` is a later decision
   (`TODO.md`).
+- **Hidden folders** are owned by tools: `.github/` (CI, ADR 0007) and `.mise/` (the npm and pipx tools' locks that
+  `mise.lock` points to, written by `mise lock`).
 - **Local state** (`target/`, `tmp/`, code graphs, agent worktrees) is gitignored; generated output goes to `tmp/`.
 
 ## Key Features

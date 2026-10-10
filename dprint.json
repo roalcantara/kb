@@ -16,6 +16,7 @@
     "docs/experiment/results/**",
     "TODO.md",
     "CHANGELOG.md",
+    ".mise/**",
     "crates/third-party/block/**",
     "**/*.lock",
     "tools/bench/ts/bun.lock"

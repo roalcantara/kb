@@ -22,6 +22,7 @@ ls:
     .ts: regex:^[a-z]+(\.spec)?$
 
 ignore:
+  - .mise
   - .git
   - .vscode
   - target

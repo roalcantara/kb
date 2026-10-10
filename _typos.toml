@@ -1,5 +1,6 @@
 [files]
 extend-exclude = [
+  ".mise/",
   "crates/kb-domain/tests/fixtures/",
   "tools/bench/fixtures/",
   "target/",
