@@ -134,6 +134,7 @@ tools/                      developer tooling
 | `mise run bench:cpu <app>`              | tier 2 cold-start CPU of kb or raycast                                |
 | `mise run bench:session`                | preflight, then every tier 2 and 3 run and maintainability, in order  |
 | `mise run package`                      | build and sign `kb.app`; `install` copies it to ~/Applications        |
+| `mise run show`                         | (re)start kb in the background with the panel showing, without ⌥K     |
 | `mise run ci`                           | what CI checks: the gate on macOS, `ci:lint` and `ci:test` elsewhere  |
 | `mise run release -- --dry-run --no-ci` | preview the next release (`GITHUB_TOKEN=$(gh auth token)`)            |
 | `mise run report`                       | gate, parity, then `docs/experiment/report.md` from the results       |

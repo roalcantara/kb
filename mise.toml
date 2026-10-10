@@ -259,6 +259,19 @@ run = '''
   exec target/release/kb
 '''
 
+[tasks.show]
+description = "Show the panel without the hotkey: build, then (re)start kb in the background, which opens showing it"
+run = '''
+  #!/usr/bin/env bash
+  set -euo pipefail
+  cargo build --release --locked -p kb-app
+  pkill -x kb || true # a running kb cannot be asked to show itself; a fresh one opens showing the panel
+  while pgrep -x kb >/dev/null; do sleep 0.2; done
+  mkdir -p tmp
+  nohup target/release/kb >tmp/kb.log 2>&1 &
+  echo "kb started (pid $!); its output goes to tmp/kb.log"
+'''
+
 [tasks.size]
 description = "Build the release binary and check it against tools/size/budget"
 run = "cargo build --release --locked -p kb-app && tools/size/size.sh"
